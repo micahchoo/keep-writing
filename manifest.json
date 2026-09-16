@@ -1,0 +1,9 @@
+{
+  "id": "keep-writing",
+  "name": "keep-writing",
+  "version": "0.1.0",
+  "minAppVersion": "1.8.0",
+  "description": "The vault interviews its owner: draws Asks from the Bank into the Sitting, marks answers done, links blocks by typed relation.",
+  "author": "Micah",
+  "isDesktopOnly": false
+}

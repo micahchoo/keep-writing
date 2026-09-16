@@ -1,0 +1,178 @@
+/* keep-writing: Asks read as questions, not warnings. */
+
+.callout[data-callout="ask"] {
+  /* --callout-color must be an r, g, b triplet; the mono one keeps it quiet. */
+  --callout-color: var(--mono-rgb-100);
+  --callout-icon: lucide-message-circle-question;
+  background-color: var(--background-secondary);
+  border-left: 2px solid var(--text-accent);
+}
+
+.callout[data-callout="ask"] .callout-icon {
+  color: var(--text-accent);
+}
+
+.callout[data-callout="ask"] .callout-title {
+  color: var(--text-accent);
+  font-weight: var(--font-medium);
+}
+
+.callout[data-callout="ask"] .callout-content {
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+}
+
+/* Panes */
+
+.kw-ask,
+.kw-links {
+  padding: var(--size-4-2);
+}
+
+.kw-muted {
+  color: var(--text-muted);
+}
+
+.kw-small {
+  font-size: var(--font-smaller);
+}
+
+.kw-title {
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--size-4-2);
+}
+
+.kw-target {
+  margin-bottom: var(--size-4-3);
+}
+
+.kw-card {
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-m);
+  padding: var(--size-4-3);
+  margin-bottom: var(--size-4-4);
+}
+
+.kw-question {
+  font-size: var(--font-ui-large);
+  margin: var(--size-4-2) 0;
+}
+
+.kw-question p {
+  margin: 0;
+}
+
+.kw-meta {
+  margin-bottom: var(--size-4-2);
+}
+
+.kw-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-1);
+}
+
+.kw-section {
+  margin-bottom: var(--size-4-4);
+}
+
+.kw-group {
+  margin-bottom: var(--size-4-3);
+}
+
+.kw-group-name {
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--size-4-1);
+}
+
+.kw-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  padding: var(--size-2-1) var(--size-4-1);
+  border-radius: var(--radius-s);
+}
+
+.kw-row.is-here {
+  background-color: var(--background-modifier-hover);
+  box-shadow: inset 2px 0 0 var(--text-accent);
+}
+
+.kw-row .kw-ref {
+  flex: 1;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kw-arrow,
+.kw-own {
+  color: var(--text-faint);
+  font-size: var(--font-smaller);
+}
+
+.kw-row .kw-remove,
+.kw-row .kw-mark {
+  opacity: 0;
+}
+
+.kw-row:hover .kw-remove,
+.kw-row:hover .kw-mark,
+.kw-row:focus-within .kw-remove,
+.kw-row:focus-within .kw-mark {
+  opacity: 1;
+}
+
+/* Revisit: the owner's own paragraph, read before it is asked about */
+
+.kw-paragraph {
+  font-size: var(--font-ui-medium);
+  margin: var(--size-4-2) 0;
+  padding-left: var(--size-4-2);
+  border-left: 1px solid var(--background-modifier-border);
+}
+
+.kw-paragraph p {
+  margin: 0;
+}
+
+/* Follow-up and Proposal cards */
+
+.kw-follow-up {
+  border-left: 2px solid var(--text-accent);
+}
+
+.kw-candidate {
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+  margin: var(--size-4-2) 0;
+  padding-left: var(--size-4-2);
+  border-left: 1px solid var(--background-modifier-border);
+}
+
+.kw-candidate p {
+  margin: 0;
+}
+
+.kw-quote {
+  color: var(--text-accent);
+  margin-bottom: var(--size-4-2);
+}
+
+.kw-candidate-q {
+  align-items: flex-start;
+}
+
+.kw-candidate-q .kw-question {
+  font-size: var(--font-ui-medium);
+  white-space: normal;
+  cursor: default;
+}
+
+.kw-candidate-q .kw-mark {
+  opacity: 1;
+}
