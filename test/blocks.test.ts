@@ -6,7 +6,7 @@ import { fakeVault } from './fake-vault';
 // one on accept, appended to its last line. Nothing else changes.
 
 describe('ensureBlockId', () => {
-  const note = '---\nkind: domain\n---\n\nI walk to think.\nEvery city has a poem.\n\nAlready marked. ^w1\n';
+  const note = '---\nkind: domain\n---\n\nI walk to think, and the city gives back a different thought each morning.\nEvery city has a poem.\n\nAlready marked. ^w1\n';
 
   test('appends an id to the last line of the paragraph and returns a block ref', async () => {
     const vault = fakeVault({ 'Domains/Cities.md': note });
@@ -15,7 +15,7 @@ describe('ensureBlockId', () => {
     expect(ref.blockId).toMatch(/^[a-z0-9]{6}$/);
     expect(vault.writes).toHaveLength(1);
     expect(vault.text('Domains/Cities.md')).toBe(
-      `---\nkind: domain\n---\n\nI walk to think.\nEvery city has a poem. ^${ref.blockId}\n\nAlready marked. ^w1\n`,
+      `---\nkind: domain\n---\n\nI walk to think, and the city gives back a different thought each morning.\nEvery city has a poem. ^${ref.blockId}\n\nAlready marked. ^w1\n`,
     );
   });
 

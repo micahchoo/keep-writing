@@ -7,10 +7,19 @@
 // run of text, in any note the owner writes paragraphs in, id or not. The
 // block gets its id when the Ask is accepted, which is the same moment the
 // jar's own id-less paragraphs get theirs.
+//
+// The jar's furniture test (paragraphs.ts#readsAsParagraph) does not run
+// here. Its word floor is the draw's standard, for choosing among a thousand
+// blocks unattended; what the owner selects by hand, they meant, and a short
+// line they point at is exactly what a Revisit wants. Only one thing is
+// refused: a selection with no prose in it at all, which gives the model
+// nothing to ask about and makes it invent (measured 2026-09-15: handed a
+// bare `{{< figure >}}`, bonsai asked which part of the owner's daily routine
+// felt like a basemap).
 
 import type { App, TFile } from 'obsidian';
 import { paragraphAt } from './blocks';
-import { REVISIT_REGISTER, fileFacts } from './paragraphs';
+import { REVISIT_REGISTER, fileFacts, proseOf } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { refOf, stripBlockDecoration } from './refs';
 
@@ -40,6 +49,7 @@ export function selectionParagraph(
 ): Paragraph {
   const text = stripBlockDecoration(selected);
   if (!text) throw new NotSelectable('Select the words to ask about first.');
+  if (!proseOf(text)) throw new NotSelectable('That selection is a link, an image or markup. Select words to ask about.');
   if (text.length > MAX_SELECTION) {
     throw new NotSelectable(`That selection is ${text.length} characters. Select fewer than ${MAX_SELECTION}.`);
   }

@@ -36,7 +36,7 @@ describe.skipIf(!live)(`follow-ups on ${NOTE}`, () => {
       }
       const onLog = (e: CallLog) =>
         console.log(`    [try ${e.attempt}] ${e.outcome} in ${e.ms}ms${e.reason ? `\n      reason: ${e.reason}` : ''}`);
-      const qs = await composeFollowUps({ baseUrl: BASE, model: 'bonsai-27b', fetcher, onLog }, ask.question, answer, 'me');
+      const qs = await composeFollowUps({ baseUrl: BASE, model: 'bonsai-27b', fetcher, onLog }, ask.question, answer, [], 'me');
       console.log(`  -> ${qs.length} kept`);
       for (const q of qs) console.log(`     + ${q}`);
     }

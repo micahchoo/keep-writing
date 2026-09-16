@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { appendAsk, parseAsks } from '../src/asks';
+import { appendAsk, parseAsks, questionsAbout } from '../src/asks';
 
 const sitting = `---
 about: "[[me]]"
@@ -123,5 +123,49 @@ describe('revisit asks', () => {
   test('an embed line before the from-line is not taken for the source', () => {
     const md = `> [!ask] q?\n> ![[${ref}]]\n> from [[${ref}]]\n`;
     expect(parseAsks(md)[0]?.sourceRef).toBe(ref);
+  });
+});
+
+// The shape of a real Sitting: a Bank question, the owner's answer, then a
+// Follow-up composed from that answer, then its answer. Both Asks are "about"
+// the first answer block, by different routes.
+describe('questionsAbout', () => {
+  const SITTING = [
+    '## Asked',
+    '',
+    '> [!ask] What makes repetition of our conditions hopeless or energizing?',
+    '> from [[Bank/cinema#^b41440102-2]]',
+    '',
+    'When things occur, over and over, we cannot stop the train. ^hrit0q',
+    '',
+    '> [!ask] What is one condition you repeat that you wish you could stop doing?',
+    '> from [[Sittings/2026-09-14#^hrit0q]]',
+    '',
+    'I think suffering from bipolar enhanced my connection with my bed. ^og5etj',
+  ].join('\n');
+  const asks = parseAsks(SITTING);
+  const isSource = (ref: string) => ref === 'Sittings/2026-09-14#^hrit0q';
+
+  test('the block carries the question it answers AND the one composed from it', () => {
+    expect(questionsAbout(asks, 5, isSource)).toEqual([
+      'What makes repetition of our conditions hopeless or energizing?',
+      'What is one condition you repeat that you wish you could stop doing?',
+    ]);
+  });
+
+  test('a later block carries only the question it answers', () => {
+    expect(questionsAbout(asks, 10, () => false)).toEqual([
+      'What is one condition you repeat that you wish you could stop doing?',
+    ]);
+  });
+
+  test('a line outside every answer, and a Sitting with no Asks, carry nothing', () => {
+    expect(questionsAbout(asks, 0, () => false)).toEqual([]);
+    expect(questionsAbout(parseAsks('just prose, no asks'), 0, () => false)).toEqual([]);
+  });
+
+  test('a malformed Ask with no source is never matched by ref', () => {
+    const noSource = parseAsks('> [!ask] a question with no from-line\n\nan answer');
+    expect(questionsAbout(noSource, 99, () => true)).toEqual([]);
   });
 });

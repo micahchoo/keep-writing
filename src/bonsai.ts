@@ -283,8 +283,13 @@ Where to look for the question, in order of preference:
  * `asked`, refers to the conversation, or runs long. The whole output is
  * invalid only when no candidate survives.
  *
- * `asked` is the question the answer answers; empty for a Revisit, which has
- * no asked question, only a paragraph. Measured 2026-09-13 on the Sitting
+ * `asked` is every question already put to the owner about these words: for a
+ * Follow-up, the questions of the Sitting it is composed in; for a Revisit,
+ * the questions already asked from the source block. It is REQUIRED and never
+ * defaults. Before 2026-09-16 the Revisit path had no such set at all, so a
+ * composed Revisit was measured against nothing. Pass `[]` only where there
+ * is genuinely nothing to duplicate, and say so at the call site.
+ * Measured 2026-09-13 on the Sitting
  * "Not ready for?": asked "What is one specific area…" and answered with
  * three, bonsai returned that same question three times over, at temperature
  * 0, in prose and in list form alike. It reads the question as still open
@@ -292,7 +297,7 @@ Where to look for the question, in order of preference:
  * the owner the question they had just answered, and accepting it would have
  * written the same Ask again.
  */
-export function checkFollowUps(obj: unknown, answer: string, asked = ''): Verdict<string[]> {
+export function checkFollowUps(obj: unknown, answer: string, asked: string[]): Verdict<string[]> {
   if (typeof obj !== 'object' || obj === null) return { kind: 'invalid', reason: 'output is not an object' };
   const raw = (obj as { questions?: unknown }).questions;
   if (!Array.isArray(raw)) return { kind: 'invalid', reason: 'missing "questions" array' };
@@ -308,7 +313,8 @@ export function checkFollowUps(obj: unknown, answer: string, asked = ''): Verdic
     if (!q.endsWith('?')) { reasons.push(`"${q}" does not end with "?"`); continue; }
     if (wordCount(q) > MAX_FOLLOW_UP_WORDS) { reasons.push(`"${q}" is longer than ${MAX_FOLLOW_UP_WORDS} words`); continue; }
     if (isParrot(q, answer)) { reasons.push(`"${q}" repeats the answer back`); continue; }
-    if (asked && isParrot(q, asked)) { reasons.push(`"${q}" re-asks the question that was just answered`); continue; }
+    const reAsked = asked.find((a) => a.trim() && isParrot(q, a));
+    if (reAsked) { reasons.push(`"${q}" re-asks "${reAsked}"`); continue; }
     const lower = q.toLowerCase();
     const hit = SELF_REFERENCE.find((p) => lower.includes(p));
     if (hit) { reasons.push(`"${q}" refers to the conversation ("${hit}")`); continue; }
@@ -359,11 +365,19 @@ export function isParrot(question: string, answer: string): boolean {
  * So the second arm drops the question and keeps the answer. The re-ask check
  * runs on both arms.
  */
-export async function composeFollowUps(cfg: BonsaiConfig, question: string, answer: string, target: string): Promise<string[]> {
+export async function composeFollowUps(
+  cfg: BonsaiConfig,
+  question: string,
+  answer: string,
+  asked: string[],
+  target: string,
+): Promise<string[]> {
   const about = target === 'me' ? '' : `About: ${target}\n\n`;
-  const check = (obj: unknown) => checkFollowUps(obj, answer, question);
-  const asked = `${about}Question asked: ${question}\n\nAnswer:\n${answer}`;
-  const first = await runJob(cfg, 'follow-up', FOLLOW_UP_SYSTEM, asked, check);
+  // The question being answered is always part of the set, whatever else the
+  // caller found: it is the one the model is most likely to re-issue.
+  const check = (obj: unknown) => checkFollowUps(obj, answer, [question, ...asked]);
+  const withQuestion = `${about}Question asked: ${question}\n\nAnswer:\n${answer}`;
+  const first = await runJob(cfg, 'follow-up', FOLLOW_UP_SYSTEM, withQuestion, check);
   if (first.kind === 'ok') return first.value;
   // An abstain is the model saying it has nothing to ask. That is a legal
   // answer and the second arm must not go around it.
@@ -402,13 +416,18 @@ export function splitDue(raw: string): RevisitCandidate {
  * Pure: the Follow-up checks, applied to Revisit output. Each candidate is
  * split off its due marker first, so the marker never fails the `?` test
  * and never reaches the owner; a kept question gets its `dueDays` back.
+ *
+ * `asked` is what the owner has already been asked about this block. A
+ * Sitting block is almost always the first paragraph of an answer, so it
+ * already has at least one question hanging on it; without this set a
+ * Revisit could hand that same question back days later.
  */
-export function checkRevisit(obj: unknown, paragraph: string): Verdict<RevisitCandidate[]> {
+export function checkRevisit(obj: unknown, paragraph: string, asked: string[]): Verdict<RevisitCandidate[]> {
   if (typeof obj !== 'object' || obj === null) return { kind: 'invalid', reason: 'output is not an object' };
   const raw = (obj as { questions?: unknown }).questions;
   if (!Array.isArray(raw)) return { kind: 'invalid', reason: 'missing "questions" array' };
   const split = raw.filter((q): q is string => typeof q === 'string').map(splitDue);
-  const verdict = checkFollowUps({ questions: split.map((c) => c.question) }, paragraph);
+  const verdict = checkFollowUps({ questions: split.map((c) => c.question) }, paragraph, asked);
   if (verdict.kind !== 'ok') return verdict;
   const value = verdict.value.map((question) => {
     const days = split.find((c) => c.question === question)?.dueDays;
@@ -420,15 +439,28 @@ export function checkRevisit(obj: unknown, paragraph: string): Verdict<RevisitCa
 /**
  * Compose up to three questions from a paragraph the person wrote before,
  * best first. Same interviewer, same checks as a Follow-up: the paragraph is
- * the context, the framing says when and where it was written (`in 2021,
- * for Branch Magazine`), and the Well's Lens, when it has one, is appended
- * to the system prompt verbatim. Empty on abstain, transport error, or when
- * the retry also fails.
+ * the context, the framing says when and where it was written (`in 2021, in
+ * "Koramangala", for Branch Magazine`), and the Well's Lens, when it has one,
+ * is appended to the system prompt verbatim. Empty on abstain, transport
+ * error, or when the retry also fails.
+ *
+ * The question a Sitting block answered is NOT put in the framing, on
+ * purpose. Measured 2026-09-16 on real Sittings: shown it, bonsai composes
+ * very nearly the same three questions the Follow-up already offered the day
+ * the answer was written, so the Revisit stops being a second look and
+ * becomes a repeat. It goes into `asked` instead, where it rules out the
+ * repeat without flattening the question.
  */
-export async function composeRevisit(cfg: BonsaiConfig, paragraph: string, framing: string, lens = ''): Promise<RevisitCandidate[]> {
+export async function composeRevisit(
+  cfg: BonsaiConfig,
+  paragraph: string,
+  framing: string,
+  asked: string[],
+  lens = '',
+): Promise<RevisitCandidate[]> {
   const system = lens.trim() ? `${FOLLOW_UP_SYSTEM}\n\n${lens.trim()}` : FOLLOW_UP_SYSTEM;
   const user = `Something they wrote ${framing}:\n\n${paragraph}`;
-  return valueOrNull(await runJob(cfg, 'revisit', system, user, (obj) => checkRevisit(obj, paragraph))) ?? [];
+  return valueOrNull(await runJob(cfg, 'revisit', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
 }
 
 // ---------------------------------------------------------------------------

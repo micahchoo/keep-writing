@@ -70,18 +70,38 @@ describe('a selection in a Sitting', () => {
   });
 });
 
+describe('what a selection refuses', () => {
+  const refuse = (selected: string) => () => pick('Pieces/2021-cities.md', selected, 8);
+
+  test('a selection with no prose in it: the model would have nothing to ask about', () => {
+    expect(refuse('{{< figure src="buffalo.jpeg" alt="The procession" >}}')).toThrow(NotSelectable);
+    expect(refuse('![a map](map.png)')).toThrow(NotSelectable);
+    expect(refuse('https://escholarship.org/uc/item/6xj932f8')).toThrow(/link, an image or markup/);
+  });
+
+  test("the jar's word floor does not apply: what the owner points at, they meant", () => {
+    // Furniture to the draw (under MIN_PROSE_WORDS), a good source by hand.
+    expect(refuse('Who gets to hold memory?')).not.toThrow();
+    expect(pick('Pieces/2021-cities.md', 'Who gets to hold memory?', 8).text).toBe('Who gets to hold memory?');
+  });
+
+  test('a link keeps its words, so prose around a link is still selectable', () => {
+    expect(refuse('the map in [this Compost.mag piece](https://compost.mag/x)')).not.toThrow();
+  });
+});
+
 describe('a selection elsewhere', () => {
   test('a published Piece brings its framing, its title and the Domain that gathers it', () => {
     const p = pick('Pieces/2021-cities.md', 'The buffaloes went past the auto stand.', 8);
     expect(p.origin).toBe('piece');
     expect(p.wells).toEqual(['Blender']);
-    expect(p.framing).toBe('in 2021, for Branch Magazine');
+    expect(p.framing).toBe('in 2021, in "Feeling Through the Cities", for Branch Magazine');
     expect(p.title).toBe('Feeling Through the Cities');
     expect(p.ref.blockId).toBe('p-004');
   });
 
   test('an open Piece was not written some time ago: it is the one being written', () => {
-    expect(pick('Pieces/open.md', 'A paragraph with no id yet.', 4).framing).toBe('in the Piece they are writing');
+    expect(pick('Pieces/open.md', 'A paragraph with no id yet.', 4).framing).toBe('in "The one I am writing", the Piece they are writing');
   });
 
   test('a Domain body is filed under that Domain, so the craft Lens frames the question', () => {

@@ -1,5 +1,6 @@
 // A vault small enough to hold in one object. Notes are plain markdown; the
-// metadata cache (frontmatter, links in it, sections, list items, blocks) is
+// metadata cache (frontmatter, links in it, sections, headings, list items,
+// blocks) is
 // derived the way Obsidian would derive it, for the shapes this plugin reads.
 // `vault.process` edits the note in place and records the write.
 
@@ -44,6 +45,7 @@ function cacheOf(markdown: string) {
   const lines = markdown.split('\n');
   const { frontmatter, end } = parseFrontmatter(lines);
   const sections: { type: string; id?: string; position: Pos }[] = [];
+  const headings: { heading: string; level: number; position: Pos }[] = [];
   const listItems: { id?: string; parent: number; position: Pos }[] = [];
   const blocks: Record<string, { id: string; position: Pos }> = {};
   const tags: { tag: string; position: Pos }[] = [];
@@ -73,6 +75,10 @@ function cacheOf(markdown: string) {
     const first = chunk[0] as string;
     const type = /^#{1,6}\s/.test(first) ? 'heading' : /^\s*[-*+]\s/.test(first) ? 'list' : first.startsWith('>') ? 'blockquote' : first.startsWith('```') ? 'code' : 'paragraph';
     const section: { type: string; id?: string; position: Pos } = { type, position: pos(start, i) };
+    if (type === 'heading') {
+      const h = /^(#{1,6})\s+(.*)$/.exec(first) as RegExpExecArray;
+      headings.push({ heading: (h[2] as string).trim(), level: (h[1] as string).length, position: pos(start, start) });
+    }
     if (type === 'list') {
       chunk.forEach((line, j) => {
         const item: { id?: string; parent: number; position: Pos } = { parent: -start, position: pos(start + j, start + j) };
@@ -94,7 +100,7 @@ function cacheOf(markdown: string) {
     sections.push(section);
     i++;
   }
-  return { frontmatter, frontmatterLinks, sections, listItems, blocks, tags };
+  return { frontmatter, frontmatterLinks, sections, headings, listItems, blocks, tags };
 }
 
 export interface FakeVault {

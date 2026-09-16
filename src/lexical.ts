@@ -52,6 +52,13 @@ export function contentTokens(text: string): Set<string> {
  * frequency across `pool`; ties break toward the shorter text. A block whose
  * ref equals `excludeRef` is never returned. Returns [] when the best score
  * is 0.
+ *
+ * Two blocks with the same text count as one candidate, so `k` slots hold `k`
+ * things to judge. The corpus keeps every telling of a Piece, so the same
+ * paragraph sits in the pool under several refs; measured 2026-09-16, every
+ * candidate list sampled spent one or two of its five slots showing bonsai
+ * the same words twice. The first ref found wins, which is the
+ * highest-scoring one.
  */
 export function findCandidates(answer: string, pool: Block[], k: number, excludeRef?: string): Block[] {
   if (k <= 0 || pool.length === 0) return [];
@@ -85,5 +92,13 @@ export function findCandidates(answer: string, pool: Block[], k: number, exclude
     return a.block.text.length - b.block.text.length;
   });
 
-  return scored.slice(0, k).map((s) => s.block);
+  const out: Block[] = [];
+  const seen = new Set<string>();
+  for (const { block } of scored) {
+    if (seen.has(block.text)) continue;
+    seen.add(block.text);
+    out.push(block);
+    if (out.length === k) break;
+  }
+  return out;
 }

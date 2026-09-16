@@ -118,6 +118,27 @@ export function answerText(markdown: string, ask: Ask): string {
     .trim();
 }
 
+/**
+ * Pure: every question already put to the owner about one block of a Sitting.
+ * Two ways an Ask is about a block: the block sits in its answer, or the Ask
+ * was composed from the block and cites it as its source. `isSource` tells
+ * the second apart, because comparing refs needs the vault to resolve them.
+ *
+ * This is the `asked` set a Revisit is measured against. A Sitting block is
+ * almost always the first paragraph of an answer, so it always has at least
+ * one question hanging on it, and without this the draw could hand that
+ * question straight back days later.
+ */
+export function questionsAbout(
+  asks: Ask[],
+  line: number,
+  isSource: (sourceRef: string) => boolean,
+): string[] {
+  return asks
+    .filter((a) => (line >= a.answer.start && line < a.answer.end) || (!!a.sourceRef && isSource(a.sourceRef)))
+    .map((a) => a.question);
+}
+
 /** Asks of a Sitting, with answered-ness read from its `answers` property. */
 export async function asksOf(app: App, file: TFile): Promise<Ask[]> {
   const content = await app.vault.cachedRead(file);

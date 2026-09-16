@@ -19,6 +19,7 @@ describe('checkFollowUps', () => {
         ],
       },
       ANSWER,
+      [], // nothing asked yet: this test is about the other rules
     );
     expect(v.kind).toBe('ok');
     if (v.kind === 'ok') {
@@ -29,11 +30,11 @@ describe('checkFollowUps', () => {
     }
   });
   test('invalid when nothing survives', () => {
-    const v = checkFollowUps({ questions: ['Tell me more.'] }, ANSWER);
+    const v = checkFollowUps({ questions: ['Tell me more.'] }, ANSWER, []);
     expect(v.kind).toBe('invalid');
   });
   test('invalid shape', () => {
-    expect(checkFollowUps({ question: 'x?' }, ANSWER).kind).toBe('invalid');
+    expect(checkFollowUps({ question: 'x?' }, ANSWER, []).kind).toBe('invalid');
   });
 });
 
@@ -59,11 +60,11 @@ describe('composeFollowUps with a fake server', () => {
     };
   };
   test('returns the kept questions', async () => {
-    const out = await composeFollowUps(cfg(['{"questions":["What happened the first time?","Tell me more."]}']), 'q?', ANSWER, 'me');
+    const out = await composeFollowUps(cfg(['{"questions":["What happened the first time?","Tell me more."]}']), 'q?', ANSWER, [], 'me');
     expect(out).toEqual(['What happened the first time?']);
   });
   test('retries once, then gives up empty', async () => {
-    const out = await composeFollowUps(cfg(['{"questions":["Tell me more."]}', '{"questions":["Still no."]}']), 'q?', ANSWER, 'me');
+    const out = await composeFollowUps(cfg(['{"questions":["Tell me more."]}', '{"questions":["Still no."]}']), 'q?', ANSWER, [], 'me');
     expect(out).toEqual([]);
   });
   test('abstain is empty without retry', async () => {
@@ -71,7 +72,7 @@ describe('composeFollowUps with a fake server', () => {
     const c = cfg(['{"abstain":true}']);
     const f = c.fetcher;
     c.fetcher = (u, i) => { calls++; return f(u, i); };
-    expect(await composeFollowUps(c, 'q?', ANSWER, 'me')).toEqual([]);
+    expect(await composeFollowUps(c, 'q?', ANSWER, [], 'me')).toEqual([]);
     expect(calls).toBe(1);
   });
 });
@@ -117,7 +118,7 @@ describe('composeRevisit with a fake server', () => {
     const { cfg, bodies, log } = capture([
       '{"questions":["What did the buffaloes see that you left out?","You wrote that down; why?","Tell me more."]}',
     ]);
-    const out = await composeRevisit(cfg, PARAGRAPH, 'in 2021, for Branch Magazine');
+    const out = await composeRevisit(cfg, PARAGRAPH, 'in 2021, for Branch Magazine', []);
     expect(out).toEqual([{ question: 'What did the buffaloes see that you left out?' }]);
     const sent = JSON.parse(bodies[0] as string) as { messages: { role: string; content: string }[] };
     expect(sent.messages[1]?.content).toBe(`Something they wrote in 2021, for Branch Magazine:\n\n${PARAGRAPH}`);
@@ -128,10 +129,10 @@ describe('composeRevisit with a fake server', () => {
   test('without a Lens the system prompt is the interviewer alone; with one, the Lens is appended verbatim', async () => {
     const reply = '{"questions":["What did the buffaloes see that you left out?"]}';
     const plain = capture([reply]);
-    await composeRevisit(plain.cfg, PARAGRAPH, 'in 2021');
+    await composeRevisit(plain.cfg, PARAGRAPH, 'in 2021', []);
     const lensed = capture([reply]);
     const LENS = 'Look for what happened, in order, before you look for what it means.\n\n1. A moment named.';
-    await composeRevisit(lensed.cfg, PARAGRAPH, 'in 2021', LENS);
+    await composeRevisit(lensed.cfg, PARAGRAPH, 'in 2021', [], LENS);
     const system = (bodies: string[]) => (JSON.parse(bodies[0] as string) as { messages: { content: string }[] }).messages[0]?.content ?? '';
     expect(system(plain.bodies)).not.toContain('Look for what happened');
     expect(system(lensed.bodies)).toBe(`${system(plain.bodies)}\n\n${LENS}`);
@@ -142,7 +143,7 @@ describe('composeRevisit with a fake server', () => {
     const { cfg } = capture([
       '{"questions":["Go read one page of Reve tonight; what surprised you? (due +7d)","Which word did you look up first? (due +3d)?","What does the first sentence mean?"]}',
     ]);
-    const out = await composeRevisit(cfg, PARAGRAPH, 'in what they wrote about wanting to learn Dutch', 'reach for a rung');
+    const out = await composeRevisit(cfg, PARAGRAPH, 'in what they wrote about wanting to learn Dutch', [], 'reach for a rung');
     expect(out).toEqual([
       { question: 'Go read one page of Reve tonight; what surprised you?', dueDays: 7 },
       { question: 'Which word did you look up first?', dueDays: 3 },
@@ -152,7 +153,7 @@ describe('composeRevisit with a fake server', () => {
 
   test('empty after the retry also fails, so the pane falls back', async () => {
     const { cfg, log } = capture(['{"questions":["Tell me more."]}', 'no json here']);
-    expect(await composeRevisit(cfg, PARAGRAPH, 'in 2020, in a draft they set down')).toEqual([]);
+    expect(await composeRevisit(cfg, PARAGRAPH, 'in 2020, in a draft they set down', [])).toEqual([]);
     expect(log.length).toBe(2);
   });
 });
@@ -162,31 +163,40 @@ describe('a follow-up never re-asks the question that was just answered', () => 
   const answer = '1. Dating - making friends is much harder now\n2. Going out - I have to drive long distances\n3. Finding reasons to stay healthy';
 
   test('the same question back is dropped, whatever the answer looked like', () => {
-    const v = checkFollowUps({ questions: [asked] }, answer, asked);
+    const v = checkFollowUps({ questions: [asked] }, answer, [asked]);
     expect(v.kind).toBe('invalid');
-    if (v.kind === 'invalid') expect(v.reason).toContain('re-asks the question');
+    if (v.kind === 'invalid') expect(v.reason).toContain('re-asks');
   });
 
   test('so is a re-ask built only from the words of the question', () => {
     const trimmed = 'What is one specific area where the pressure to evolve is most intense?';
-    expect(checkFollowUps({ questions: [trimmed] }, answer, asked).kind).toBe('invalid');
+    expect(checkFollowUps({ questions: [trimmed] }, answer, [asked]).kind).toBe('invalid');
   });
 
   test('the check reaches exactly as far as isParrot: one new content word passes it', () => {
     // Not an aspiration, a boundary. What was measured is the verbatim echo;
     // a re-ask that brings a word of its own is left to the model's prompt.
     const reworded = 'Which specific area right now do you feel the pressure to evolve most intense?';
-    expect(checkFollowUps({ questions: [reworded] }, answer, asked).kind).toBe('ok');
+    expect(checkFollowUps({ questions: [reworded] }, answer, [asked]).kind).toBe('ok');
   });
 
   test('a question that opens one of the three is kept', () => {
     const fresh = 'What made it easier to date friends than to date strangers?';
-    const v = checkFollowUps({ questions: [asked, fresh] }, answer, asked);
+    const v = checkFollowUps({ questions: [asked, fresh] }, answer, [asked]);
     expect(v.kind).toBe('ok');
     if (v.kind === 'ok') expect(v.value).toEqual([fresh]);
   });
 
-  test('with no asked question — a Revisit — the check does not run', () => {
-    expect(checkFollowUps({ questions: [asked] }, answer).kind).toBe('ok');
+  test('the set is what the check runs on: empty lets the re-ask through', () => {
+    // This is the defect the set exists to close. Until 2026-09-16 the Revisit
+    // path had no set at all, so it ran exactly like this, always.
+    expect(checkFollowUps({ questions: [asked] }, answer, []).kind).toBe('ok');
+  });
+
+  test('every question in the set is checked, not just the first', () => {
+    const earlier = 'What makes repetition of our conditions hopeless or energizing?';
+    const v = checkFollowUps({ questions: [earlier] }, answer, [asked, earlier]);
+    expect(v.kind).toBe('invalid');
+    if (v.kind === 'invalid') expect(v.reason).toContain(earlier);
   });
 });

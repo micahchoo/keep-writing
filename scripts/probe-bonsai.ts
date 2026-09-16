@@ -60,7 +60,7 @@ async function runOnce(run: number): Promise<void> {
   console.log('\n-- composeFollowUps --');
   const fuLog: CallLog[] = [];
   const cfg: BonsaiConfig = { baseUrl: BASE_URL, model: MODEL, fetcher, timeoutMs: 60_000, onLog: logger(fuLog) };
-  const fus = await composeFollowUps(cfg, 'What is a chore you have come to like?', ANSWER, TARGET);
+  const fus = await composeFollowUps(cfg, 'What is a chore you have come to like?', ANSWER, [], TARGET);
   for (const q of fus) console.log(`  Q: ${q}  [parrot: ${isParrot(q, ANSWER)}]`);
   if (fus.length === 0) console.log('  (none)');
 

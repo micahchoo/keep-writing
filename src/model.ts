@@ -17,10 +17,10 @@ export interface Model {
   readonly available: boolean;
   /** Why it is unavailable, for the pane. Empty when available. */
   readonly reason: string;
-  /** Up to three follow-up questions, best first; empty when none. */
-  composeFollowUps(question: string, answer: string, target: string): Promise<string[]>;
-  /** Up to three questions about a paragraph the owner wrote before, through the Well's Lens; empty when none. */
-  composeRevisit(paragraph: string, framing: string, lens: string): Promise<RevisitCandidate[]>;
+  /** Up to three follow-up questions, best first; empty when none. `asked` is every other question already put in this Sitting. */
+  composeFollowUps(question: string, answer: string, asked: string[], target: string): Promise<string[]>;
+  /** Up to three questions about a paragraph the owner wrote before, through the Well's Lens; empty when none. `asked` is what was already asked from that block. */
+  composeRevisit(paragraph: string, framing: string, asked: string[], lens: string): Promise<RevisitCandidate[]>;
   findCandidates(answer: string, pool: Block[], k: number, excludeRef?: string): Block[];
   proposeRelation(answer: string, candidates: Candidate[]): Promise<Proposal | null>;
 }
@@ -47,8 +47,8 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
   return {
     available: true,
     reason: '',
-    composeFollowUps: (question, answer, target) => composeFollowUps(cfg, question, answer, target),
-    composeRevisit: (paragraph, framing, lens) => composeRevisit(cfg, paragraph, framing, lens),
+    composeFollowUps: (question, answer, asked, target) => composeFollowUps(cfg, question, answer, asked, target),
+    composeRevisit: (paragraph, framing, asked, lens) => composeRevisit(cfg, paragraph, framing, asked, lens),
     findCandidates,
     proposeRelation: (answer, candidates) => proposeRelation(cfg, answer, candidates),
   };

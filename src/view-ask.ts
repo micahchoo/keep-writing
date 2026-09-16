@@ -4,7 +4,7 @@
 
 import { ItemView, MarkdownRenderer, MarkdownView, Notice, moment, setIcon } from 'obsidian';
 import type { App, TFile, WorkspaceLeaf } from 'obsidian';
-import { answerText, asksOf, insertAsk, markAnswered } from './asks';
+import { answerText, asksOf, insertAsk, markAnswered, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
 import { draw, parseDue } from './bank';
 import type { AnsweredIndex, DrawSource, Drawn, JarCounts } from './bank';
@@ -186,6 +186,27 @@ export class AskView extends ItemView {
     await this.composeRevisit(paragraph, well);
   }
 
+  /**
+   * Every question already put to the owner about this block, so a Revisit
+   * cannot hand one of them back. A Sitting block is almost always the first
+   * paragraph of an answer, so it carries at least the question it answers,
+   * and any Follow-up composed from it since.
+   *
+   * Empty for a Piece, a Domain or a Learning paragraph. Those can carry an
+   * Ask too, placed in some earlier Sitting, and finding it would mean
+   * reading every Sitting on every draw. Not honest, but bounded: an
+   * unanswered source is re-drawable by design, and the owner sees the
+   * question before accepting it.
+   */
+  private async askedAbout(paragraph: Paragraph): Promise<string[]> {
+    if (paragraph.origin !== 'sitting') return [];
+    const asks = await asksOf(this.app, paragraph.file);
+    return questionsAbout(asks, paragraph.line, (src) => {
+      const ref = parseRef(src);
+      return !!ref && keyOfRef(this.app, ref, paragraph.file.path) === paragraph.key;
+    });
+  }
+
   /** The Well a paragraph is filed under, for its Lens. The self when the name is not a Well. */
   private wellNamed(name: string | undefined): Well {
     return allWells(this.app).find((w) => w.name === name) ?? SELF;
@@ -235,6 +256,7 @@ export class AskView extends ItemView {
     const key = paragraph.key;
     const model = this.host.model;
     const lens = await lensFor(this.app, well);
+    const asked = await this.askedAbout(paragraph);
     const name = lens ? lensName(well) : null;
     if (!model.available) {
       this.revisit = { kind: 'offer', key, lens: name, candidates: [] };
@@ -243,7 +265,7 @@ export class AskView extends ItemView {
     }
     this.revisit = { kind: 'composing', key, lens: name };
     this.render();
-    const candidates = await model.composeRevisit(paragraph.text, paragraph.framing, lens);
+    const candidates = await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens);
     if (this.drawn?.source.kind !== 'paragraph' || this.drawn.source.key !== key) return;
     this.revisit = { kind: 'offer', key, lens: name, candidates };
     this.render();
@@ -326,12 +348,17 @@ export class AskView extends ItemView {
     const answer = answerText(await this.app.vault.cachedRead(file), ask);
     if (!answer) return;
     const target = readTarget(this.app, file)?.name ?? ME_BASENAME;
+    // Every other question this Sitting has already put. composeFollowUps
+    // adds the one being answered itself.
+    const alsoAsked = (await asksOf(this.app, file))
+      .map((a) => a.question)
+      .filter((q) => q !== ask.question);
 
     this.followUp = null;
     this.proposal = { kind: 'thinking' };
     this.render();
 
-    const followUpJob = model.composeFollowUps(ask.question, answer, target).then((questions) => {
+    const followUpJob = model.composeFollowUps(ask.question, answer, alsoAsked, target).then((questions) => {
       this.followUp = questions.length ? { questions, sourceRef: answerRef } : null;
       this.render();
     });
