@@ -16,7 +16,7 @@
 
 import type { App, TFile } from 'obsidian';
 import { ensureBlockId } from './blocks';
-import { answeredKeys, linkBoth } from './links';
+import { answeredKeys, linkAnswer } from './links';
 import { refusalLine } from './refusal';
 import { formatRef, keyOfRef, parseRef } from './refs';
 import type { Ref } from './refs';
@@ -253,6 +253,6 @@ export async function markAnswered(app: App, file: TFile, ask: Ask, opts: MarkOp
   } catch (e) {
     return { kind: 'refused', reason: refusalLine(e) };
   }
-  await linkBoth(app, ref, 'answers', source, opts);
+  await linkAnswer(app, ref, source, opts);
   return { kind: 'ok', ref };
 }

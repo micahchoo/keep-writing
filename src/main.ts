@@ -14,7 +14,6 @@ import type { App, Menu, TFile } from 'obsidian';
 import { AnsweredIndex } from './bank';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
-import { linkParagraphCommand } from './link-command';
 import { createModel } from './model';
 import type { Model, RevisitCandidate } from './model';
 import { choose } from './modals';
@@ -24,12 +23,11 @@ import { formatRef } from './refs';
 import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
 import type { KeepWritingSettings } from './settings';
 
-// The four things the plugin does. The command palette and the context menu
+// The three things the plugin does. The command palette and the context menu
 // read the same four names, so they cannot drift apart.
 const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
 const MARK = 'Mark this answer done, and follow up';
-const LINK = 'Link this paragraph to…';
 
 /**
  * `MenuItem.setSubmenu` is absent from the published typings and present in
@@ -106,23 +104,9 @@ export default class KeepWritingPlugin extends Plugin {
             );
           }
           sub.addItem((i) => i.setTitle(MARK).setIcon('check').onClick(() => void this.markUnderCursor(view, at)));
-          sub.addItem((i) =>
-            i
-              .setTitle(LINK)
-              .setIcon('link')
-              .onClick(() => void linkParagraphCommand(this.app, view, this.settings.bankFolder)),
-          );
         });
       }),
     );
-    this.addCommand({
-      id: 'link-paragraph',
-      name: LINK,
-      editorCallback: (_editor, view) => {
-        if (view instanceof MarkdownView) void linkParagraphCommand(this.app, view, this.settings.bankFolder);
-      },
-    });
-
     this.addSettingTab(new KeepWritingSettingTab(this.app, this));
   }
 
