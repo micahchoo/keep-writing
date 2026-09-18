@@ -178,6 +178,33 @@ export interface AskOptions {
 }
 
 /**
+ * Pure: the `## Asked` section's bounds. `heading` is its line, -1 when the
+ * note has no such heading; `end` is the next heading, or the end of the note.
+ *
+ * The section matters because a Sitting holds Asks OUTSIDE it: the template
+ * carries the Closing move under a later heading, so every Sitting is born
+ * holding one. Whoever asks "is this note untouched?" must ask it of the
+ * section, not of the note.
+ */
+function askedSection(lines: string[]): { heading: number; end: number } {
+  const heading = lines.findIndex((l) => ASKED_HEADING.test(l));
+  if (heading < 0) return { heading: -1, end: lines.length };
+  let end = heading + 1;
+  while (end < lines.length && !HEADING.test(lines[end] ?? '')) end++;
+  return { heading, end };
+}
+
+/**
+ * Pure: the Asks inside the `## Asked` section — the ones a draw put there.
+ * An Ask the template carried in under a later heading is not one of them.
+ */
+export function asksInSection(markdown: string): Ask[] {
+  const { heading, end } = askedSection(markdown.split('\n'));
+  if (heading < 0) return [];
+  return parseAsks(markdown).filter((a) => a.callout.start > heading && a.callout.start < end);
+}
+
+/**
  * Pure: append an Ask callout at the end of the `## Asked` section (creating
  * the heading if missing) followed by one blank line and an empty line for
  * the cursor. Returns the new text and the cursor line.
@@ -190,15 +217,14 @@ export function appendAsk(
 ): { text: string; cursorLine: number } {
   const { due, embed } = opts;
   const lines = markdown.split('\n');
-  let heading = lines.findIndex((l) => ASKED_HEADING.test(l));
+  let { heading, end: sectionEnd } = askedSection(lines);
   if (heading < 0) {
     while (lines.length && (lines[lines.length - 1] ?? '').trim() === '') lines.pop();
     if (lines.length) lines.push('');
     lines.push('## Asked');
     heading = lines.length - 1;
+    sectionEnd = lines.length;
   }
-  let sectionEnd = heading + 1;
-  while (sectionEnd < lines.length && !HEADING.test(lines[sectionEnd] ?? '')) sectionEnd++;
   let insertAt = sectionEnd;
   while (insertAt > heading + 1 && (lines[insertAt - 1] ?? '').trim() === '') insertAt--;
 
@@ -225,6 +251,36 @@ export async function insertAsk(
     return r.text;
   });
   return cursorLine;
+}
+
+/**
+ * Write an Ask into a Sitting whose `## Asked` section is still empty. True
+ * when it wrote.
+ *
+ * The check and the write are ONE `vault.process` call, which is Obsidian's
+ * atomic read-modify-write, because two things can try to fill a brand-new
+ * Sitting at the same moment: the Seed, on the `create` event, and the Draw,
+ * when the owner's first move of the day made the note. Read-then-write would
+ * let both see an empty note and both place a question.
+ *
+ * It asks `asksInSection`, not `parseAsks`: `Templates/Sitting.md` carries
+ * the Closing move in as a written Ask under `## Closing`, so a Sitting is
+ * born holding one and a note-wide check would never seed anything.
+ */
+export async function insertFirstAsk(
+  app: App,
+  file: TFile,
+  question: string,
+  sourceRef: Ref,
+  opts: AskOptions = {},
+): Promise<boolean> {
+  let wrote = false;
+  await app.vault.process(file, (data) => {
+    if (asksInSection(data).length > 0) return data;
+    wrote = true;
+    return appendAsk(data, question, formatRef(sourceRef), opts).text;
+  });
+  return wrote;
 }
 
 export interface MarkOptions {

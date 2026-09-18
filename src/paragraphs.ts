@@ -23,7 +23,7 @@
 
 import type { App, TFile } from 'obsidian';
 import { headingAbove, readsAsParagraph } from './furniture';
-import { blockTexts, refOf } from './refs';
+import { blockTexts, refOf, resolveRef } from './refs';
 import type { Ref } from './refs';
 import { classify, isRevisitable, isSitting } from './target';
 
@@ -228,6 +228,22 @@ export function paragraphOf(file: TFile, facts: ParagraphFacts, block: Paragraph
     ...facts,
     line: block.line,
   };
+}
+
+/**
+ * The paragraph one ref points at, with the facts of whatever note holds it.
+ * Null when the ref names no block, does not resolve, or points at a block
+ * that is gone — a ref written days ago into a property outlives the text it
+ * was written about.
+ *
+ * Nothing here asks whether the paragraph is drawable. That is the jar's
+ * question, and this is the way IN to one named paragraph.
+ */
+export async function paragraphAt(app: App, ref: Ref, sittingsFolder: string): Promise<Paragraph | null> {
+  const r = resolveRef(app, ref);
+  if (!r?.blockId) return null;
+  const block = (await blockTexts(app, r.file)).find((b) => b.id === r.blockId);
+  return block ? paragraphOf(r.file, fileFacts(app, r.file, sittingsFolder), block) : null;
 }
 
 /**

@@ -8,7 +8,9 @@ keep-writing puts a question into your daily note in [Obsidian](https://obsidian
 
 ## What it does
 
+- **Starts the day for you.** A new daily note is born with one question already in it, whoever made the note. No model call on that path, so it cannot fail.
 - **Draws a question** into today's note. Three at a time — pick one, or press Escape and nothing is written.
+- **Opens where you stopped.** Answer "where should we pick up?" at the end of a sitting and tomorrow's first offered question comes from what you wrote, with your own words under it.
 - **Turns your old writing into new questions.** Two ways, and which one you get depends on who chose the paragraph. Highlight one yourself and you are asked about *that paragraph*. Let the draw find one and it becomes a seed for a question about your life *now* — because most of what a draw can reach is years old, and a question about 2020 is a question for whoever you were then.
 - **Follows up.** Mark an answer done and the model reads it, then offers the next question. Run it again on the same answer, next week, and it composes fresh ones.
 - **Links every answer** to the question that caused it, in frontmatter, both ends. That is what stops a question coming back once you have answered it.
@@ -46,7 +48,7 @@ All three are on the editor's right-click menu, under **keep-writing**.
 
 | Command | What happens |
 |---|---|
-| **Draw a question** | Three sources to choose from. A bank question becomes an Ask at once; a paragraph of yours goes to the model first, and its questions are the second chooser. |
+| **Draw a question** | Three sources to choose from, led by where you said to pick up. A bank question becomes an Ask at once; a paragraph of yours goes to the model first, and its questions are the second chooser. |
 | **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers follow-up questions. Safe to run again on an answer already linked — it writes nothing and composes afresh. |
 | **Ask about the selection** | Highlight any run of text, in **any** note, and be asked about it. The Ask lands in today's note. |
 
@@ -73,6 +75,18 @@ kind: bank
 A question is *answered* when any block in the vault carries an `answers` link to it. Answered questions leave the jar. So do ones already asked in the note you're writing in.
 
 Put `about: "[[some note]]"` in a daily note's frontmatter to spend the day on one thing: the bank closes and only that note's paragraphs are drawn.
+
+## Picking up tomorrow
+
+Tag one bank question `#role/bookmark` — "where should we pick up?" is the one this vault uses — and keep it at the end of your daily note template. Answer it, mark it done, and the answer's address is written as `next`:
+
+```yaml
+---
+next: "[[Sittings/2026-09-16#^a4f201]]"
+---
+```
+
+On `me.md`, or on the note your day was `about`. The next day's draw offers that paragraph first, reads it as something you chose rather than something it found, and puts what you wrote under the question. It stops offering it once you answer it, or the next time you leave a bookmark.
 
 ## What it will not do
 

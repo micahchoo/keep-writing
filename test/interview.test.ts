@@ -213,6 +213,209 @@ describe('the draw', () => {
 });
 
 // Who chose the paragraph decides everything about what is asked of it.
+const PICK_UP = 'I want to get back to the rig and find out why the pelvis weighting went wrong.';
+
+/**
+ * Yesterday the owner answered the Bookmark, so `next` on `me` points at what
+ * they wrote. `Bank/closing`'s only entry carries a Role, so the Bank jar is
+ * empty and every row a draw finds here is the paragraph jar's.
+ */
+const bookmarked = (next = '[[Sittings/2026-09-14#^y1]]'): Record<string, string> => ({
+  [TODAY]: EMPTY_SITTING,
+  'me.md': `---\nnext: "${next}"\n---\n\nThe self.\n`,
+  'Sittings/2026-09-14.md': [
+    '---',
+    'answers:',
+    '  - "[[Bank/closing#^bm1]]"',
+    '---',
+    '',
+    '## Asked',
+    '',
+    '> [!ask] where should we pick up?',
+    '> from [[Bank/closing#^bm1]]',
+    '',
+    `${PICK_UP} ^y1`,
+    '',
+  ].join('\n'),
+  'Bank/closing.md':
+    '---\nkind: bank\n---\n\n- where should we pick up? #register/intention #role/bookmark ^bm1\n',
+});
+
+// ---------------------------------------------------------------------------
+
+describe('the pick-up', () => {
+  // `next` was written by the Bookmark and read by NOTHING until 2026-09-17.
+  // The owner kept the Bookmark on this condition: "I can see how something
+  // like what we should pick up on tomorrow might be useful if the model
+  // actually ends up using it."
+  test('what the owner said to pick up is the first row, and it says so', async () => {
+    const { v, interview } = open(bookmarked());
+    const { drawn } = await interview.draw(v.file(TODAY));
+    expect(drawn[0]?.pickUp).toBe(true);
+    expect(drawn[0]?.source.key).toBe('Sittings/2026-09-14.md#^y1');
+    expect(drawn[0]?.source.text).toBe(PICK_UP);
+  });
+
+  test('it takes one of the rows, never an extra one', async () => {
+    const notes = bookmarked();
+    notes['Bank/craft.md'] =
+      '---\nkind: bank\n---\n\n- one? #register/episode ^b1\n- two? #register/episode ^b2\n- three? #register/episode ^b3\n';
+    const { v, interview } = open(notes);
+    const { drawn } = await interview.draw(v.file(TODAY), 3);
+    expect(drawn).toHaveLength(3);
+    expect(drawn[0]?.pickUp).toBe(true);
+    expect(drawn.slice(1).every((d) => d.pickUp === undefined)).toBe(true);
+  });
+
+  // It sits in the paragraph jar too, and a draw that offered it twice would
+  // spend two of three rows on one paragraph.
+  test('the jar cannot hand back the same paragraph', async () => {
+    const { v, interview } = open(bookmarked());
+    const { drawn, jars } = await interview.draw(v.file(TODAY), 3);
+    expect(new Set(drawn.map((d) => d.source.key)).size).toBe(drawn.length);
+    expect(drawn).toHaveLength(1);
+    // And the counts are honest about it: the pick-up left the jar.
+    expect(jars.paragraphs).toBe(0);
+  });
+
+  test('followed, it stops coming back: an answer linked to it is enough', async () => {
+    const notes = bookmarked();
+    notes['Sittings/2026-09-16.md'] =
+      '---\nanswers:\n  - "[[Sittings/2026-09-14#^y1]]"\n---\n\n## Asked\n\nI re-weighted it. ^z1\n';
+    const { v, interview } = open(notes);
+    const { drawn } = await interview.draw(v.file(TODAY));
+    expect(drawn.every((d) => d.pickUp === undefined)).toBe(true);
+  });
+
+  // The Bookmark answered THIS Sitting names an edge the owner has not walked
+  // away from yet. The jar holds today's own blocks out for the same reason.
+  test('a Bookmark answered today is not offered back the same day', async () => {
+    const notes = bookmarked('[[Sittings/2026-09-15#^t1]]');
+    notes[TODAY] = `---\n---\n\n## Asked\n\n${PICK_UP} ^t1\n`;
+    const { v, interview } = open(notes);
+    const { drawn } = await interview.draw(v.file(TODAY));
+    expect(drawn.every((d) => d.pickUp === undefined)).toBe(true);
+  });
+
+  test('no Bookmark answered yet, no pick-up row', async () => {
+    const notes = bookmarked();
+    notes['me.md'] = '---\n---\n\nThe self.\n';
+    const { v, interview } = open(notes);
+    const { drawn } = await interview.draw(v.file(TODAY));
+    expect(drawn.every((d) => d.pickUp === undefined)).toBe(true);
+  });
+
+  // A ref written into a property days ago outlives the text it named.
+  test('a `next` whose block is gone offers nothing, and refuses nothing either', async () => {
+    const { v, interview, surface } = open(bookmarked('[[Sittings/2026-09-14#^gone]]'));
+    const { drawn } = await interview.draw(v.file(TODAY));
+    expect(drawn.every((d) => d.pickUp === undefined)).toBe(true);
+    expect(surface.notices).toHaveLength(0);
+  });
+
+  // `next` lands on the Target when the day has one (closing.ts#writeBookmark);
+  // both ends ask the same question, so both find the same note.
+  test('with a Target set, the pick-up is read off the Target', async () => {
+    const notes = bookmarked();
+    notes['me.md'] = '---\n---\n\nThe self.\n';
+    notes['Pieces/rigging.md'] =
+      '---\ntitle: Rigging\nstatus: published\ndate: 2021-03-04\nnext: "[[Sittings/2026-09-14#^y1]]"\n---\n\nA published line. ^p-001\n';
+    notes[TODAY] = '---\nabout: "[[Pieces/rigging]]"\n---\n\n## Asked\n\n';
+    const { v, interview } = open(notes);
+    const { drawn } = await interview.draw(v.file(TODAY), 3);
+    expect(drawn[0]?.pickUp).toBe(true);
+    expect(drawn[0]?.source.key).toBe('Sittings/2026-09-14.md#^y1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+
+describe('the seed — a Sitting is never born blank', () => {
+  test('one Bank question, and no model call on the way', async () => {
+    const { model, seen } = recordingModel({ followUps: ['never asked'] });
+    const { v, interview } = open(bankOnly(), model);
+    expect(await interview.seed(v.file(TODAY))).toBe(true);
+
+    const asks = asksIn(v, TODAY);
+    expect(asks).toHaveLength(1);
+    expect(asks[0]?.question).toBe('what did you make?');
+    expect(asks[0]?.sourceRef).toBe('Bank/craft#^b1');
+    expect(seen.revisit).toHaveLength(0);
+    expect(seen.invitation).toHaveLength(0);
+    expect(seen.followUp).toHaveLength(0);
+  });
+
+  // The shape `Templates/Sitting.md` actually makes. A note-wide "does it
+  // hold an Ask?" check reads the Closing move the template carried in and
+  // never seeds anything — measured against the real template, 2026-09-17.
+  test('a Sitting born from the template is seeded, Closing move and all', async () => {
+    const { v, interview } = open({
+      [TODAY]: '## Asked\n\n## Closing\n\n> [!ask] where should we pick up?\n> from [[Bank/closing#^x1]]\n',
+      'Bank/craft.md': '---\nkind: bank\n---\n\n- what did you make? #register/episode ^b1\n',
+      'Bank/closing.md':
+        '---\nkind: bank\n---\n\n- where should we pick up? #register/intention #role/bookmark ^x1\n',
+    });
+    expect(await interview.seed(v.file(TODAY))).toBe(true);
+
+    const asks = asksIn(v, TODAY);
+    expect(asks.map((a) => a.question)).toEqual(['what did you make?', 'where should we pick up?']);
+    // And the Closing move stays at the END: the seed lands above its heading.
+    expect(v.text(TODAY).indexOf('what did you make?')).toBeLessThan(v.text(TODAY).indexOf('## Closing'));
+  });
+
+  test('a Sitting whose Asked section already holds one is left exactly as it was', async () => {
+    const { v, interview } = open(bankOnly());
+    const sitting = v.file(TODAY);
+    expect(await interview.seed(sitting)).toBe(true);
+    const seeded = v.text(TODAY);
+    expect(await interview.seed(sitting)).toBe(false);
+    expect(v.text(TODAY)).toBe(seeded);
+  });
+
+  test('an empty Bank writes nothing rather than an empty Ask', async () => {
+    const { v, interview } = open({ [TODAY]: EMPTY_SITTING });
+    expect(await interview.seed(v.file(TODAY))).toBe(false);
+    expect(v.text(TODAY)).toBe(EMPTY_SITTING);
+  });
+
+  // A Bank entry with a Role is carried into the Sitting by the template.
+  test('a Closing move is never the seed', async () => {
+    const { v, interview } = open(bookmarked());
+    expect(await interview.seed(v.file(TODAY))).toBe(false);
+  });
+
+  // A Target closes the Bank jar, and the seed will not reach for the model
+  // to compose from a paragraph. The day stays as the owner set it.
+  test('a Target closes the Bank, so nothing is seeded', async () => {
+    const notes: Record<string, string> = bankOnly();
+    notes[TODAY] = '---\nabout: "[[Pieces/rigging]]"\n---\n\n## Asked\n\n';
+    notes['Pieces/rigging.md'] = '---\ntitle: Rigging\nstatus: published\n---\n\nA line. ^p-001\n';
+    const { v, interview } = open(notes);
+    expect(await interview.seed(v.file(TODAY))).toBe(false);
+  });
+
+  test('a due on the entry carries into the seeded Ask', async () => {
+    const { v, interview } = open({
+      [TODAY]: EMPTY_SITTING,
+      'Bank/craft.md': '---\nkind: bank\n---\n\n- state your model so far #register/knowledge due: 2026-12-01 ^b1\n',
+    });
+    expect(await interview.seed(v.file(TODAY))).toBe(true);
+    expect(asksIn(v, TODAY)[0]?.due).toBe('2026-12-01');
+  });
+
+  test('a Sitting with no `## Asked` heading gets one', async () => {
+    const { v, interview } = open({
+      'Sittings/2026-09-15.md': '',
+      'Bank/craft.md': '---\nkind: bank\n---\n\n- what did you make? #register/episode ^b1\n',
+    });
+    expect(await interview.seed(v.file(TODAY))).toBe(true);
+    expect(v.text(TODAY)).toContain('## Asked');
+    expect(asksIn(v, TODAY)).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
 describe('the Invitation — the draw found it', () => {
   test('the paragraph seeds the question, with NO framing and the invitation Lens', async () => {
     const { model, seen } = recordingModel();

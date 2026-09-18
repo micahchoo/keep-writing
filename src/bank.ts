@@ -174,6 +174,13 @@ export interface Drawn {
   source: Source;
   /** Absolute due date, when a bank question carries one. */
   due?: string;
+  /**
+   * This row is the Bookmark's answer: at the end of an earlier Sitting the
+   * owner wrote where to pick up, and this is what they wrote. It comes from
+   * `next` rather than from either jar, it is offered first, and it is
+   * interviewed as `pointed` — they chose it, the draw only remembered.
+   */
+  pickUp?: true;
 }
 
 export interface DrawContext {
@@ -221,14 +228,7 @@ export function jarCounts(jars: Jars): JarCounts {
  */
 export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<Jars> {
   const drawable = (key: string) => !ctx.index.has(key) && !ctx.skipped.has(key);
-
-  // A Target empties the ordinary jar: the day is spent on one note's
-  // paragraphs. A role-tagged entry is never in it either — a closing move is
-  // written into the Sitting by the template, so drawing one would place it
-  // twice.
-  const loaded: BankQuestion[] = [];
-  for (const f of bankNotes(ctx.app, ctx.bankFolder)) loaded.push(...(await loadBank(ctx.app, f)));
-  const bank = target ? [] : loaded.filter((q) => drawable(q.key) && q.role === null);
+  const bank = await bankJar(ctx, target);
 
   const today = ctx.sitting?.path;
   let paragraphs = (await paragraphJar(ctx.app, ctx.sittingsFolder)).filter(
@@ -236,6 +236,29 @@ export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<
   );
   if (target) paragraphs = paragraphs.filter((p) => p.file.path === target.path);
   return { bank, paragraphs };
+}
+
+/**
+ * The Bank jar alone: every question still drawable, in file order. Empty when
+ * a Target is set — the day is spent on one note's paragraphs.
+ *
+ * A role-tagged entry is never in it: a Closing move is carried into the
+ * Sitting by the template, so drawing one would place it twice.
+ *
+ * Its own function because the Seed wants ONLY this (interview.ts#seed) and
+ * building the paragraph jar to throw it away costs a read and a split of
+ * every Piece in the vault — about 7 MB in this one, on a path that must be
+ * instant and must never fail.
+ */
+export async function bankJar(ctx: DrawContext, target: TFile | null): Promise<BankQuestion[]> {
+  if (target) return [];
+  const out: BankQuestion[] = [];
+  for (const f of bankNotes(ctx.app, ctx.bankFolder)) {
+    for (const q of await loadBank(ctx.app, f)) {
+      if (q.role === null && !ctx.index.has(q.key) && !ctx.skipped.has(q.key)) out.push(q);
+    }
+  }
+  return out;
 }
 
 /**

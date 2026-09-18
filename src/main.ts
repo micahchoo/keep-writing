@@ -9,8 +9,8 @@
 // the first only ever showed an offer the owner was about to answer, which is
 // what a modal is for. What is left is commands.
 
-import { MarkdownView, Notice, Plugin } from 'obsidian';
-import type { App, Menu, TFile } from 'obsidian';
+import { MarkdownView, Notice, Plugin, TFile } from 'obsidian';
+import type { App, Menu } from 'obsidian';
 import { AnsweredIndex } from './bank';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
@@ -23,6 +23,7 @@ import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
 import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
 import type { KeepWritingSettings } from './settings';
+import { isSitting } from './target';
 
 // The three things the plugin does. The command palette and the context menu
 // read the same four names, so they cannot drift apart.
@@ -61,6 +62,28 @@ export default class KeepWritingPlugin extends Plugin {
     this.registerEvent(this.app.metadataCache.on('changed', () => this.index.invalidate()));
     this.registerEvent(this.app.metadataCache.on('deleted', () => this.index.invalidate()));
     this.registerEvent(this.app.metadataCache.on('resolved', () => this.index.invalidate()));
+
+    // A Sitting nobody has written in yet is a blank page, and the blank page
+    // is the failure mode the owner named. Whoever makes the note — this
+    // plugin, the daily-notes plugin, a template, or the owner by hand — one
+    // Bank question goes into it. No model call on this path: see
+    // `Interview#seed`.
+    //
+    // Registered only once the layout is ready, because `create` fires for
+    // every note in the vault while Obsidian indexes it at startup.
+    //
+    // When the owner's first move of the day IS the draw, the Sitting is born
+    // here and the draw appends its own Ask beside the seeded one. Two
+    // questions in a fresh note, which is what both of those things mean.
+    this.app.workspace.onLayoutReady(() => {
+      this.registerEvent(
+        this.app.vault.on('create', (file) => {
+          if (file instanceof TFile && isSitting(file, this.settings.sittingsFolder)) {
+            void this.interview.seed(file);
+          }
+        }),
+      );
+    });
 
     this.addRibbonIcon('message-circle-question', 'Draw a question', () => void this.drawQuestion());
 
@@ -129,8 +152,10 @@ export default class KeepWritingPlugin extends Plugin {
     const where = target ? `only ${target}` : jarsLine(jars);
     choose(this.app, drawn.map(drawnChoice), where, (pick) => {
       if (pick.source.kind === 'question') void this.interview.accept(sitting, pick);
-      // The draw chose it, not the owner: an Invitation, aimed at their present.
-      else void this.offer(sitting, pick.source, 'picked');
+      // The draw chose it, not the owner: an Invitation, aimed at their
+      // present. Except the pick-up, which the owner chose at the end of an
+      // earlier Sitting — that one is interviewed, and reads in place.
+      else void this.offer(sitting, pick.source, pick.pickUp ? 'pointed' : 'picked');
     });
   }
 
@@ -239,7 +264,8 @@ export function drawnChoice(drawn: Drawn): Choice<Drawn> {
     return { value: drawn, title: drawn.source.text, note: parts.join(' · ') };
   }
   const { text, title, meta } = drawn.source;
-  return { value: drawn, title: text.replace(/\s+/g, ' ').trim(), note: ['revisit', title, ...meta].join(' · ') };
+  const what = drawn.pickUp ? 'where you said to pick up' : 'revisit';
+  return { value: drawn, title: text.replace(/\s+/g, ' ').trim(), note: [what, title, ...meta].join(' · ') };
 }
 
 /** Pure: one composed question as a row, with its due marker when it has one. */

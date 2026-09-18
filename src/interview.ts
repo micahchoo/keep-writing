@@ -21,14 +21,15 @@
 
 import type { App, TFile } from 'obsidian';
 import { moment } from 'obsidian';
-import { answerText, asksOf, insertAsk, markAnswered, parseAsks, questionsAbout } from './asks';
+import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
-import { drawMany, parseDue } from './bank';
+import { bankJar, drawMany, parseDue, pickOne } from './bank';
 import type { AnsweredIndex, Drawn, JarCounts } from './bank';
 import { ensureBlockId } from './blocks';
-import { runClosing } from './closing';
+import { readBookmark, runClosing } from './closing';
 import { CRAFT, INVITATION, lensFor } from './lens';
 import type { Model, RevisitCandidate } from './model';
+import { paragraphAt } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { refusalLine } from './refusal';
 import { keyOfRef, parseRef } from './refs';
@@ -137,8 +138,63 @@ export class Interview {
    */
   async draw(sitting: TFile, count: number = DRAW_COUNT): Promise<Drawing> {
     const target = readTarget(this.app, sitting);
-    const { drawn, jars } = await drawMany(await this.context(sitting), target, count);
-    return { drawn, jars, target: target?.basename ?? null };
+    const ctx = await this.context(sitting);
+    // The pick-up takes the first of the `count` rows, never an extra one:
+    // the owner is choosing, not shopping.
+    const pickUp = await this.pickUp(sitting, ctx.skipped);
+    if (pickUp) ctx.skipped.add(pickUp.key);
+    const { drawn, jars } = await drawMany(ctx, target, count - (pickUp ? 1 : 0));
+    return {
+      drawn: pickUp ? [{ source: pickUp, pickUp: true }, ...drawn] : drawn,
+      jars,
+      target: target?.basename ?? null,
+    };
+  }
+
+  /**
+   * Where the owner said to pick up, as a paragraph, or null when there is no
+   * such place today. This is the whole of what reads `next`.
+   *
+   * It retires itself three ways, and none of them needs a flag written
+   * anywhere:
+   *
+   * - **Followed.** Accepting a question from it and answering that question
+   *   links an `answers` to the block, so the index calls it answered.
+   * - **Replaced.** Answering tonight's Bookmark overwrites `next`.
+   * - **Written today.** A Bookmark answered THIS Sitting points into this
+   *   Sitting, and the edge it names is not behind the owner yet. The jar
+   *   holds today's own blocks out for the same reason.
+   */
+  private async pickUp(sitting: TFile, placed: Set<string>): Promise<Paragraph | null> {
+    const ref = readBookmark(this.app, sitting);
+    if (!ref) return null;
+    const paragraph = await paragraphAt(this.app, ref, this.host.settings.sittingsFolder);
+    if (!paragraph || paragraph.file.path === sitting.path) return null;
+    if (this.host.index.has(paragraph.key) || placed.has(paragraph.key)) return null;
+    return paragraph;
+  }
+
+  /**
+   * A Sitting is born with one Bank question in it. Returns whether it wrote.
+   *
+   * The blank page is the failure mode — not stalling mid-answer, and not
+   * forgetting to show up. This is the answer to it, so it has to hold in the
+   * worst case: **no model call on this path, ever.** A Bank question is
+   * another person's words, already written, and placing one cannot fail
+   * because bonsai is off, or slow, or gone.
+   *
+   * It writes nothing into a Sitting whose `## Asked` section already holds
+   * one, so running it on the same note twice is one question, and a note the
+   * owner has been working in is never touched. The Closing move the template
+   * carries in under its own heading does not count as written-in: that is
+   * what `insertFirstAsk` asks `asksInSection` rather than `parseAsks`.
+   */
+  async seed(sitting: TFile): Promise<boolean> {
+    const target = readTarget(this.app, sitting);
+    const question = pickOne(await bankJar(await this.context(sitting), target));
+    if (!question) return false;
+    const due = question.due ? parseDue(question.due, new Date()) : null;
+    return insertFirstAsk(this.app, sitting, question.text, question.ref, due ? { due } : {});
   }
 
   /** What the Draw reads the vault through, with this Sitting's Asks already placed. */

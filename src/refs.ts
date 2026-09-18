@@ -27,6 +27,28 @@ export function linksNamed(cache: CachedMetadata | null, name: string): Frontmat
   return (cache?.frontmatterLinks ?? []).filter((fl) => propertyName(fl.key) === name);
 }
 
+/**
+ * The ref a named frontmatter property points at: the link cache's reading
+ * when Obsidian saw a wikilink, the bare string when it did not. A list
+ * property answers with its first entry.
+ *
+ * Two properties are read this way and they want the same reading: `about` on
+ * a Sitting (target.ts) and `next` on the note a Bookmark landed on
+ * (closing.ts). Before 2026-09-17 only the first existed and spelled the rule
+ * out for itself.
+ */
+export function refNamed(cache: CachedMetadata | null, name: string): Ref | null {
+  const fl = linksNamed(cache, name)[0];
+  const raw = fl?.link ?? stringProp(cache?.frontmatter?.[name]);
+  return raw ? parseRef(raw) : null;
+}
+
+function stringProp(v: unknown): string | null {
+  if (typeof v === 'string' && v.trim()) return v.trim();
+  if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
+  return null;
+}
+
 /** Parse `Path/Note#^id`, `[[Path/Note#^id]]`, or `[[Path/Note#^id|alias]]`. */
 export function parseRef(text: string): Ref | null {
   let t = text.trim();

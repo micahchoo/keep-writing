@@ -14,7 +14,7 @@
 // reads them, search reads them, and no code does.
 
 import type { App, TFile } from 'obsidian';
-import { linksNamed, parseRef, resolveRef } from './refs';
+import { refNamed, resolveRef } from './refs';
 
 /** Where the owner's finished writing lives. Becomes a setting when the plugin ships. */
 const PIECES_FOLDER = 'Pieces';
@@ -57,18 +57,8 @@ export function isRevisitable(app: App, file: TFile): boolean {
  * note you have been writing in.
  */
 export function readTarget(app: App, sitting: TFile): TFile | null {
-  const cache = app.metadataCache.getFileCache(sitting);
-  const fl = linksNamed(cache, 'about')[0];
-  const raw = fl?.original ?? stringProp(cache?.frontmatter?.['about']);
-  if (!raw) return null;
-  const ref = parseRef(fl?.link ?? raw);
+  const ref = refNamed(app.metadataCache.getFileCache(sitting), 'about');
   return ref ? resolveRef(app, ref, sitting.path)?.file ?? null : null;
-}
-
-function stringProp(v: unknown): string | null {
-  if (typeof v === 'string' && v.trim()) return v.trim();
-  if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
-  return null;
 }
 
 export function isSitting(file: TFile | null, sittingsFolder: string): file is TFile {
