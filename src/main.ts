@@ -54,16 +54,6 @@ export default class KeepWritingPlugin extends Plugin {
 
     this.addCommand({ id: 'draw-question', name: 'Draw a question', callback: () => void this.drawQuestion() });
     this.addCommand({
-      id: 'ask-closing-question',
-      name: 'Ask a closing question',
-      callback: () => void this.askClosing('door'),
-    });
-    this.addCommand({
-      id: 'ask-bookmark-question',
-      name: 'Ask the bookmark question',
-      callback: () => void this.askClosing('bookmark'),
-    });
-    this.addCommand({
       id: 'mark-answer-under-cursor',
       name: 'Mark answer under cursor as done',
       editorCallback: (editor, view) => {
@@ -123,17 +113,6 @@ export default class KeepWritingPlugin extends Plugin {
       if (pick.source.kind === 'question') void this.interview.accept(sitting, pick);
       else void this.offerRevisit(sitting, pick.source);
     });
-  }
-
-  /** One closing move, written straight in: there is nothing to choose between. */
-  private async askClosing(role: 'door' | 'bookmark'): Promise<void> {
-    const sitting = await this.openSitting();
-    const drawn = await this.interview.closing(sitting, role);
-    if (!drawn) {
-      new Notice('No closing question left to ask.');
-      return;
-    }
-    await this.interview.accept(sitting, drawn);
   }
 
   /**

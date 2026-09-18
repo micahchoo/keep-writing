@@ -24,8 +24,7 @@ import { moment } from 'obsidian';
 import { answerText, asksOf, insertAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
 import { drawMany, parseDue } from './bank';
-import type { AnsweredIndex, DrawSource, Drawn, JarCounts } from './bank';
-import { draw as drawOne } from './bank';
+import type { AnsweredIndex, Drawn, JarCounts } from './bank';
 import { ensureBlockId } from './blocks';
 import { runClosing } from './closing';
 import { lensFor, lensName } from './lens';
@@ -121,12 +120,6 @@ export class Interview {
     const target = readTarget(this.app, sitting);
     const { drawn, jars } = await drawMany(await this.context(sitting), target, count);
     return { drawn, jars, target: target?.name ?? null };
-  }
-
-  /** One closing move: the entries tagged `#role/door` or `#role/bookmark`. */
-  async closing(sitting: TFile, role: DrawSource): Promise<Drawn | null> {
-    const ctx = await this.context(sitting);
-    return (await drawOne(ctx, readTarget(this.app, sitting), role)).drawn;
   }
 
   /** What the Draw reads the vault through, with this Sitting's Asks already placed. */

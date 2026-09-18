@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { AnsweredIndex, draw, fillJars, jarCounts } from '../src/bank';
+import { AnsweredIndex, fillJars, jarCounts } from '../src/bank';
 import type { DrawContext } from '../src/bank';
 import { allWells, readTarget } from '../src/target';
 import { fakeVault } from './fake-vault';
@@ -91,23 +91,20 @@ describe('fillJars with a Target', () => {
   });
 });
 
-// A role is read off the entry, not off the filename. The closing moves are
-// beside the jars, not in them, and a Target narrows the jars only.
+// A role is read off the entry, not off the filename. `Templates/Sitting.md`
+// carries the closing moves into every Sitting under their own heading, so
+// nothing draws one and the jar must never offer one either: it would place
+// the same Ask twice.
 describe('roles', () => {
-  test('a role-tagged entry stays out of the Bank jar', async () => {
+  test('a role-tagged entry stays out of the Bank jar, whatever the role', async () => {
     const read = await fillJars(ctx(), null);
-    expect(read.bank.map((q) => q.key)).not.toContain('Bank/closing.md#^x-001');
-    expect(read.closings.map((q) => q.role).sort()).toEqual(['bookmark', 'door']);
+    const keys = read.bank.map((q) => q.key);
+    expect(keys).not.toContain('Bank/closing.md#^x-001');
+    expect(keys).not.toContain('Bank/closing.md#^x-005');
   });
 
-  test('a Target empties the Bank jar but never the closing moves', async () => {
+  test('a Target empties the Bank jar', async () => {
     const read = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-15.md')));
     expect(read.bank).toEqual([]);
-    expect(read.closings.map((q) => q.key).sort()).toEqual(['Bank/closing.md#^x-001', 'Bank/closing.md#^x-005']);
-  });
-
-  test('a closing draw returns only its own role', async () => {
-    expect((await draw(ctx(), null, 'door')).drawn?.source).toMatchObject({ key: 'Bank/closing.md#^x-001' });
-    expect((await draw(ctx(), null, 'bookmark')).drawn?.source).toMatchObject({ key: 'Bank/closing.md#^x-005' });
   });
 });

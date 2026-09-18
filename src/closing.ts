@@ -1,31 +1,32 @@
-// The Closing: the two moves at the end of a Sitting, the Bank entries tagged
-// `#role/door` and `#role/bookmark`. See CONTEXT.md, "Closing" and "Role".
+// The Closing: the two moves at the end of a Sitting. Both are Bank entries
+// carried into the Sitting by `Templates/Sitting.md`, under their own heading,
+// so they sit at the end of the note and nothing has to draw them.
 //
 // Open door — "what did we not touch today?" — is an ordinary question with an
 // ordinary answer; what is volunteered is the best material a Sitting gets,
-// and nothing more has to happen to it.
+// and nothing more has to happen to it. Code does not know it exists.
 //
 // Bookmark — "where should we pick up?" — is the one whose answer is written
 // somewhere else: as `next` on the Sitting's Target, or on `me` when roaming,
-// so the next Sitting can open at the owner's own edge.
+// so the next Sitting can open at the owner's own edge. It is the only thing
+// here that needs code, and `#role/bookmark` on the entry is what says so.
 //
 // This lived inside `markAnswered` until 2026-09-16, which is why asks.ts —
-// a callout parser — imported the Bank and the Target. A third Closing move
-// would have needed a third branch in there. Now it needs a line here.
+// a callout parser — imported the Bank and the Target.
 
 import type { App, TFile } from 'obsidian';
 import { questionAt } from './bank';
-import type { Role } from './bank';
 import { wikilink } from './refs';
 import type { Ref } from './refs';
 import { ME_BASENAME, readTarget } from './target';
 
 /**
  * Run whatever Closing move an answered source calls for. `source` is what the
- * Ask cited; `answer` is the block just marked done. Returns the move that
- * ran, or null when the source was an ordinary Bank question or a paragraph.
+ * Ask cited; `answer` is the block just marked done. Returns the role the entry
+ * declared, or null when the source was an ordinary Bank question or a
+ * paragraph.
  *
- * A role is declared on the entry, never by the file it sits in, so a closing
+ * The role is declared on the entry, never by the file it sits in, so a closing
  * move is legal in any Bank note.
  */
 export async function runClosing(
@@ -34,7 +35,7 @@ export async function runClosing(
   source: Ref,
   answer: Ref,
   bankFolder: string,
-): Promise<Role | null> {
+): Promise<string | null> {
   const question = await questionAt(app, source, sitting.path, bankFolder);
   const role = question?.role ?? null;
   if (role === 'bookmark') await writeBookmark(app, sitting, answer);

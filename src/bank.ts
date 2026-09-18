@@ -16,15 +16,6 @@ import { allWells, isRevisitable } from './target';
 import type { Target, Well } from './target';
 
 /**
- * What a Bank entry is for. Absent -- the ordinary jar. A role is declared on
- * the entry, like its register, not by which file the entry sits in: before
- * 2026-09-14 the closing moves were found by the basename `closing.md` and
- * told apart by a bare `#bookmark` tag, so `door` meant "a closing entry
- * without #bookmark" and a third move needed a third branch in `draw`.
- */
-export type Role = 'door' | 'bookmark';
-
-/**
  * Share of draws that come from the Bank. Set to 0.7 on 2026-09-13: at an
  * even split the owner rarely saw a Bank question. A draw is an independent
  * toss, so an even split lands in clumps — in a Sitting of eight draws, 73%
@@ -39,7 +30,6 @@ export const BANK_SHARE = 0.7;
 const NO_REGISTER = 'none';
 const REGISTER_PREFIX = '#register/';
 const ROLE_PREFIX = '#role/';
-const ROLES: readonly string[] = ['door', 'bookmark'];
 
 export interface BankQuestion {
   kind: 'question';
@@ -51,8 +41,13 @@ export interface BankQuestion {
   register: string;
   /** Raw due as written: `+7d` or a date. */
   due?: string;
-  /** Null for an ordinary question; set for a closing move. */
-  role: Role | null;
+  /**
+   * What the entry is FOR, off its `#role/` tag: `bookmark`, `door`, or null
+   * for the ordinary jar. Declared on the entry, never by the file it sits in,
+   * so a closing move is legal in any Bank note. Only `bookmark` means
+   * anything to code (closing.ts); the rest is the owner's own taxonomy.
+   */
+  role: string | null;
   bankPath: string;
 }
 
@@ -63,11 +58,10 @@ const TAG = /(?:^|\s)#[^\s#]+/g;
 const DUE = /(?:^|\s)due:\s*\S+/i;
 
 /** Pure: split one bank line into its parts. */
-export function parseBankLine(line: string): { text: string; register: string; due?: string; role: Role | null } {
+export function parseBankLine(line: string): { text: string; register: string; due?: string; role: string | null } {
   const tags = (line.match(TAG) ?? []).map((t) => t.trim());
   const register = tags.find((t) => t.startsWith(REGISTER_PREFIX))?.slice(REGISTER_PREFIX.length) ?? NO_REGISTER;
-  const named = tags.find((t) => t.startsWith(ROLE_PREFIX))?.slice(ROLE_PREFIX.length);
-  const role = named && ROLES.includes(named) ? (named as Role) : null;
+  const role = tags.find((t) => t.startsWith(ROLE_PREFIX))?.slice(ROLE_PREFIX.length) ?? null;
   const dueMatch = DUE.exec(line);
   const due = dueMatch ? dueMatch[0].trim().slice('due:'.length).trim() : undefined;
   const text = stripBlockDecoration(line).replace(DUE, '').replace(TAG, '').replace(/\s+/g, ' ').trim();
@@ -178,9 +172,6 @@ export function pickOne<T>(items: T[], random: () => number = Math.random): T | 
   return items[Math.floor(random() * items.length)] ?? null;
 }
 
-/** Which part of the Bank a draw reads: the two jars, or one closing role. */
-export type DrawSource = 'target' | Role;
-
 export interface Drawn {
   /** `source.kind` tells a paragraph from a question. */
   source: Source;
@@ -221,16 +212,6 @@ export interface Jars {
   wells: WellPool[];
 }
 
-/**
- * One read of the Bank: the two jars, and the closing moves beside them.
- * `pickFromJars` and `jarCounts` take the narrower `Jars`, because neither
- * reads a closing move.
- */
-export interface BankRead extends Jars {
-  /** Role-tagged moves. A Target never narrows these. */
-  closings: BankQuestion[];
-}
-
 export interface JarCounts {
   questions: number;
   /** Distinct paragraphs: one gathered by two Domains counts once. */
@@ -252,17 +233,16 @@ export function jarCounts(jars: Jars): JarCounts {
  * its own paragraphs (still filed under the Wells that gather it, for the
  * Lens).
  */
-export async function fillJars(ctx: DrawContext, target: Target | null): Promise<BankRead> {
+export async function fillJars(ctx: DrawContext, target: Target | null): Promise<Jars> {
   const drawable = (key: string) => !ctx.index.has(key) && !ctx.skipped.has(key);
 
-  // One read of the Bank, one partition. A Target empties the ordinary jar --
-  // the day is spent on one Well's paragraphs -- but never the closing moves:
-  // a Sitting ends the same way whether or not it had a Target.
+  // A Target empties the ordinary jar: the day is spent on one Well's
+  // paragraphs. A role-tagged entry is never in it either — a closing move is
+  // written into the Sitting by the template, so drawing one would place it
+  // twice.
   const loaded: BankQuestion[] = [];
   for (const f of bankNotes(ctx.app, ctx.bankFolder)) loaded.push(...(await loadBank(ctx.app, f)));
-  const drawableQuestions = loaded.filter((q) => drawable(q.key));
-  const bank = target ? [] : drawableQuestions.filter((q) => q.role === null);
-  const closings = drawableQuestions.filter((q) => q.role !== null);
+  const bank = target ? [] : loaded.filter((q) => drawable(q.key) && q.role === null);
 
   const today = ctx.sitting?.path;
   let paragraphs = (await paragraphJar(ctx.app, ctx.sittingsFolder)).filter(
@@ -277,7 +257,7 @@ export async function fillJars(ctx: DrawContext, target: Target | null): Promise
     const own = paragraphs.filter((p) => p.wells.includes(well.name));
     if (own.length) pools.push({ well, paragraphs: own });
   }
-  return { bank, closings, wells: pools };
+  return { bank, wells: pools };
 }
 
 /**
@@ -302,12 +282,6 @@ export function pickFromJars(jars: Jars, random: () => number = Math.random, tod
   const pool = jars.wells[Math.floor(random() * jars.wells.length)] as WellPool;
   const paragraph = pool.paragraphs[Math.floor(random() * pool.paragraphs.length)] as Paragraph;
   return { source: paragraph, well: pool.well };
-}
-
-/** What a draw hands back: the pick, and the jar counts the owner is told. */
-export interface Draw {
-  drawn: Drawn | null;
-  jars: JarCounts;
 }
 
 /** What a draw of several hands back: the picks, best-effort, and the counts. */
@@ -349,18 +323,4 @@ export async function drawMany(ctx: DrawContext, target: Target | null, count: n
     removePicked(jars, pick);
   }
   return { drawn, jars: counts };
-}
-
-/**
- * Draw the next Ask. `target` draws from the two jars (see fillJars and
- * pickFromJars); `bookmark` and `door` read the closing bank only. The jars
- * are filled either way, so the counts the pane reports are current.
- */
-export async function draw(ctx: DrawContext, target: Target | null, source: DrawSource = 'target'): Promise<Draw> {
-  const random = ctx.random ?? Math.random;
-  const jars = await fillJars(ctx, target);
-  const counts = jarCounts(jars);
-  if (source === 'target') return { drawn: pickFromJars(jars, random, ctx.today ?? new Date()), jars: counts };
-  const question = pickOne(jars.closings.filter((q) => q.role === source), random);
-  return { drawn: question ? { source: question } : null, jars: counts };
 }
