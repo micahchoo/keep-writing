@@ -1,0 +1,323 @@
+---
+channel: learning
+title: "learning"
+kind: bank
+source: written
+---
+
+Questions about what you understand, what your hands can do, and what you
+would have to go and find out.
+
+The third register is the odd one: a research spur is answered by looking
+something up, walking somewhere, or asking someone older. It is the only
+kind of Bank question whose answer is not already inside you, and it is
+here because a writing practice that only remembers runs dry.
+
+## Knowledge — what you understand
+
+- what do you understand now that you could not have been told? #register/knowledge ^kn-001
+- what is your working model of the thing you do best? #register/knowledge ^kn-002
+- what did you get wrong for years before anyone corrected you? #register/knowledge ^kn-003
+- where does your understanding of your own field stop? #register/knowledge ^kn-004
+- what do you know that you cannot demonstrate? #register/knowledge ^kn-005
+- what would you have to see to change your mind about your own work? #register/knowledge ^kn-006
+- what do most people get wrong about the thing you know most about? #register/knowledge ^kn-007
+- what did you learn from a failure that a success would have hidden? #register/knowledge ^kn-008
+- what can you predict that surprises other people? #register/knowledge ^kn-009
+- what part of your own explanation do you not believe? #register/knowledge ^kn-010
+- what did you have to unlearn to get good? #register/knowledge ^kn-011
+- what do you know from the inside that experts describe from the outside? #register/knowledge ^kn-012
+- what rule do you follow that you could not defend in an argument? #register/knowledge ^kn-013
+- what do you know about a place that no guidebook has? #register/knowledge ^kn-014
+- what did you stop needing to look up? #register/knowledge ^kn-015
+- what do you understand about one person that nobody else does? #register/knowledge ^kn-016
+- where did your knowledge come from that you cannot cite? #register/knowledge ^kn-017
+- what do you know is true but have never had to prove? #register/knowledge ^kn-018
+- what have you read that changed what counts as evidence for you? #register/knowledge ^kn-019
+- what would you teach first, and why not something else? #register/knowledge ^kn-020
+- what do you notice in your work that a beginner cannot see yet? #register/knowledge ^kn-021
+- what did you assume was universal until you met someone who did it differently? #register/knowledge ^kn-022
+- what part of your understanding is borrowed and has never been checked? #register/knowledge ^kn-023
+- what do you know about money that you were not taught? #register/knowledge ^kn-024
+- what did you learn about a body from living in yours? #register/knowledge ^kn-025
+- what is the piece of your craft you still do by feel? #register/knowledge ^kn-026
+- what have you built a theory about with no way to test it? #register/knowledge ^kn-027
+- what do you know about waiting? #register/knowledge ^kn-028
+- where is your knowledge sharpest and least useful? #register/knowledge ^kn-029
+- what did you learn from a machine that a person could not teach you? #register/knowledge ^kn-030
+- what have you been told so often you stopped checking? #register/knowledge ^kn-031
+- what do you understand about an institution from having been processed by it? #register/knowledge ^kn-032
+- what do you know about a language you do not speak well? #register/knowledge ^kn-033
+- what does the work look like when it is going badly, exactly? #register/knowledge ^kn-034
+- what have you figured out that would take you an hour to explain? #register/knowledge ^kn-035
+- what did a job teach you about how things actually get decided? #register/knowledge ^kn-036
+- what do you know about your own attention? #register/knowledge ^kn-037
+- what is the correction you keep having to make? #register/knowledge ^kn-038
+- what have you learned about the limits of your own patience? #register/knowledge ^kn-039
+- what do you understand about grief that is not in the books about it? #register/knowledge ^kn-040
+- what did you learn about a city by getting lost in it? #register/knowledge ^kn-041
+- what do you know about a trade from watching someone do it badly? #register/knowledge ^kn-042
+- what would you bet on that others would not? #register/knowledge ^kn-043
+- what do you know about your family that they have never said? #register/knowledge ^kn-044
+- where does your expertise make you a worse observer? #register/knowledge ^kn-045
+- what have you learned from being the least experienced person in a room? #register/knowledge ^kn-046
+- what did you learn from an argument you lost? #register/knowledge ^kn-047
+- what do you know about the tool you use most that its makers do not? #register/knowledge ^kn-048
+- what do you understand about weather where you live? #register/knowledge ^kn-049
+- what did you learn about scarcity from having enough? #register/knowledge ^kn-050
+- what is the thing you keep being asked that you cannot answer well? #register/knowledge ^kn-051
+- what do you know about the difference between fast and rushed? #register/knowledge ^kn-052
+- what did you learn by doing something the long way? #register/knowledge ^kn-053
+- what do you know about sleep? #register/knowledge ^kn-054
+- what have you learned about how a group turns? #register/knowledge ^kn-055
+- what do you understand about a law from having been on the wrong side of it? #register/knowledge ^kn-056
+- what did you learn from work you were paid badly for? #register/knowledge ^kn-057
+- what do you know about an animal from living near it? #register/knowledge ^kn-058
+- what have you learned about the way your own memory fails? #register/knowledge ^kn-059
+- what do you understand about a material from working it? #register/knowledge ^kn-060
+- what did you learn about scale the first time something got big? #register/knowledge ^kn-061
+- what do you know about silence in a conversation? #register/knowledge ^kn-062
+- what have you learned about the cost of being early? #register/knowledge ^kn-063
+- what do you understand about repair that replacement would not teach? #register/knowledge ^kn-064
+- what did you learn about yourself from a measurement? #register/knowledge ^kn-065
+- what do you know about a road you have driven many times? #register/knowledge ^kn-066
+- what have you learned about which rules are actually enforced? #register/knowledge ^kn-067
+- what do you know about hunger? #register/knowledge ^kn-068
+- what did you learn from a system that was designed to be confusing? #register/knowledge ^kn-069
+- what do you understand about care from having needed it? #register/knowledge ^kn-070
+- what have you learned about how long things actually take? #register/knowledge ^kn-071
+- what do you know about a neighbourhood that its residents disagree about? #register/knowledge ^kn-072
+- what did you learn about authority from watching it fail? #register/knowledge ^kn-073
+- what do you understand about crowds? #register/knowledge ^kn-074
+- what have you learned about the way a rumour moves? #register/knowledge ^kn-075
+- what do you know about the difference between clean and tidy? #register/knowledge ^kn-076
+- what did you learn about debt? #register/knowledge ^kn-077
+- what do you understand about a season from working outdoors in it? #register/knowledge ^kn-078
+- what have you learned about how people behave near water? #register/knowledge ^kn-079
+- what do you know about the way a building holds heat? #register/knowledge ^kn-080
+- what did you learn about translation from being misunderstood? #register/knowledge ^kn-081
+- what do you understand about queues? #register/knowledge ^kn-082
+- what have you learned about the point at which a person stops arguing? #register/knowledge ^kn-083
+- what do you know about the smell of a place you lived? #register/knowledge ^kn-084
+- what did you learn about worth from something you could not sell? #register/knowledge ^kn-085
+- what do you understand about a machine from the noise it makes? #register/knowledge ^kn-086
+- what have you learned about how a habit actually forms? #register/knowledge ^kn-087
+- what do you know about a crop, a plant, or a garden? #register/knowledge ^kn-088
+- what did you learn about distance from being far away? #register/knowledge ^kn-089
+- what do you understand about a border from crossing one? #register/knowledge ^kn-090
+- what have you learned about the way a family keeps accounts? #register/knowledge ^kn-091
+- what do you know about a room from having cleaned it? #register/knowledge ^kn-092
+- what did you learn about danger that turned out to be wrong? #register/knowledge ^kn-093
+- what do you understand about the pace of your own field? #register/knowledge ^kn-094
+- what have you learned about what a deadline does to work? #register/knowledge ^kn-095
+- what do you know about the moment a thing stops being fixable? #register/knowledge ^kn-096
+- what did you learn from something you maintained for years? #register/knowledge ^kn-097
+- what do you understand about a tool that has been discontinued? #register/knowledge ^kn-098
+- what have you learned about the difference between advice and instruction? #register/knowledge ^kn-099
+- what do you know about how a decision actually got made? #register/knowledge ^kn-100
+
+## Skill — what you can do
+
+- what can you do with your hands that you have never explained? #register/skill ^sk-001
+- what part of your craft did you learn by copying someone exactly? #register/skill ^sk-002
+- what do you do first, every time, before the real work starts? #register/skill ^sk-003
+- what can you tell by touch? #register/skill ^sk-004
+- what did you practise until it stopped being a decision? #register/skill ^sk-005
+- what is the move you make that other people in your field do not? #register/skill ^sk-006
+- what can you fix that most people would throw away? #register/skill ^sk-007
+- what did you learn to do because nobody else would? #register/skill ^sk-008
+- what part of the work do you still dread and do anyway? #register/skill ^sk-009
+- what can you judge at a glance that used to take you an hour? #register/skill ^sk-010
+- what did you get good at for the wrong reasons? #register/skill ^sk-011
+- what can you do that you have never been paid for? #register/skill ^sk-012
+- what do you do when the work stops going well? #register/skill ^sk-013
+- what did someone correct in you once that you still hear? #register/skill ^sk-014
+- what can you build without measuring? #register/skill ^sk-015
+- what is the shortcut you allow yourself and would not teach? #register/skill ^sk-016
+- what did you learn to do in a hurry that you now do slowly? #register/skill ^sk-017
+- what can you make that nobody in your family could? #register/skill ^sk-018
+- what part of your technique came from a mistake you kept? #register/skill ^sk-019
+- what do you sharpen, clean, or set up before you can think? #register/skill ^sk-020
+- what can you hear that other people cannot? #register/skill ^sk-021
+- what did you stop being able to do? #register/skill ^sk-022
+- what can you do in the dark? #register/skill ^sk-023
+- what is the thing you get asked to do at every gathering? #register/skill ^sk-024
+- what did you learn from a person whose method you rejected? #register/skill ^sk-025
+- what can you do faster than you can say? #register/skill ^sk-026
+- what part of the work do you give to somebody else, and why? #register/skill ^sk-027
+- what did you have to get slower at to get better? #register/skill ^sk-028
+- what can you read that is not writing? #register/skill ^sk-029
+- what is the smallest thing in your craft that you take most seriously? #register/skill ^sk-030
+- what did you learn to do from a book and then have to relearn? #register/skill ^sk-031
+- what can you salvage? #register/skill ^sk-032
+- what do you do with your body while you think? #register/skill ^sk-033
+- what did you have to change about your hands, your voice, or your posture? #register/skill ^sk-034
+- what can you time without a clock? #register/skill ^sk-035
+- what is the part of the work that has no name? #register/skill ^sk-036
+- what did you learn by ruining something expensive? #register/skill ^sk-037
+- what can you tell about a person from how they do a small task? #register/skill ^sk-038
+- what do you refuse to do the accepted way? #register/skill ^sk-039
+- what did you learn to do so you would not have to ask? #register/skill ^sk-040
+- what can you make from what is already in the house? #register/skill ^sk-041
+- what is your tell when you are out of your depth? #register/skill ^sk-042
+- what did you learn from having to do it one-handed, tired, or in bad light? #register/skill ^sk-043
+- what can you do that would be useless anywhere else? #register/skill ^sk-044
+- what part of your work is decided before you begin? #register/skill ^sk-045
+- what did you learn to do because of a body that would not cooperate? #register/skill ^sk-046
+- what can you carry that surprises people? #register/skill ^sk-047
+- what do you always get wrong the first time? #register/skill ^sk-048
+- what did you learn from watching someone much worse than you? #register/skill ^sk-049
+- what can you do with a knife, a needle, or a pen? #register/skill ^sk-050
+- what is the step everyone skips that you never skip? #register/skill ^sk-051
+- what did you learn to do in a language you barely speak? #register/skill ^sk-052
+- what can you do to a room to make it work? #register/skill ^sk-053
+- what part of your practice has no reason and works anyway? #register/skill ^sk-054
+- what did you learn to notice before it becomes a problem? #register/skill ^sk-055
+- what can you do standing up that you cannot do sitting down? #register/skill ^sk-056
+- what is the thing you do that looks like nothing? #register/skill ^sk-057
+- what did you learn from a tool that fought you? #register/skill ^sk-058
+- what can you keep alive? #register/skill ^sk-059
+- what do you do to a draft, a sketch, or a first attempt? #register/skill ^sk-060
+- what did you learn to do when you were bored? #register/skill ^sk-061
+- what can you cook without thinking? #register/skill ^sk-062
+- what is the part of the work where you cut corners and it shows? #register/skill ^sk-063
+- what did you learn to do from a parent that you still do their way? #register/skill ^sk-064
+- what can you get out of a machine that its manual does not mention? #register/skill ^sk-065
+- what do you do when you have to start over? #register/skill ^sk-066
+- what did you learn to do because of where you grew up? #register/skill ^sk-067
+- what can you do quietly? #register/skill ^sk-068
+- what part of the work do you save for a particular time of day? #register/skill ^sk-069
+- what did you learn to do by being the only one available? #register/skill ^sk-070
+- what can you estimate accurately? #register/skill ^sk-071
+- what is the thing you can do that you were told you could not? #register/skill ^sk-072
+- what did you learn from the version of the craft that is dying out? #register/skill ^sk-073
+- what can you do without the electricity, the internet, or the good tool? #register/skill ^sk-074
+- what do you do differently when someone is watching? #register/skill ^sk-075
+- what did you have to get comfortable being bad at? #register/skill ^sk-076
+- what can you finish? #register/skill ^sk-077
+- what is the rule of thumb you use that has no reason behind it? #register/skill ^sk-078
+- what did you learn to do from a stranger, in one meeting? #register/skill ^sk-079
+- what can you improvise when the right part is missing? #register/skill ^sk-080
+- what do you do to warm up? #register/skill ^sk-081
+- what did you learn to do because you were angry? #register/skill ^sk-082
+- what can you tell from a sound the second time you hear it? #register/skill ^sk-083
+- what part of your skill is mostly patience? #register/skill ^sk-084
+- what did you learn to do by taking something apart? #register/skill ^sk-085
+- what can you make that lasts? #register/skill ^sk-086
+- what is the thing you always check twice? #register/skill ^sk-087
+- what did you learn to do standing next to someone? #register/skill ^sk-088
+- what can you do with very little space? #register/skill ^sk-089
+- what do you throw away that others keep? #register/skill ^sk-090
+- what did you learn from doing the same job in two different places? #register/skill ^sk-091
+- what can you do that depends entirely on the weather? #register/skill ^sk-092
+- what is the part of the work you would not let a machine do? #register/skill ^sk-093
+- what did you learn to do after you stopped being afraid of ruining it? #register/skill ^sk-094
+- what can you mend? #register/skill ^sk-095
+- what do you do first when something breaks? #register/skill ^sk-096
+- what did you learn to do for someone else that you now do for yourself? #register/skill ^sk-097
+- what can you carry in your head that others write down? #register/skill ^sk-098
+- what part of your craft has no market? #register/skill ^sk-099
+- what did you learn to do by failing publicly? #register/skill ^sk-100
+
+## Research spur — questions that send you to look
+
+- what is the oldest thing in the room you are sitting in, and where did it come from? #register/research-spur ^rs-001
+- who lived in your house before you? #register/research-spur ^rs-002
+- what was on this land before the building? #register/research-spur ^rs-003
+- what does the street you live on take its name from? #register/research-spur ^rs-004
+- what happened in the year your parents met? #register/research-spur ^rs-005
+- what did the job your grandparent did actually involve, hour by hour? #register/research-spur ^rs-006
+- what is the origin of a word your family uses that others do not? #register/research-spur ^rs-007
+- what was the weather on a day you remember well? #register/research-spur ^rs-008
+- who else was born in the hospital or house you were? #register/research-spur ^rs-009
+- what was the price of bread, rent, or a ticket in the year you were ten? #register/research-spur ^rs-010
+- what happened to the first school you attended? #register/research-spur ^rs-011
+- what did the place you were born look like from the air, fifty years ago? #register/research-spur ^rs-012
+- what is the full story behind a photograph you have never asked about? #register/research-spur ^rs-013
+- who made the object you use most, and where? #register/research-spur ^rs-014
+- what is buried under the road outside? #register/research-spur ^rs-015
+- what happened to the people in the last group photograph you were in? #register/research-spur ^rs-016
+- what does the map show where you expected nothing? #register/research-spur ^rs-017
+- what was the last thing your oldest relative learned to do? #register/research-spur ^rs-018
+- what did the river, the coast, or the hill near you look like before? #register/research-spur ^rs-019
+- what is the earliest record of your family name you can find? #register/research-spur ^rs-020
+- who owns the land you walk on? #register/research-spur ^rs-021
+- what happened in your town the week you were born? #register/research-spur ^rs-022
+- what does the archive hold about a place you know well? #register/research-spur ^rs-023
+- what was demolished to make the space you cross every day? #register/research-spur ^rs-024
+- who was the person a street near you is named for? #register/research-spur ^rs-025
+- what did a road you drive replace? #register/research-spur ^rs-026
+- what is the migration story behind a dish you eat often? #register/research-spur ^rs-027
+- what happened to a business that closed near you? #register/research-spur ^rs-028
+- who took the first photograph of your family, and why? #register/research-spur ^rs-029
+- what did the loose papers in the house survive from? #register/research-spur ^rs-030
+- what is the history of the illness that runs in your family? #register/research-spur ^rs-031
+- what was the last trade practised in your neighbourhood that no longer is? #register/research-spur ^rs-032
+- who made the decisions that shaped the view from your window? #register/research-spur ^rs-033
+- what happened to a person you have not heard from in ten years? #register/research-spur ^rs-034
+- what is the story of the border nearest to you? #register/research-spur ^rs-035
+- what did the census say about your street a century ago? #register/research-spur ^rs-036
+- what was the first thing ever built where you work? #register/research-spur ^rs-037
+- who kept the records for the institution that shaped your childhood? #register/research-spur ^rs-038
+- what happened in the gap between two dates on a family document? #register/research-spur ^rs-039
+- what is the geology under the place you live? #register/research-spur ^rs-040
+- what did your city look like the last time it flooded? #register/research-spur ^rs-041
+- who names the storms, the streets, and the species where you live? #register/research-spur ^rs-042
+- what happened to the works the town was built around? #register/research-spur ^rs-043
+- what did a law you live under replace? #register/research-spur ^rs-044
+- what is the oldest living thing near your home? #register/research-spur ^rs-045
+- who wrote the textbook you learned from, and what did they leave out? #register/research-spur ^rs-046
+- what happened to the first piece of writing you were ever paid for? #register/research-spur ^rs-047
+- what did the land you visit on holiday do for a living before tourism? #register/research-spur ^rs-048
+- what is the route the water you drink takes to reach you? #register/research-spur ^rs-049
+- who decided the shape of the working day you keep? #register/research-spur ^rs-050
+- what happened to the technology that was replaced by the one you use? #register/research-spur ^rs-051
+- what did people do in your line of work before the tool you depend on? #register/research-spur ^rs-052
+- what is the story of a scar, a repair, or a stain on something you own? #register/research-spur ^rs-053
+- who else has held the position you hold? #register/research-spur ^rs-054
+- what happened in the place you are from during a year you know nothing about? #register/research-spur ^rs-055
+- what did your family own that is now gone, and where did it go? #register/research-spur ^rs-056
+- what is the earliest map that shows your home? #register/research-spur ^rs-057
+- who were the neighbours in the first place you remember living? #register/research-spur ^rs-058
+- what happened to the animals that used to be where you live? #register/research-spur ^rs-059
+- what did the building you work in used to be? #register/research-spur ^rs-060
+- what is the history of the word for your job? #register/research-spur ^rs-061
+- who taught the person who taught you? #register/research-spur ^rs-062
+- what happened to the people who built the thing you admire most? #register/research-spur ^rs-063
+- what did a recipe you cook look like two generations ago? #register/research-spur ^rs-064
+- what is the longest-standing thing you pass every day? #register/research-spur ^rs-065
+- who decided that the thing you think of as normal would be normal? #register/research-spur ^rs-066
+- what happened the last time your trade went through what it is going through? #register/research-spur ^rs-067
+- what did the place you were happiest look like before you knew it? #register/research-spur ^rs-068
+- what is the paper trail behind a single day of your childhood? #register/research-spur ^rs-069
+- who kept the letters, and who threw them away? #register/research-spur ^rs-070
+- what happened to the first friend you ever made? #register/research-spur ^rs-071
+- what did a piece of music you love come out of? #register/research-spur ^rs-072
+- what is the story of the one machine your family kept? #register/research-spur ^rs-073
+- who drew the plan of the space you live in? #register/research-spur ^rs-074
+- what happened to the language your ancestors spoke? #register/research-spur ^rs-075
+- what did a public building near you cost, and who paid? #register/research-spur ^rs-076
+- what is the reason for a boundary you have never questioned? #register/research-spur ^rs-077
+- who has died in the room you sleep in? #register/research-spur ^rs-078
+- what happened to the union in your field? #register/research-spur ^rs-079
+- what did the sky look like where you grew up, and does it still? #register/research-spur ^rs-080
+- what is the earliest thing anyone in your family wrote down? #register/research-spur ^rs-081
+- who profits from something you do for free? #register/research-spur ^rs-082
+- what happened to the last person to hold your grandparent's job? #register/research-spur ^rs-083
+- what did your street sound like a hundred years ago? #register/research-spur ^rs-084
+- what route does an ordinary object in your kitchen take to reach you? #register/research-spur ^rs-085
+- who is not in the official history of the place you are from? #register/research-spur ^rs-086
+- what happened in the years your family does not talk about? #register/research-spur ^rs-087
+- what did a childhood fear of yours correspond to in the world? #register/research-spur ^rs-088
+- what is the record of a court case, a permit, or a complaint near you? #register/research-spur ^rs-089
+- who were the first people to farm where you live? #register/research-spur ^rs-090
+- what happened to the money? #register/research-spur ^rs-091
+- what did the institution that raised you look like from the inside then? #register/research-spur ^rs-092
+- what is the story behind a road that stops abruptly? #register/research-spur ^rs-093
+- who repairs the thing you depend on? #register/research-spur ^rs-094
+- what happened to the light, the noise, or the dark since you were a child? #register/research-spur ^rs-095
+- what did the earliest version of your craft's main tool look like? #register/research-spur ^rs-096
+- what is written on a grave, a plaque, or a foundation stone you pass? #register/research-spur ^rs-097
+- who made the rules of the game you played as a child? #register/research-spur ^rs-098
+- what happened to the harvest, the catch, or the season last year? #register/research-spur ^rs-099
+- what did the people who left your town go on to do? #register/research-spur ^rs-100

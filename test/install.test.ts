@@ -82,8 +82,28 @@ describe('the shipped bank', () => {
     }
   });
 
-  test('it holds the 1,023 autoethnographic questions, every one with an id', () => {
-    expect(questionCount(STARTER_BANK)).toBe(1023);
+  test('it holds 2,523 questions, every one with an id', () => {
+    expect(questionCount(STARTER_BANK)).toBe(2523);
+  });
+
+  // The registers are not one taxonomy, and the prompt rubric contradicts the
+  // Bank test on purpose. 22 registers across four notes.
+  test('every register the canon names is stocked', () => {
+    const counts = new Map<string, number>();
+    for (const note of STARTER_BANK) {
+      for (const [, r] of note.markdown.matchAll(/#register\/([a-z-]+)/g)) {
+        counts.set(r as string, (counts.get(r as string) ?? 0) + 1);
+      }
+    }
+    for (const register of [
+      'episode', 'general-event', 'lifetime-period', 'fact', 'construct', 'intention',
+      'value', 'causal-theory', 'belief', 'state', 'transformative',
+      'knowledge', 'skill', 'research-spur', 'invention',
+      'membership', 'positionality', 'relation', 'telling', 'embodiment', 'artifact', 'structure',
+    ]) {
+      expect(counts.get(register) ?? 0).toBeGreaterThan(90);
+    }
+    expect(counts.size).toBe(22);
   });
 
   test('every entry carries a register, and none carries a Role', () => {

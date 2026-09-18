@@ -1,0 +1,1149 @@
+---
+channel: autobiographical
+title: "autobiographical"
+kind: bank
+source: written
+---
+
+Questions that ask you to retrieve a life you have already lived.
+The eleven registers here are Conway's three-level hierarchy of
+autobiographical memory — episode, general event, lifetime period — with
+the evaluative and forward-looking registers beside it. Each one names a
+different KIND of answer, not a different subject, so the same afternoon
+can be reached eleven ways.
+
+Every entry is written to fail one test on purpose: a stranger cannot
+guess the answer. None of them can be closed in a sentence.
+
+## Episode — one occasion
+
+- what had you eaten in the hours before the worst news? #register/episode ^ep-001
+- where were you standing the first time someone called you by your full name in anger? #register/episode ^ep-002
+- what was the last thing you said before a door closed for good? #register/episode ^ep-003
+- what did you do with the rest of the day after you got the job? #register/episode ^ep-004
+- who saw you cry most recently, and what did they do? #register/episode ^ep-005
+- what was in your pockets the day you left home? #register/episode ^ep-006
+- what did you buy with the first money you earned? #register/episode ^ep-007
+- where did you sleep the night you could not go home? #register/episode ^ep-008
+- what was playing when you understood something you had been avoiding? #register/episode ^ep-009
+- who drove, and what did you talk about? #register/episode ^ep-010
+- what did the room smell like when you walked in too late? #register/episode ^ep-011
+- what was the last thing you packed? #register/episode ^ep-012
+- where were you when the power went out for longer than a day? #register/episode ^ep-013
+- what did you say to get out of it? #register/episode ^ep-014
+- who was in the photograph you did not take? #register/episode ^ep-015
+- what did you eat alone, standing up, on a day that mattered? #register/episode ^ep-016
+- where did you go afterwards, instead of home? #register/episode ^ep-017
+- what was the first thing you touched in the new place? #register/episode ^ep-018
+- who let you in? #register/episode ^ep-019
+- what did you wear the day you knew you would not be going back? #register/episode ^ep-020
+- where were you when you realised you had been lied to? #register/episode ^ep-021
+- what did you do with the flowers? #register/episode ^ep-022
+- what was the smallest thing that made you leave the room? #register/episode ^ep-023
+- who spoke first after the silence? #register/episode ^ep-024
+- what did you carry down the stairs? #register/episode ^ep-025
+- where were you the first time a stranger was kind to you for no reason? #register/episode ^ep-026
+- what did you write and not send? #register/episode ^ep-027
+- what was on the table? #register/episode ^ep-028
+- who did you call, and what time was it? #register/episode ^ep-029
+- what did you do the hour before the interview? #register/episode ^ep-030
+- where were you when the phone rang at the wrong time of night? #register/episode ^ep-031
+- what did you take that was not yours? #register/episode ^ep-032
+- what was the last thing you cooked for someone who left? #register/episode ^ep-033
+- who waited with you? #register/episode ^ep-034
+- what did you notice on the ceiling? #register/episode ^ep-035
+- where did you hide? #register/episode ^ep-036
+- what did you give away in one afternoon? #register/episode ^ep-037
+- what was the weather like the day you started? #register/episode ^ep-038
+- who paid? #register/episode ^ep-039
+- what did you do with your hands while you waited? #register/episode ^ep-040
+- where were you when you saw yourself in a mirror and did not recognise it? #register/episode ^ep-041
+- what did you promise, out loud, and to whom? #register/episode ^ep-042
+- what was in the bag you did not open for a year? #register/episode ^ep-043
+- who found you? #register/episode ^ep-044
+- what did you do the first time you had a key of your own? #register/episode ^ep-045
+- where did you eat on the worst day? #register/episode ^ep-046
+- what did you break? #register/episode ^ep-047
+- what was the last question you were asked that you could not answer? #register/episode ^ep-048
+- who was already there when you arrived? #register/episode ^ep-049
+- what did you do with the money you did not spend? #register/episode ^ep-050
+- where were you standing when you decided? #register/episode ^ep-051
+- what did you say instead of what you meant? #register/episode ^ep-052
+- what was on the screen, the page, or the wall in front of you? #register/episode ^ep-053
+- who left first? #register/episode ^ep-054
+- what did you do the night before the funeral? #register/episode ^ep-055
+- where did you walk for hours? #register/episode ^ep-056
+- what did you keep from that room? #register/episode ^ep-057
+- what was the sound that woke you? #register/episode ^ep-058
+- who apologised? #register/episode ^ep-059
+- what did you do with the wrong ticket, address, or day? #register/episode ^ep-060
+- where were you when you got the diagnosis, the result, or the number? #register/episode ^ep-061
+- what did you count? #register/episode ^ep-062
+- what was the first meal you ate in the new house? #register/episode ^ep-063
+- who helped you carry it? #register/episode ^ep-064
+- what did you do after everyone went to bed? #register/episode ^ep-065
+- where were you when the weather turned? #register/episode ^ep-066
+- what did you throw away that afternoon? #register/episode ^ep-067
+- what was the last thing you said to someone who did not hear you? #register/episode ^ep-068
+- who was on the other side of the wall? #register/episode ^ep-069
+- what did you do the morning you did not have to be anywhere? #register/episode ^ep-070
+- where were you when the news came on? #register/episode ^ep-071
+- what did you say to the child? #register/episode ^ep-072
+- what was the last thing you bought before the money ran out? #register/episode ^ep-073
+- who taught you the thing in a single afternoon? #register/episode ^ep-074
+- what did you do with the animal? #register/episode ^ep-075
+- where did you sit, and why that seat? #register/episode ^ep-076
+- what did you forget to bring? #register/episode ^ep-077
+- what was the first thing you did when you got there? #register/episode ^ep-078
+- who came to the door? #register/episode ^ep-079
+- what did you do with the letter? #register/episode ^ep-080
+- where were you the night before the biggest day? #register/episode ^ep-081
+- what did you fail to notice until afterwards? #register/episode ^ep-082
+- what was in the fridge? #register/episode ^ep-083
+- who was singing? #register/episode ^ep-084
+- what did you do when the machine stopped working? #register/episode ^ep-085
+- where were you when you laughed at the wrong moment? #register/episode ^ep-086
+- what did you agree to without thinking? #register/episode ^ep-087
+- what was the last thing that made you run? #register/episode ^ep-088
+- who was watching? #register/episode ^ep-089
+- what did you do with the extra hour? #register/episode ^ep-090
+- where did you take them? #register/episode ^ep-091
+- what did you say to the doctor, the officer, or the clerk? #register/episode ^ep-092
+- what was the last thing you finished in one sitting? #register/episode ^ep-093
+- who gave you the address? #register/episode ^ep-094
+- what did you do the first time you were paid to write, make, or fix something? #register/episode ^ep-095
+- where were you standing when the crowd turned? #register/episode ^ep-096
+- what did you leave behind on purpose? #register/episode ^ep-097
+- what was the worst thing you ate and why did you eat it? #register/episode ^ep-098
+- who was asleep in the next room? #register/episode ^ep-099
+- what did you do the day the rule changed? #register/episode ^ep-100
+
+## General event — what happened again and again
+
+- what did Sunday evenings involve in the house you grew up in? #register/general-event ^ge-001
+- what happened every time your family drove somewhere far? #register/general-event ^ge-002
+- what did you always do on the last day of a holiday? #register/general-event ^ge-003
+- what was the argument your household had again and again? #register/general-event ^ge-004
+- what do you do every time you arrive in a new city? #register/general-event ^ge-005
+- what happened whenever money got tight? #register/general-event ^ge-006
+- what did the mornings look like in the worst year? #register/general-event ^ge-007
+- what do you always do before you leave the house? #register/general-event ^ge-008
+- what happened at every wedding on one side of your family? #register/general-event ^ge-009
+- what did the walk to school involve? #register/general-event ^ge-010
+- what do you do every time you cannot sleep? #register/general-event ^ge-011
+- what happened whenever a visitor stayed the night? #register/general-event ^ge-012
+- what did you eat most often in your twenties? #register/general-event ^ge-013
+- what do you always say when you answer the phone to a particular person? #register/general-event ^ge-014
+- what happened every time you got a bad grade, a warning, or a bill? #register/general-event ^ge-015
+- what did the end of the working day look like at your first job? #register/general-event ^ge-016
+- what do you do whenever you finish something? #register/general-event ^ge-017
+- what happened at the kitchen table after everyone else left it? #register/general-event ^ge-018
+- what did summers involve before you had responsibilities? #register/general-event ^ge-019
+- what do you always check when you enter a room? #register/general-event ^ge-020
+- what happened every time you visited that one relative? #register/general-event ^ge-021
+- what did you and your closest friend do that you did nowhere else? #register/general-event ^ge-022
+- what do you do when you have an hour and no obligation? #register/general-event ^ge-023
+- what happened whenever someone in the house was ill? #register/general-event ^ge-024
+- what did the routine of caring for someone actually involve? #register/general-event ^ge-025
+- what do you always postpone until it is urgent? #register/general-event ^ge-026
+- what happened every time the seasons turned where you grew up? #register/general-event ^ge-027
+- what did you do on the days you had nothing to do? #register/general-event ^ge-028
+- what do you always order? #register/general-event ^ge-029
+- what happened whenever the two of you disagreed? #register/general-event ^ge-030
+- what did the commute do to you? #register/general-event ^ge-031
+- what do you do every time you are early? #register/general-event ^ge-032
+- what happened in that house when the door was closed? #register/general-event ^ge-033
+- what did payday look like? #register/general-event ^ge-034
+- what do you always bring back from a trip? #register/general-event ^ge-035
+- what happened at the same time every year? #register/general-event ^ge-036
+- what did the hours after midnight get used for? #register/general-event ^ge-037
+- what do you do when you are about to be found out? #register/general-event ^ge-038
+- what happened every time you tried to explain your work to your family? #register/general-event ^ge-039
+- what did the shopping trip involve, step by step? #register/general-event ^ge-040
+- what do you always let go unsaid? #register/general-event ^ge-041
+- what happened whenever the weather was bad for days? #register/general-event ^ge-042
+- what did the ritual around the television look like? #register/general-event ^ge-043
+- what do you do every time you see your own name written down? #register/general-event ^ge-044
+- what happened when guests came that did not happen otherwise? #register/general-event ^ge-045
+- what did the season of exams do to the house? #register/general-event ^ge-046
+- what do you always take with you that you never use? #register/general-event ^ge-047
+- what happened every time you moved? #register/general-event ^ge-048
+- what did you and your siblings do out of the adults' sight? #register/general-event ^ge-049
+- what do you do when a conversation goes somewhere you do not want? #register/general-event ^ge-050
+- what happened in the hour before the household woke up? #register/general-event ^ge-051
+- what did the phone calls home consist of? #register/general-event ^ge-052
+- what do you always notice first about a stranger? #register/general-event ^ge-053
+- what happened every time somebody new joined? #register/general-event ^ge-054
+- what did you do with the days between jobs? #register/general-event ^ge-055
+- what do you always refuse the first time and accept the second? #register/general-event ^ge-056
+- what happened whenever you got something right in public? #register/general-event ^ge-057
+- what did the walk home from the bar, the shift, or the practice look like? #register/general-event ^ge-058
+- what do you do every time you cook the same thing? #register/general-event ^ge-059
+- what happened at the beginning of every term? #register/general-event ^ge-060
+- what did the yearly visit involve? #register/general-event ^ge-061
+- what do you always tidy before you can work? #register/general-event ^ge-062
+- what happened every time money arrived unexpectedly? #register/general-event ^ge-063
+- what did your household do with leftovers? #register/general-event ^ge-064
+- what do you do when the person you live with is out? #register/general-event ^ge-065
+- what happened at every one of those meetings? #register/general-event ^ge-066
+- what did the mornings after look like? #register/general-event ^ge-067
+- what do you always do to a new book? #register/general-event ^ge-068
+- what happened whenever you were the only one of your kind in the room? #register/general-event ^ge-069
+- what did the years of studying actually consist of, day to day? #register/general-event ^ge-070
+- what do you always say to someone who is leaving? #register/general-event ^ge-071
+- what happened every time a neighbour knocked? #register/general-event ^ge-072
+- what did the maintenance of the house involve, and who did it? #register/general-event ^ge-073
+- what do you do before a difficult conversation? #register/general-event ^ge-074
+- what happened whenever the two families were in the same room? #register/general-event ^ge-075
+- what did you do with the same twenty minutes, every day, for years? #register/general-event ^ge-076
+- what do you always keep in the same place? #register/general-event ^ge-077
+- what happened at the end of every argument in that relationship? #register/general-event ^ge-078
+- what did the routine look like when you were doing well? #register/general-event ^ge-079
+- what do you always forget? #register/general-event ^ge-080
+- what happened whenever you went back? #register/general-event ^ge-081
+- what did the day before a deadline look like, every time? #register/general-event ^ge-082
+- what do you always do that annoys the people you live with? #register/general-event ^ge-083
+- what happened every year on a date that means nothing to anyone else? #register/general-event ^ge-084
+- what did the nights of the bad stretch consist of? #register/general-event ^ge-085
+- what do you always take on that you should refuse? #register/general-event ^ge-086
+- what happened whenever the electricity failed? #register/general-event ^ge-087
+- what did birthdays involve in that house? #register/general-event ^ge-088
+- what do you always say when someone compliments your work? #register/general-event ^ge-089
+- what happened every time a stranger asked where you were from? #register/general-event ^ge-090
+- what did the weekly obligation involve? #register/general-event ^ge-091
+- what do you do when the work is going well? #register/general-event ^ge-092
+- what happened every time you tried to stop? #register/general-event ^ge-093
+- what did the hours in the waiting room consist of? #register/general-event ^ge-094
+- what do you always underestimate? #register/general-event ^ge-095
+- what happened whenever a package, a letter, or a bill arrived? #register/general-event ^ge-096
+- what did you and your parent do together that neither of you chose? #register/general-event ^ge-097
+- what do you always leave until you are alone? #register/general-event ^ge-098
+- what happened at every single one of those family meals? #register/general-event ^ge-099
+- what did the good years look like on an ordinary Tuesday? #register/general-event ^ge-100
+
+## Lifetime period — a stretch of years
+
+- what did the year you were poorest teach you to do without? #register/lifetime-period ^lp-001
+- what was the longest stretch you lived in one room? #register/lifetime-period ^lp-002
+- what changed about you during the job you stayed in too long? #register/lifetime-period ^lp-003
+- what did the years of caring for someone take from your own work? #register/lifetime-period ^lp-004
+- what was the best year of your twenties, and what made it that? #register/lifetime-period ^lp-005
+- what did the time in that city do to your accent, your habits, or your hands? #register/lifetime-period ^lp-006
+- what were you like in the years before you had any responsibility? #register/lifetime-period ^lp-007
+- what did the months of recovery rearrange? #register/lifetime-period ^lp-008
+- what was the stretch of your life with no photographs of it? #register/lifetime-period ^lp-009
+- what did the years of studying cost you outside the study? #register/lifetime-period ^lp-010
+- what were you doing during the period you now cannot account for? #register/lifetime-period ^lp-011
+- what did living with someone change about the shape of your day? #register/lifetime-period ^lp-012
+- what was the longest you have gone without doing the thing you do? #register/lifetime-period ^lp-013
+- what did the years abroad make impossible to return to? #register/lifetime-period ^lp-014
+- what were the conditions of the period when you did your best work? #register/lifetime-period ^lp-015
+- what did the time without money teach you about other people? #register/lifetime-period ^lp-016
+- what was the era of your life that your family remembers differently? #register/lifetime-period ^lp-017
+- what did the apprenticeship, the training, or the first years actually consist of? #register/lifetime-period ^lp-018
+- what were you saving for during the years you saved? #register/lifetime-period ^lp-019
+- what did the period of unemployment do to the hours of the day? #register/lifetime-period ^lp-020
+- what was the last long stretch when you felt unobserved? #register/lifetime-period ^lp-021
+- what did the years of raising someone change in you? #register/lifetime-period ^lp-022
+- what were the rules of the house during the hardest period? #register/lifetime-period ^lp-023
+- what did the period after the loss look like from the outside? #register/lifetime-period ^lp-024
+- what was the phase you are most embarrassed by? #register/lifetime-period ^lp-025
+- what did the years of commuting take? #register/lifetime-period ^lp-026
+- what were you certain of during the period you were most wrong? #register/lifetime-period ^lp-027
+- what did living alone for a long time do to your conversation? #register/lifetime-period ^lp-028
+- what was the stretch when you had no plans at all? #register/lifetime-period ^lp-029
+- what did the years in that institution teach you to hide? #register/lifetime-period ^lp-030
+- what were the good habits of a period you would not want back? #register/lifetime-period ^lp-031
+- what did the long project do to everything around it? #register/lifetime-period ^lp-032
+- what was the period when you were the most useful to other people? #register/lifetime-period ^lp-033
+- what did the years of secrecy require of you? #register/lifetime-period ^lp-034
+- what were you reading during the year everything changed? #register/lifetime-period ^lp-035
+- what did the period of plenty make you careless about? #register/lifetime-period ^lp-036
+- what was the longest you have lived somewhere without unpacking? #register/lifetime-period ^lp-037
+- what did the years of ill health teach you about time? #register/lifetime-period ^lp-038
+- what were you preparing for during a period that turned out differently? #register/lifetime-period ^lp-039
+- what did the stretch of night work do to your relationships? #register/lifetime-period ^lp-040
+- what was the last period when you had a teacher? #register/lifetime-period ^lp-041
+- what did the years of arguing with the same person leave behind? #register/lifetime-period ^lp-042
+- what were the small pleasures of the worst year? #register/lifetime-period ^lp-043
+- what did the period of ambition cost the people around you? #register/lifetime-period ^lp-044
+- what was the phase when you changed how you dressed, and why? #register/lifetime-period ^lp-045
+- what did the years without a home of your own do to your possessions? #register/lifetime-period ^lp-046
+- what were you avoiding for a decade? #register/lifetime-period ^lp-047
+- what did the period of caring for a place — a house, a garden, an animal — change? #register/lifetime-period ^lp-048
+- what was the stretch of your life that had a soundtrack? #register/lifetime-period ^lp-049
+- what did the years in the wrong work teach you to do well? #register/lifetime-period ^lp-050
+- what were the terms of the period you were happiest? #register/lifetime-period ^lp-051
+- what did the long recovery of somebody else ask of you? #register/lifetime-period ^lp-052
+- what was the era when your body could do something it cannot now? #register/lifetime-period ^lp-053
+- what did the years in a language not your own do to your thinking? #register/lifetime-period ^lp-054
+- what were you known for during a period you have left behind? #register/lifetime-period ^lp-055
+- what did the stretch of constant moving make you good at? #register/lifetime-period ^lp-056
+- what was the period when you had the most friends, and where did they go? #register/lifetime-period ^lp-057
+- what did the years of debt organise? #register/lifetime-period ^lp-058
+- what were the daily compromises of the time you were most committed? #register/lifetime-period ^lp-059
+- what did the period before the technology you now depend on look like? #register/lifetime-period ^lp-060
+- what was the longest you went without telling anyone the truth? #register/lifetime-period ^lp-061
+- what did the years of belonging to something give you? #register/lifetime-period ^lp-062
+- what were you building during a period nobody noticed? #register/lifetime-period ^lp-063
+- what did the stretch after leaving do to your sense of where home was? #register/lifetime-period ^lp-064
+- what was the period when the work stopped being difficult? #register/lifetime-period ^lp-065
+- what did the years of being underestimated make possible? #register/lifetime-period ^lp-066
+- what were your mornings like during the best stretch of your working life? #register/lifetime-period ^lp-067
+- what did the period of being visible change about strangers? #register/lifetime-period ^lp-068
+- what was the era when you were always tired? #register/lifetime-period ^lp-069
+- what did the years of waiting for a decision do? #register/lifetime-period ^lp-070
+- what were you spending money on during the period you had it? #register/lifetime-period ^lp-071
+- what did the stretch of caring for a dying person teach you about rooms? #register/lifetime-period ^lp-072
+- what was the stretch when you were somebody's apprentice? #register/lifetime-period ^lp-073
+- what did the years after the accident, the closure, or the collapse rearrange? #register/lifetime-period ^lp-074
+- what were the terms on which you stayed? #register/lifetime-period ^lp-075
+- what did the period of being new at something do to your patience? #register/lifetime-period ^lp-076
+- what was the longest you held a routine, and what broke it? #register/lifetime-period ^lp-077
+- what did the years of being the eldest require? #register/lifetime-period ^lp-078
+- what were you good at during a period of your life and are not now? #register/lifetime-period ^lp-079
+- what did the stretch of freedom actually get used for? #register/lifetime-period ^lp-080
+- what was the era when you did not know you were poor? #register/lifetime-period ^lp-081
+- what did the period of learning a craft take from your body? #register/lifetime-period ^lp-082
+- what were the years like when the family was largest? #register/lifetime-period ^lp-083
+- what did the long silence between you and someone consist of? #register/lifetime-period ^lp-084
+- what was the stretch of your life with the most strangers in it? #register/lifetime-period ^lp-085
+- what did the years of doing the work badly teach you? #register/lifetime-period ^lp-086
+- what were you wrong about for the whole of a decade? #register/lifetime-period ^lp-087
+- what did the period without privacy do to what you wrote down? #register/lifetime-period ^lp-088
+- what was the season of your life that was all logistics? #register/lifetime-period ^lp-089
+- what did the years of being needed make you postpone? #register/lifetime-period ^lp-090
+- what were the conditions under which you stopped? #register/lifetime-period ^lp-091
+- what did the stretch of being between two places do? #register/lifetime-period ^lp-092
+- what was the period you would repeat exactly? #register/lifetime-period ^lp-093
+- what did the years in a job you loved take that you did not notice? #register/lifetime-period ^lp-094
+- what were the small dishonesties of a period you look back on fondly? #register/lifetime-period ^lp-095
+- what did the long stretch of routine do to your memory of it? #register/lifetime-period ^lp-096
+- what was the era when you last had a real rival? #register/lifetime-period ^lp-097
+- what did the years of quiet actually contain? #register/lifetime-period ^lp-098
+- what were you refusing during the period you were most stubborn? #register/lifetime-period ^lp-099
+- what did the period after the children, the students, or the staff left look like? #register/lifetime-period ^lp-100
+
+## Fact — the plain record
+
+- what is the full name you were given, and who chose it? #register/fact ^fa-001
+- how many houses have you lived in? #register/fact ^fa-002
+- what is your handwriting like now, compared to at school? #register/fact ^fa-003
+- what time do you actually wake up? #register/fact ^fa-004
+- what is the furthest north you have been? #register/fact ^fa-005
+- how many languages are spoken in your family? #register/fact ^fa-006
+- what is on your wall? #register/fact ^fa-007
+- what did you weigh at a moment somebody wrote it down? #register/fact ^fa-008
+- how many jobs have you had, counting the short ones? #register/fact ^fa-009
+- what is the oldest thing you own? #register/fact ^fa-010
+- what is your blood type, your shoe size, or your reading prescription? #register/fact ^fa-011
+- how long have you lived where you live now? #register/fact ^fa-012
+- what is in your bag today? #register/fact ^fa-013
+- how many people have you shared a home with? #register/fact ^fa-014
+- what is the last thing you paid for in cash? #register/fact ^fa-015
+- what is your usual route, and how long does it take? #register/fact ^fa-016
+- how many times have you moved town? #register/fact ^fa-017
+- what is the first address you can recite from memory? #register/fact ^fa-018
+- what do you own that has been repaired? #register/fact ^fa-019
+- how many hours a week do you actually work? #register/fact ^fa-020
+- what is the name of the street where you were born? #register/fact ^fa-021
+- what is the total number of people who would come if you called? #register/fact ^fa-022
+- how many of your grandparents did you meet? #register/fact ^fa-023
+- what is your earliest date you can prove you were somewhere? #register/fact ^fa-024
+- what is the oldest photograph of you that exists? #register/fact ^fa-025
+- how many phone numbers do you know by heart? #register/fact ^fa-026
+- what is the last thing you learned the name of? #register/fact ^fa-027
+- what is written on your identity documents that is wrong? #register/fact ^fa-028
+- how many beds have you slept in this year? #register/fact ^fa-029
+- what is the most money you have ever held at once? #register/fact ^fa-030
+- what is the longest you have gone without leaving a building? #register/fact ^fa-031
+- how many keys do you carry? #register/fact ^fa-032
+- what is your usual order, and how long has it been your usual? #register/fact ^fa-033
+- what is the name of the teacher you remember most clearly? #register/fact ^fa-034
+- how many funerals have you been to? #register/fact ^fa-035
+- what is the last thing you signed? #register/fact ^fa-036
+- what is the exact make and age of the tool you use most? #register/fact ^fa-037
+- how many times have you been to a hospital, and for what? #register/fact ^fa-038
+- what is the total of the debts you owe? #register/fact ^fa-039
+- what is your family's country of origin, by the official record? #register/fact ^fa-040
+- how many of your friends have you known more than ten years? #register/fact ^fa-041
+- what is the last thing you threw away that you should have kept? #register/fact ^fa-042
+- what is the height of the ceiling in the room you work in? #register/fact ^fa-043
+- how many times have you been photographed for a document? #register/fact ^fa-044
+- what is the name of every school you attended, in order? #register/fact ^fa-045
+- what is the oldest unopened thing in your house? #register/fact ^fa-046
+- how long is your commute, door to door? #register/fact ^fa-047
+- what is the last book you finished, and when? #register/fact ^fa-048
+- how many animals have you been responsible for? #register/fact ^fa-049
+- what is the price of the thing you buy most often, and was it always? #register/fact ^fa-050
+- what is your usual seat, in whatever room you use most? #register/fact ^fa-051
+- how many different beds did you sleep in before you were eighteen? #register/fact ^fa-052
+- what is the oldest piece of clothing you still wear? #register/fact ^fa-053
+- what is the number of people who live within a minute's walk of you? #register/fact ^fa-054
+- how many times have you voted, and where? #register/fact ^fa-055
+- what is the last physical letter you received? #register/fact ^fa-056
+- what is the brand of everything in your kitchen? #register/fact ^fa-057
+- how many times have you started again from nothing? #register/fact ^fa-058
+- what is written in the front of the oldest book you own? #register/fact ^fa-059
+- what is the name of the person who taught you to read? #register/fact ^fa-060
+- how many hours did you sleep last night, and is that typical? #register/fact ^fa-061
+- what is the last new word you learned in your own language? #register/fact ^fa-062
+- what is the sum of everything you have ever been paid for the work you care about? #register/fact ^fa-063
+- how many chairs are in your home? #register/fact ^fa-064
+- what is the date of the last thing you finished? #register/fact ^fa-065
+- what is the exact distance to the nearest place you would call beautiful? #register/fact ^fa-066
+- how many times have you been to the place you say you are from? #register/fact ^fa-067
+- what is the last thing you wrote by hand? #register/fact ^fa-068
+- what is the name of the street you would give if someone asked where you live? #register/fact ^fa-069
+- how many keys do you hold that nobody else has a copy of? #register/fact ^fa-070
+- what is the total floor area of everywhere you have lived? #register/fact ^fa-071
+- what is the last thing you queued for? #register/fact ^fa-072
+- how many different jobs have the people in your family done? #register/fact ^fa-073
+- what is the earliest year you remember as a year? #register/fact ^fa-074
+- what is the last thing somebody made for you by hand? #register/fact ^fa-075
+- how many hours of your week are not accounted for by anyone? #register/fact ^fa-076
+- what is the oldest recipe in your house, and whose was it? #register/fact ^fa-077
+- what is the exact time you leave, most days? #register/fact ^fa-078
+- how many times have you been the newest person somewhere? #register/fact ^fa-079
+- what is the last thing you bought that you still use daily? #register/fact ^fa-080
+- what is written on the piece of paper you have carried longest? #register/fact ^fa-081
+- how many people know your middle name? #register/fact ^fa-082
+- what is the smallest room you have lived in, in paces? #register/fact ^fa-083
+- what is the last thing you had to prove about yourself? #register/fact ^fa-084
+- how many years have you spent in each place you have lived? #register/fact ^fa-085
+- what is the current state of your handwriting on a bad day? #register/fact ^fa-086
+- what is the last number you memorised? #register/fact ^fa-087
+- how many of the clothes you own did you choose? #register/fact ^fa-088
+- what is the name of the nearest body of water? #register/fact ^fa-089
+- what is the last thing you replaced rather than repaired? #register/fact ^fa-090
+- how many people have had a key to where you live? #register/fact ^fa-091
+- what is the oldest arrangement you are still in? #register/fact ^fa-092
+- what is written on the most official document about you? #register/fact ^fa-093
+- how many days a year are you somewhere other than home? #register/fact ^fa-094
+- what is the last thing you counted? #register/fact ^fa-095
+- what is the name of the first person you worked for? #register/fact ^fa-096
+- how many hours a day do you spend not speaking? #register/fact ^fa-097
+- what is the oldest thing in your kitchen that still works? #register/fact ^fa-098
+- what is the last date you can remember exactly, and why that one? #register/fact ^fa-099
+- what is the exact title of the job you actually do? #register/fact ^fa-100
+
+## Construct — what you take yourself to be
+
+- what do you call yourself when nobody is asking professionally? #register/construct ^co-001
+- what kind of person do you think you are that the evidence does not support? #register/construct ^co-002
+- what would you have to stop doing to stop being what you are? #register/construct ^co-003
+- what category do people put you in that you do not accept? #register/construct ^co-004
+- what did you decide you were not, and when? #register/construct ^co-005
+- what is the difference between how you describe your work and what it is? #register/construct ^co-006
+- what part of your identity did somebody else name first? #register/construct ^co-007
+- what do you claim about yourself that you have never tested? #register/construct ^co-008
+- what would you be if you could not do the thing you do? #register/construct ^co-009
+- what kind of person does your calendar say you are? #register/construct ^co-010
+- what do you think you are good at that nobody has confirmed? #register/construct ^co-011
+- what would an honest job title for you be? #register/construct ^co-012
+- what did you inherit that you would not have chosen? #register/construct ^co-013
+- what do you refuse to be called? #register/construct ^co-014
+- what is the story you tell about yourself that has stopped being true? #register/construct ^co-015
+- what kind of person do you become in an emergency? #register/construct ^co-016
+- what do you think your role is in your family, and who assigned it? #register/construct ^co-017
+- what would your enemies say you are, and what part of it is right? #register/construct ^co-018
+- what did you become in order to get through something? #register/construct ^co-019
+- what is the version of you that only one person has seen? #register/construct ^co-020
+- what do you present as a preference that is actually a limitation? #register/construct ^co-021
+- what kind of person do you assume everyone else is? #register/construct ^co-022
+- what would change if you admitted what you actually want to be? #register/construct ^co-023
+- what do you belong to that you would not join now? #register/construct ^co-024
+- what is the thing about you that is most often misread? #register/construct ^co-025
+- what kind of person do you become when you are the expert in the room? #register/construct ^co-026
+- what do you think you deserve? #register/construct ^co-027
+- what would you have to give up to be taken seriously? #register/construct ^co-028
+- what did you stop calling yourself, and why? #register/construct ^co-029
+- what is the difference between the person you are at work and at home? #register/construct ^co-030
+- what do you defend in yourself that you criticise in others? #register/construct ^co-031
+- what kind of person does your spending say you are? #register/construct ^co-032
+- what would somebody conclude about you from your search history, your notes, or your shelves? #register/construct ^co-033
+- what do you think your generation is, and are you in it? #register/construct ^co-034
+- what is the label you use for convenience that is not accurate? #register/construct ^co-035
+- what kind of person did you set out to be? #register/construct ^co-036
+- what do you consider a duty that others treat as a choice? #register/construct ^co-037
+- what would you call the thing you do if the usual word did not exist? #register/construct ^co-038
+- what do you think of as your real work, and is it what you are paid for? #register/construct ^co-039
+- what is the part of your character you are least able to see? #register/construct ^co-040
+- what kind of person do people expect you to be because of where you are from? #register/construct ^co-041
+- what do you think you are owed? #register/construct ^co-042
+- what would you have to be wrong about for your self-description to collapse? #register/construct ^co-043
+- what did somebody once say about you that you built into an identity? #register/construct ^co-044
+- what is the difference between being good at something and being that thing? #register/construct ^co-045
+- what kind of person do you become around money? #register/construct ^co-046
+- what do you think your responsibilities are, and who set them? #register/construct ^co-047
+- what would you be doing if nobody could see it? #register/construct ^co-048
+- what is the trait you are proud of that has cost you the most? #register/construct ^co-049
+- what kind of person do you assume the reader of your work is? #register/construct ^co-050
+- what do you think of as normal that others find strange? #register/construct ^co-051
+- what would an outsider call the thing you belong to? #register/construct ^co-052
+- what did you start doing to be taken for something you were not? #register/construct ^co-053
+- what is the qualification you claim that you never finished? #register/construct ^co-054
+- what kind of person do you turn into when tired? #register/construct ^co-055
+- what do you count as an achievement that nobody else would? #register/construct ^co-056
+- what would you have to stop believing to change what you do? #register/construct ^co-057
+- what is the name for the thing you are in between? #register/construct ^co-058
+- what kind of person do you think your parents thought they were raising? #register/construct ^co-059
+- what do you keep doing that no longer matches who you say you are? #register/construct ^co-060
+- what would you have to explain about yourself to be understood in one sentence? #register/construct ^co-061
+- what is the difference between the way you talk about your past and the way you remember it? #register/construct ^co-062
+- what kind of person do you become when you are the only one who knows? #register/construct ^co-063
+- what do you consider a skill that others consider a personality? #register/construct ^co-064
+- what would you call yourself if the word had no status attached? #register/construct ^co-065
+- what did you take on that turned out to be who you are? #register/construct ^co-066
+- what is the assumption people make about you that is useful? #register/construct ^co-067
+- what kind of person do you become in a room where you do not belong? #register/construct ^co-068
+- what do you think of as your best quality, and who benefits from it? #register/construct ^co-069
+- what would you have to lose to find out what you are? #register/construct ^co-070
+- what is the version of your biography that you have stopped telling? #register/construct ^co-071
+- what kind of person do you think you will be in ten years, and on what basis? #register/construct ^co-072
+- what do you claim not to care about? #register/construct ^co-073
+- what would the people you grew up with say you have become? #register/construct ^co-074
+- what is the difference between your ambition and your habit? #register/construct ^co-075
+- what kind of person do you become when someone else is in charge? #register/construct ^co-076
+- what do you treat as a fact about yourself that is a decision? #register/construct ^co-077
+- what would you have to stop comparing yourself to? #register/construct ^co-078
+- what is the thing you have never called yourself out loud? #register/construct ^co-079
+- what kind of person do you assume you are in a photograph before you look? #register/construct ^co-080
+- what do you think you are the exception to? #register/construct ^co-081
+- what would change if you took your own advice? #register/construct ^co-082
+- what is the part of you that predates everything you have chosen? #register/construct ^co-083
+- what kind of person does your work assume you are? #register/construct ^co-084
+- what do you consider a weakness that has been useful? #register/construct ^co-085
+- what would you be called in a language other than your own? #register/construct ^co-086
+- what is the thing about you that is entirely your own doing? #register/construct ^co-087
+- what kind of person do you become when you are being paid? #register/construct ^co-088
+- what do you think your obligation to strangers is? #register/construct ^co-089
+- what would you have to be for the last ten years to make sense? #register/construct ^co-090
+- what is the difference between the way you think and the way you speak? #register/construct ^co-091
+- what kind of person do you assume your critics are? #register/construct ^co-092
+- what do you treat as a stage that might be permanent? #register/construct ^co-093
+- what would you have to admit to stop performing competence? #register/construct ^co-094
+- what is the identity you keep for a room you are rarely in? #register/construct ^co-095
+- what kind of person does the thing you are most ashamed of make you? #register/construct ^co-096
+- what do you carry from a group you have left? #register/construct ^co-097
+- what would you be if the thing you are known for was taken away tomorrow? #register/construct ^co-098
+- what is the description of you that you would not correct? #register/construct ^co-099
+- what do you think you are in the middle of becoming? #register/construct ^co-100
+
+## Intention — what you mean to do
+
+- what are you saving up for, actually? #register/intention ^in-001
+- what do you intend to do with the next quiet week? #register/intention ^in-002
+- what have you been meaning to say to someone for months? #register/intention ^in-003
+- what do you want to have made by the time you are done? #register/intention ^in-004
+- what are you deliberately not starting yet? #register/intention ^in-005
+- what would you do first if the money arrived tomorrow? #register/intention ^in-006
+- what do you plan to stop doing this year? #register/intention ^in-007
+- what are you preparing for that you have not told anyone about? #register/intention ^in-008
+- what do you want the next place you live to be near? #register/intention ^in-009
+- what are you waiting for permission to do? #register/intention ^in-010
+- what do you intend to leave to someone? #register/intention ^in-011
+- what have you decided to do badly on purpose? #register/intention ^in-012
+- what are you building towards that nobody would guess? #register/intention ^in-013
+- what do you want to be able to do with your hands in ten years? #register/intention ^in-014
+- what are you putting off until you are better at it? #register/intention ^in-015
+- what do you intend to spend the last part of your working life on? #register/intention ^in-016
+- what are you saving that you do not need? #register/intention ^in-017
+- what do you want to have said out loud before you cannot? #register/intention ^in-018
+- what are you planning that depends on someone else changing? #register/intention ^in-019
+- what do you mean to do with the thing you inherited? #register/intention ^in-020
+- what do you want to stop apologising for? #register/intention ^in-021
+- what are you working towards that you no longer want? #register/intention ^in-022
+- what do you intend to learn next, and why that? #register/intention ^in-023
+- what have you promised yourself for after? #register/intention ^in-024
+- what are you keeping free? #register/intention ^in-025
+- what do you want somebody to ask you before it is too late? #register/intention ^in-026
+- what are you going to do about the thing you have been avoiding? #register/intention ^in-027
+- what do you intend to leave unfinished? #register/intention ^in-028
+- what are you saving your best work for? #register/intention ^in-029
+- what do you want the people who come after you to find? #register/intention ^in-030
+- what are you deliberately making harder for yourself? #register/intention ^in-031
+- what do you plan to do with the skill nobody pays for? #register/intention ^in-032
+- what are you trying to earn the right to do? #register/intention ^in-033
+- what do you intend to change about the place you live? #register/intention ^in-034
+- what have you scheduled that you dread? #register/intention ^in-035
+- what do you want to have enough of? #register/intention ^in-036
+- what are you clearing space for? #register/intention ^in-037
+- what do you intend to do with the years after the current work is finished? #register/intention ^in-038
+- what are you going to ask for? #register/intention ^in-039
+- what do you want to stop being good at? #register/intention ^in-040
+- what are you planning to give away? #register/intention ^in-041
+- what do you intend to do differently the next time it happens? #register/intention ^in-042
+- what are you setting up so that someone else can continue it? #register/intention ^in-043
+- what do you want to be in the middle of? #register/intention ^in-044
+- what are you deliberately keeping small? #register/intention ^in-045
+- what do you intend to do about the thing that is slowly failing? #register/intention ^in-046
+- what have you decided not to fix? #register/intention ^in-047
+- what do you want to be able to afford to refuse? #register/intention ^in-048
+- what are you training for? #register/intention ^in-049
+- what do you intend to be doing at this time next year? #register/intention ^in-050
+- what are you trying to finish before something else starts? #register/intention ^in-051
+- what do you want to have walked? #register/intention ^in-052
+- what are you saving a room, a day, or a name for? #register/intention ^in-053
+- what do you intend to say at the meeting you keep postponing? #register/intention ^in-054
+- what are you hoping happens without you having to cause it? #register/intention ^in-055
+- what do you want to build that would outlast your interest in it? #register/intention ^in-056
+- what are you preparing to lose? #register/intention ^in-057
+- what do you intend to do with the record you have been keeping? #register/intention ^in-058
+- what are you going to do when the current arrangement ends? #register/intention ^in-059
+- what do you want to be the last to know? #register/intention ^in-060
+- what are you deliberately leaving to chance? #register/intention ^in-061
+- what do you intend to do with the room nobody uses? #register/intention ^in-062
+- what have you decided to stop explaining? #register/intention ^in-063
+- what do you want to be in trouble for? #register/intention ^in-064
+- what are you going to do with the part of the work you hate? #register/intention ^in-065
+- what do you intend to have proved? #register/intention ^in-066
+- what are you planning that would embarrass you if it were known? #register/intention ^in-067
+- what do you want to get back to? #register/intention ^in-068
+- what are you setting aside, and for whom? #register/intention ^in-069
+- what do you intend to do with the time you are freeing up? #register/intention ^in-070
+- what are you trying to become qualified for? #register/intention ^in-071
+- what do you want to have visited twice? #register/intention ^in-072
+- what are you deliberately doing in the wrong order? #register/intention ^in-073
+- what do you intend to do about the people you have lost touch with? #register/intention ^in-074
+- what are you going to stop paying for? #register/intention ^in-075
+- what do you want to still be doing when nobody is watching? #register/intention ^in-076
+- what are you preparing a case for? #register/intention ^in-077
+- what do you intend to hand over? #register/intention ^in-078
+- what have you been rehearsing? #register/intention ^in-079
+- what do you want to be difficult about? #register/intention ^in-080
+- what are you going to do with the first good week? #register/intention ^in-081
+- what do you intend to make permanent? #register/intention ^in-082
+- what are you holding out for? #register/intention ^in-083
+- what do you want to have on the wall? #register/intention ^in-084
+- what are you deliberately not learning? #register/intention ^in-085
+- what do you intend to do with the thing that keeps working? #register/intention ^in-086
+- what are you planning to do alone? #register/intention ^in-087
+- what do you want to have forgiven? #register/intention ^in-088
+- what are you going to do when you have the tools? #register/intention ^in-089
+- what do you intend to be known for by the people who know you? #register/intention ^in-090
+- what are you making room for? #register/intention ^in-091
+- what do you want to stop carrying? #register/intention ^in-092
+- what are you going to do with the notes? #register/intention ^in-093
+- what do you intend to spend more than you can afford on? #register/intention ^in-094
+- what are you waiting for the weather, the season, or the year to allow? #register/intention ^in-095
+- what do you want to do before the place changes? #register/intention ^in-096
+- what are you going to say yes to next? #register/intention ^in-097
+- what do you intend to leave exactly as it is? #register/intention ^in-098
+- what are you saving the good material for? #register/intention ^in-099
+- what do you want to be doing the day you stop? #register/intention ^in-100
+
+## Value — what you hold worth it
+
+- what do you refuse to do for money? #register/value ^va-001
+- what would you keep paying for if you had to cut everything else? #register/value ^va-002
+- what do you spend on that you would not defend out loud? #register/value ^va-003
+- what is the compromise you will not make again? #register/value ^va-004
+- what do you protect in other people? #register/value ^va-005
+- what would you stand in a queue for? #register/value ^va-006
+- what do you consider a waste that others enjoy? #register/value ^va-007
+- what is worth doing badly? #register/value ^va-008
+- what do you give away without being asked? #register/value ^va-009
+- what would you argue about with someone you love? #register/value ^va-010
+- what do you owe the people who taught you? #register/value ^va-011
+- what is the thing you will not rush? #register/value ^va-012
+- what do you think is worth ruining a good afternoon for? #register/value ^va-013
+- what would you refuse even if nobody would know? #register/value ^va-014
+- what do you consider unforgivable? #register/value ^va-015
+- what is the thing you keep paying for out of loyalty? #register/value ^va-016
+- what do you think deserves more attention than it gets? #register/value ^va-017
+- what would you go into debt for? #register/value ^va-018
+- what do you hold onto that has no value to anyone else? #register/value ^va-019
+- what is the rule you follow that costs you money? #register/value ^va-020
+- what do you think is worth being disliked for? #register/value ^va-021
+- what would you not accept as a gift? #register/value ^va-022
+- what do you consider the minimum you owe a stranger? #register/value ^va-023
+- what is the thing you would not automate? #register/value ^va-024
+- what do you spend time on that produces nothing? #register/value ^va-025
+- what would you defend in your own family that you criticise elsewhere? #register/value ^va-026
+- what do you think should be free? #register/value ^va-027
+- what is the standard you hold yourself to that nobody checks? #register/value ^va-028
+- what do you refuse to hurry? #register/value ^va-029
+- what would you take a pay cut for? #register/value ^va-030
+- what do you think people should be ashamed of and are not? #register/value ^va-031
+- what is the kindness you were shown that set your standard? #register/value ^va-032
+- what do you consider a real apology? #register/value ^va-033
+- what would you lose a friendship over? #register/value ^va-034
+- what do you think is worth more than it costs? #register/value ^va-035
+- what is the thing you insist on doing yourself? #register/value ^va-036
+- what do you refuse to delegate? #register/value ^va-037
+- what would you cross a city for? #register/value ^va-038
+- what do you think is the least excusable form of laziness? #register/value ^va-039
+- what is the thing you would not sell at any price? #register/value ^va-040
+- what do you consider good work when nobody can tell the difference? #register/value ^va-041
+- what would you keep doing if it stopped being useful? #register/value ^va-042
+- what do you think you should do more of and do not? #register/value ^va-043
+- what is the promise you have kept at the highest cost? #register/value ^va-044
+- what do you value in a person that you cannot name in one word? #register/value ^va-045
+- what would you not want your name on? #register/value ^va-046
+- what do you think is worth saying even when it changes nothing? #register/value ^va-047
+- what is the extravagance you do not regret? #register/value ^va-048
+- what do you refuse to make efficient? #register/value ^va-049
+- what would you keep in a fire? #register/value ^va-050
+- what do you think is owed to a place you have taken from? #register/value ^va-051
+- what is the thing you tolerate in yourself and not in others? #register/value ^va-052
+- what do you consider a fair exchange? #register/value ^va-053
+- what would you defend that you do not practise? #register/value ^va-054
+- what do you think an hour of your time is actually worth? #register/value ^va-055
+- what is the thing you are willing to be bad at forever? #register/value ^va-056
+- what do you refuse to explain? #register/value ^va-057
+- what would you do even if it were illegal? #register/value ^va-058
+- what do you think costs too little? #register/value ^va-059
+- what is the responsibility you took on that nobody assigned? #register/value ^va-060
+- what do you consider more important than being right? #register/value ^va-061
+- what would you give up your seat, your turn, or your credit for? #register/value ^va-062
+- what do you think is the worst thing you could become? #register/value ^va-063
+- what is the thing you do only because your parents did it? #register/value ^va-064
+- what do you refuse to keep secret? #register/value ^va-065
+- what would you spend your last money on? #register/value ^va-066
+- what do you think should be harder than it is? #register/value ^va-067
+- what is the standard you abandoned and miss? #register/value ^va-068
+- what do you consider worth repeating until it is boring? #register/value ^va-069
+- what would you argue for against your own interest? #register/value ^va-070
+- what do you think you have no right to? #register/value ^va-071
+- what is the thing you will not look away from? #register/value ^va-072
+- what do you refuse to be grateful for? #register/value ^va-073
+- what would you want said about your work by someone who disliked you? #register/value ^va-074
+- what do you think is worth failing at? #register/value ^va-075
+- what is the thing you keep because it was a gift? #register/value ^va-076
+- what do you consider a betrayal that others consider ordinary? #register/value ^va-077
+- what would you stay for? #register/value ^va-078
+- what do you think should never be measured? #register/value ^va-079
+- what is the thing you do for people who cannot repay you? #register/value ^va-080
+- what do you refuse to compete for? #register/value ^va-081
+- what would you want to be remembered as having refused? #register/value ^va-082
+- what do you think deserves patience that you do not give it? #register/value ^va-083
+- what is the cost you accept without complaining? #register/value ^va-084
+- what do you consider a good use of a Sunday? #register/value ^va-085
+- what would you not let a machine decide? #register/value ^va-086
+- what do you think you owe the place you were born? #register/value ^va-087
+- what is the thing you defend in public and doubt in private? #register/value ^va-088
+- what do you refuse to charge for? #register/value ^va-089
+- what would you want changed even if you did not benefit? #register/value ^va-090
+- what do you think is worth being wrong in front of people for? #register/value ^va-091
+- what is the thing you would take a worse job to keep doing? #register/value ^va-092
+- what do you consider the most honest thing you own? #register/value ^va-093
+- what would you protect from being improved? #register/value ^va-094
+- what do you think other people undervalue about your work? #register/value ^va-095
+- what is the thing you will not do twice? #register/value ^va-096
+- what do you refuse to optimise? #register/value ^va-097
+- what would you spend a decade on? #register/value ^va-098
+- what do you think should be given away rather than inherited? #register/value ^va-099
+- what is the thing you hold onto that you should let go of? #register/value ^va-100
+
+## Causal theory — your account of why
+
+- why do you think it ended? #register/causal-theory ^ct-001
+- what made the good stretch possible, in your account of it? #register/causal-theory ^ct-002
+- why did you get the job, really? #register/causal-theory ^ct-003
+- what do you think caused the rift? #register/causal-theory ^ct-004
+- why do you think you were the one who stayed? #register/causal-theory ^ct-005
+- what made it work the one time it worked? #register/causal-theory ^ct-006
+- why do you think the last place you worked failed? #register/causal-theory ^ct-007
+- what do you think started your interest in the thing you do? #register/causal-theory ^ct-008
+- why do you think they left? #register/causal-theory ^ct-009
+- what made the difference between the year that worked and the one that did not? #register/causal-theory ^ct-010
+- why do you think you are tired? #register/causal-theory ^ct-011
+- what caused the change in how your family talked to each other? #register/causal-theory ^ct-012
+- why did the project take twice as long? #register/causal-theory ^ct-013
+- what do you think made you good at this rather than something else? #register/causal-theory ^ct-014
+- why do you think it was you they asked? #register/causal-theory ^ct-015
+- what made the argument unfixable? #register/causal-theory ^ct-016
+- why did the thing you built last, or not? #register/causal-theory ^ct-017
+- what do you think caused the pattern you keep repeating? #register/causal-theory ^ct-018
+- why do you think the work stopped being fun? #register/causal-theory ^ct-019
+- what made you stay in the wrong situation? #register/causal-theory ^ct-020
+- why do you think you were treated that way? #register/causal-theory ^ct-021
+- what caused the neighbourhood to change? #register/causal-theory ^ct-022
+- why did you start? #register/causal-theory ^ct-023
+- what do you think made your parents the way they are? #register/causal-theory ^ct-024
+- why do you think the advice did not work for you? #register/causal-theory ^ct-025
+- what made you finally do it? #register/causal-theory ^ct-026
+- why did the friendship end without a fight? #register/causal-theory ^ct-027
+- what do you think caused your best year? #register/causal-theory ^ct-028
+- why did the money disappear? #register/causal-theory ^ct-029
+- what made it possible for you to leave? #register/causal-theory ^ct-030
+- why do you think nobody said anything? #register/causal-theory ^ct-031
+- what caused the habit you cannot break? #register/causal-theory ^ct-032
+- why did the rules change? #register/causal-theory ^ct-033
+- what do you think made you afraid of that? #register/causal-theory ^ct-034
+- why did you get away with it? #register/causal-theory ^ct-035
+- what made the group hold together as long as it did? #register/causal-theory ^ct-036
+- why do you think the work was received the way it was? #register/causal-theory ^ct-037
+- what caused you to be somewhere you should not have been? #register/causal-theory ^ct-038
+- why did the illness come when it did, in your account? #register/causal-theory ^ct-039
+- what made you believe them? #register/causal-theory ^ct-040
+- why do you think the place emptied out? #register/causal-theory ^ct-041
+- what caused the good idea to fail? #register/causal-theory ^ct-042
+- why did you say yes? #register/causal-theory ^ct-043
+- what do you think made the teacher take an interest in you? #register/causal-theory ^ct-044
+- why did the thing break when it did? #register/causal-theory ^ct-045
+- what made the difference between you and the others who started with you? #register/causal-theory ^ct-046
+- why do you think you cannot do it anymore? #register/causal-theory ^ct-047
+- what caused the silence between you? #register/causal-theory ^ct-048
+- why did it work out for them and not for you? #register/causal-theory ^ct-049
+- what do you think made you notice it first? #register/causal-theory ^ct-050
+- why did you stop? #register/causal-theory ^ct-051
+- what caused the change in the town, the trade, or the field? #register/causal-theory ^ct-052
+- why do you think you were spared? #register/causal-theory ^ct-053
+- what made the plan fall apart? #register/causal-theory ^ct-054
+- why did nobody warn you? #register/causal-theory ^ct-055
+- what do you think made the difference on the day? #register/causal-theory ^ct-056
+- why did you come back? #register/causal-theory ^ct-057
+- what caused you to lose your nerve? #register/causal-theory ^ct-058
+- why do you think the thing you made found an audience, or did not? #register/causal-theory ^ct-059
+- what made the mistake possible? #register/causal-theory ^ct-060
+- why did the arrangement last so long? #register/causal-theory ^ct-061
+- what do you think caused the fear you have never explained? #register/causal-theory ^ct-062
+- why did they choose you? #register/causal-theory ^ct-063
+- what made you leave a place you loved? #register/causal-theory ^ct-064
+- why do you think the industry went the way it did? #register/causal-theory ^ct-065
+- what caused the argument to matter more than it should have? #register/causal-theory ^ct-066
+- why did you keep going? #register/causal-theory ^ct-067
+- what do you think made your grandparents move? #register/causal-theory ^ct-068
+- why did the work get better when you stopped trying? #register/causal-theory ^ct-069
+- what caused you to change your mind about someone? #register/causal-theory ^ct-070
+- why do you think it was not you? #register/causal-theory ^ct-071
+- what made the difference the second time? #register/causal-theory ^ct-072
+- why did you not see it coming? #register/causal-theory ^ct-073
+- what do you think caused your body to give out? #register/causal-theory ^ct-074
+- why did the group split along that line? #register/causal-theory ^ct-075
+- what made you able to do it on the day you finally did? #register/causal-theory ^ct-076
+- why do you think the good people left? #register/causal-theory ^ct-077
+- what caused the thing that everyone calls an accident? #register/causal-theory ^ct-078
+- why did you not ask for help? #register/causal-theory ^ct-079
+- what do you think made the difference in the negotiation? #register/causal-theory ^ct-080
+- why did the routine collapse? #register/causal-theory ^ct-081
+- what caused you to start telling the story that way? #register/causal-theory ^ct-082
+- why do you think they never spoke about it? #register/causal-theory ^ct-083
+- what made the place feel different after? #register/causal-theory ^ct-084
+- why did the thing you feared not happen? #register/causal-theory ^ct-085
+- what do you think caused the boom, the bust, or the closure? #register/causal-theory ^ct-086
+- why did you take the risk? #register/causal-theory ^ct-087
+- what made the difference between learning it and not? #register/causal-theory ^ct-088
+- why do you think the work is harder now? #register/causal-theory ^ct-089
+- what caused you to keep the secret? #register/causal-theory ^ct-090
+- why did the season, the year, or the run go so badly? #register/causal-theory ^ct-091
+- what do you think made you stop believing? #register/causal-theory ^ct-092
+- why did the person who helped you help you? #register/causal-theory ^ct-093
+- what caused the drift? #register/causal-theory ^ct-094
+- why did you do it the hard way? #register/causal-theory ^ct-095
+- what made the best place you ever worked work? #register/causal-theory ^ct-096
+- why did the thing that was supposed to help make it worse? #register/causal-theory ^ct-097
+- what caused the moment you gave up? #register/causal-theory ^ct-098
+- why do you think you got sick when you did? #register/causal-theory ^ct-099
+- what made your family's fortunes turn? #register/causal-theory ^ct-100
+
+## Belief — what you hold true
+
+- what do you believe about work that your colleagues do not? #register/belief ^be-001
+- what do you think is true about your family that they deny? #register/belief ^be-002
+- what do you believe that you cannot prove and would not drop? #register/belief ^be-003
+- what did you stop believing, and what replaced it? #register/belief ^be-004
+- what do you think happens to the work after you? #register/belief ^be-005
+- what do you believe about luck? #register/belief ^be-006
+- what do you think most people are wrong about? #register/belief ^be-007
+- what did you believe as a child that turned out to be right? #register/belief ^be-008
+- what do you think your field is pretending about? #register/belief ^be-009
+- what do you believe about the place you live that locals would dispute? #register/belief ^be-010
+- what do you think talent is? #register/belief ^be-011
+- what did you believe on somebody else's authority until you checked? #register/belief ^be-012
+- what do you think is true about the way money moves? #register/belief ^be-013
+- what do you believe about the people who hold power over you? #register/belief ^be-014
+- what do you think will not change in your lifetime? #register/belief ^be-015
+- what did you believe about adults that you now know was wrong? #register/belief ^be-016
+- what do you think your work is actually for? #register/belief ^be-017
+- what do you believe about the future that makes you act differently? #register/belief ^be-018
+- what do you think everyone is secretly doing? #register/belief ^be-019
+- what did you believe about love before, and what do you believe now? #register/belief ^be-020
+- what do you think the institution you passed through was really for? #register/belief ^be-021
+- what do you believe about your own memory? #register/belief ^be-022
+- what do you think is inevitable? #register/belief ^be-023
+- what did you believe about a group before you knew anyone in it? #register/belief ^be-024
+- what do you think happens to a place when the young leave? #register/belief ^be-025
+- what do you believe about pain? #register/belief ^be-026
+- what do you think is being lost that nobody is counting? #register/belief ^be-027
+- what did you believe about yourself that other people had to correct? #register/belief ^be-028
+- what do you think a good life looks like, concretely? #register/belief ^be-029
+- what do you believe about the way children should be raised? #register/belief ^be-030
+- what do you think you are being lied to about? #register/belief ^be-031
+- what did you believe because you needed to? #register/belief ^be-032
+- what do you think the machines will not be able to do? #register/belief ^be-033
+- what do you believe about death that you have never said? #register/belief ^be-034
+- what do you think your parents believed and never stated? #register/belief ^be-035
+- what did you believe about the country you live in that changed? #register/belief ^be-036
+- what do you think effort actually does? #register/belief ^be-037
+- what do you believe about the value of what you make? #register/belief ^be-038
+- what do you think the next generation will not understand about now? #register/belief ^be-039
+- what did you believe about strangers before you travelled? #register/belief ^be-040
+- what do you think is true about your health that your doctor does not? #register/belief ^be-041
+- what do you believe about forgiveness? #register/belief ^be-042
+- what do you think the history you were taught left out? #register/belief ^be-043
+- what did you believe about success that has not held? #register/belief ^be-044
+- what do you think happens when a language stops being spoken? #register/belief ^be-045
+- what do you believe about how a person changes? #register/belief ^be-046
+- what do you think is the real reason things are the way they are where you work? #register/belief ^be-047
+- what did you believe about art before you tried to make any? #register/belief ^be-048
+- what do you think you would do in a real emergency? #register/belief ^be-049
+- what do you believe about the weather, the land, or the sea near you? #register/belief ^be-050
+- what do you think other people owe each other? #register/belief ^be-051
+- what did you believe about age that you were wrong about? #register/belief ^be-052
+- what do you think is wrong with the way your work is taught? #register/belief ^be-053
+- what do you believe about silence? #register/belief ^be-054
+- what do you think would happen if everyone did what you do? #register/belief ^be-055
+- what did you believe about money before you had any? #register/belief ^be-056
+- what do you think is true about the people who left? #register/belief ^be-057
+- what do you believe about the value of suffering? #register/belief ^be-058
+- what do you think your city is becoming? #register/belief ^be-059
+- what did you believe about your own abilities at twenty? #register/belief ^be-060
+- what do you think is the most dangerous idea you hold? #register/belief ^be-061
+- what do you believe about who deserves help? #register/belief ^be-062
+- what do you think the point of the record is? #register/belief ^be-063
+- what did you believe about tradition before you had to keep one? #register/belief ^be-064
+- what do you think is true about the internet that people will not admit? #register/belief ^be-065
+- what do you believe about repetition? #register/belief ^be-066
+- what do you think happens to people who are good at the wrong thing? #register/belief ^be-067
+- what did you believe about the body before it failed you? #register/belief ^be-068
+- what do you think your work will be understood as? #register/belief ^be-069
+- what do you believe about the difference between the city and the country? #register/belief ^be-070
+- what do you think is the most overrated virtue? #register/belief ^be-071
+- what did you believe about privacy ten years ago? #register/belief ^be-072
+- what do you think is true about your profession that outsiders would find shocking? #register/belief ^be-073
+- what do you believe about inheritance? #register/belief ^be-074
+- what do you think people need that nobody sells? #register/belief ^be-075
+- what did you believe about anger? #register/belief ^be-076
+- what do you think is true about crowds? #register/belief ^be-077
+- what do you believe about the point of school? #register/belief ^be-078
+- what do you think you will regret believing? #register/belief ^be-079
+- what did you believe about a place you had never been? #register/belief ^be-080
+- what do you think is happening to attention? #register/belief ^be-081
+- what do you believe about who gets remembered? #register/belief ^be-082
+- what do you think is a fair way to decide? #register/belief ^be-083
+- what did you believe about hard work that turned out to be timing? #register/belief ^be-084
+- what do you think the argument in your field is really about? #register/belief ^be-085
+- what do you believe about the usefulness of advice? #register/belief ^be-086
+- what do you think is being built that should not be? #register/belief ^be-087
+- what did you believe about friendship at thirty? #register/belief ^be-088
+- what do you think animals understand? #register/belief ^be-089
+- what do you believe about the way your own field will end? #register/belief ^be-090
+- what do you think you would need to see to change your politics? #register/belief ^be-091
+- what did you believe about the past that nostalgia gave you? #register/belief ^be-092
+- what do you think is the real cost of the thing you depend on? #register/belief ^be-093
+- what do you believe about the people who do the work you avoid? #register/belief ^be-094
+- what do you think would be true even if nobody believed it? #register/belief ^be-095
+- what did you believe about what you were owed? #register/belief ^be-096
+- what do you think happens to a skill after its last practitioner? #register/belief ^be-097
+- what do you believe about the difference between being alone and being lonely? #register/belief ^be-098
+- what do you think is the most useful thing you have ever been told? #register/belief ^be-099
+- what did you believe about the future when you were twelve? #register/belief ^be-100
+
+## State — how it feels from inside
+
+- how do you feel in the first minute after waking? #register/state ^st-001
+- what does dread feel like in your body? #register/state ^st-002
+- how were you the week before you knew? #register/state ^st-003
+- what does it feel like when the work is going well? #register/state ^st-004
+- how do you know when you are about to be ill? #register/state ^st-005
+- what does your tiredness actually feel like, specifically? #register/state ^st-006
+- how are you in the hour after a difficult phone call? #register/state ^st-007
+- what does it feel like to be in a room where you are not wanted? #register/state ^st-008
+- how do you feel on a Sunday afternoon? #register/state ^st-009
+- what does relief feel like for you? #register/state ^st-010
+- how were you during the waiting? #register/state ^st-011
+- what does it feel like when you have been alone too long? #register/state ^st-012
+- how do you feel walking into your own house? #register/state ^st-013
+- what does the anger feel like before it arrives? #register/state ^st-014
+- how are you at the end of a working week? #register/state ^st-015
+- what does it feel like to be looked at? #register/state ^st-016
+- how do you feel when someone praises the wrong thing? #register/state ^st-017
+- what does hunger do to your temper? #register/state ^st-018
+- how were you in the months you cannot remember? #register/state ^st-019
+- what does it feel like to be the newest person? #register/state ^st-020
+- how do you feel in the dark? #register/state ^st-021
+- what does grief feel like a year later? #register/state ^st-022
+- how are you when the weather is grey for a week? #register/state ^st-023
+- what does it feel like when you cannot find the word? #register/state ^st-024
+- how do you feel when you are being managed? #register/state ^st-025
+- what does the moment before sleep consist of? #register/state ^st-026
+- how were you the day after the thing was finished? #register/state ^st-027
+- what does it feel like to hold a tool you are good with? #register/state ^st-028
+- how do you feel around people who knew you before? #register/state ^st-029
+- what does boredom feel like to you now, compared to as a child? #register/state ^st-030
+- how are you when you have money in the bank? #register/state ^st-031
+- what does it feel like to be behind? #register/state ^st-032
+- how do you feel in a crowd? #register/state ^st-033
+- what does the physical sensation of being wrong feel like? #register/state ^st-034
+- how were you on the drive back? #register/state ^st-035
+- what does it feel like to be forgiven? #register/state ^st-036
+- how do you feel in a hospital, a courtroom, or an office? #register/state ^st-037
+- what does homesickness attach itself to? #register/state ^st-038
+- how are you when you are the one who has to decide? #register/state ^st-039
+- what does it feel like when someone is late? #register/state ^st-040
+- how do you feel in the first week somewhere new? #register/state ^st-041
+- what does it feel like to do something difficult easily? #register/state ^st-042
+- how were you during the argument you cannot remember starting? #register/state ^st-043
+- what does the noise do to you? #register/state ^st-044
+- how do you feel when you are the oldest in the room? #register/state ^st-045
+- what does it feel like when you have been kind and it cost you? #register/state ^st-046
+- how are you in the last hour before a deadline? #register/state ^st-047
+- what does the body do when you are lying? #register/state ^st-048
+- how do you feel when someone reads your work in front of you? #register/state ^st-049
+- what does it feel like to be well? #register/state ^st-050
+- how were you the last time you were genuinely surprised? #register/state ^st-051
+- what does waiting for news do to your attention? #register/state ^st-052
+- how do you feel about mornings now, compared to ten years ago? #register/state ^st-053
+- what does it feel like when the thing you dreaded is over? #register/state ^st-054
+- how are you after being with your family? #register/state ^st-055
+- what does the fear of being found out feel like? #register/state ^st-056
+- how do you feel when the house is empty? #register/state ^st-057
+- what does it feel like to be needed? #register/state ^st-058
+- how were you the summer everything was fine? #register/state ^st-059
+- what does it feel like when you cannot afford something small? #register/state ^st-060
+- how do you feel when a plan changes at the last moment? #register/state ^st-061
+- what does the hour before a performance, an exam, or a meeting feel like? #register/state ^st-062
+- how are you when you are not working? #register/state ^st-063
+- what does it feel like to be spoken about in the third person? #register/state ^st-064
+- how do you feel after a long walk? #register/state ^st-065
+- what does the ache you have carried for years feel like? #register/state ^st-066
+- how were you during the best month? #register/state ^st-067
+- what does it feel like to be almost finished? #register/state ^st-068
+- how do you feel when you cannot sleep and everyone else can? #register/state ^st-069
+- what does being underestimated feel like? #register/state ^st-070
+- how are you on the first cold day? #register/state ^st-071
+- what does it feel like when the work will not come? #register/state ^st-072
+- how do you feel when you are being helped? #register/state ^st-073
+- what does the day after a celebration feel like? #register/state ^st-074
+- how were you when you had no obligations? #register/state ^st-075
+- what does it feel like to be in a body that is changing? #register/state ^st-076
+- how do you feel when you hear your own voice? #register/state ^st-077
+- what does the shame feel like, physically? #register/state ^st-078
+- how are you around the people who taught you? #register/state ^st-079
+- what does it feel like to be about to say something you cannot take back? #register/state ^st-080
+- how do you feel when the routine breaks? #register/state ^st-081
+- what does it feel like when somebody else is doing your work? #register/state ^st-082
+- how were you before you knew what you wanted? #register/state ^st-083
+- what does comfort feel like, exactly? #register/state ^st-084
+- how do you feel in your oldest clothes? #register/state ^st-085
+- what does the last hour of daylight do? #register/state ^st-086
+- how are you when you are not the expert? #register/state ^st-087
+- what does it feel like to make something with your hands after a long time? #register/state ^st-088
+- how do you feel when a stranger is unkind? #register/state ^st-089
+- what does anticipation feel like when you distrust it? #register/state ^st-090
+- how were you when nobody was watching? #register/state ^st-091
+- what does the sensation of being late feel like? #register/state ^st-092
+- how do you feel on the anniversary of the thing? #register/state ^st-093
+- what does it feel like to be understood? #register/state ^st-094
+- how are you when the thing you use every day breaks? #register/state ^st-095
+- what does exhaustion feel like differently from tiredness? #register/state ^st-096
+- how do you feel at a table with people you do not know? #register/state ^st-097
+- what does it feel like to be at the beginning again? #register/state ^st-098
+- how were you the last time you felt young? #register/state ^st-099
+- what does the quiet after a long noise feel like? #register/state ^st-100
+
+## Transformative — what the change left behind
+
+- what did you stop being able to enjoy afterwards? #register/transformative ^tr-001
+- what changed in your handwriting, your voice, or your walk? #register/transformative ^tr-002
+- what did you have to learn again from the beginning? #register/transformative ^tr-003
+- what did you never do again? #register/transformative ^tr-004
+- what became easy that had been impossible? #register/transformative ^tr-005
+- what did you start noticing that you had walked past for years? #register/transformative ^tr-006
+- what did you lose the taste for? #register/transformative ^tr-007
+- what did the move change about how you spend a Saturday? #register/transformative ^tr-008
+- what did you become able to say? #register/transformative ^tr-009
+- what stopped frightening you? #register/transformative ^tr-010
+- what did you have to tell people about yourself that you had never said? #register/transformative ^tr-011
+- what did you start doing that your younger self would not recognise? #register/transformative ^tr-012
+- what changed about the way you handle money? #register/transformative ^tr-013
+- what did you stop asking permission for? #register/transformative ^tr-014
+- what did the failure make possible? #register/transformative ^tr-015
+- what did you have to give up in order to keep going? #register/transformative ^tr-016
+- what became unbearable that you had tolerated for years? #register/transformative ^tr-017
+- what did you start being able to hear? #register/transformative ^tr-018
+- what changed in what you read? #register/transformative ^tr-019
+- what did you stop defending? #register/transformative ^tr-020
+- what did you become responsible for overnight? #register/transformative ^tr-021
+- what did the diagnosis, the letter, or the number change in the next week? #register/transformative ^tr-022
+- what did you have to stop pretending? #register/transformative ^tr-023
+- what became funny that had not been? #register/transformative ^tr-024
+- what did you start protecting? #register/transformative ^tr-025
+- what changed about your relationship to the place you are from? #register/transformative ^tr-026
+- what did you stop needing? #register/transformative ^tr-027
+- what did you become able to refuse? #register/transformative ^tr-028
+- what changed in what you wanted from a day? #register/transformative ^tr-029
+- what did you have to forgive in order to continue? #register/transformative ^tr-030
+- what became ordinary that had been a crisis? #register/transformative ^tr-031
+- what did you start being honest about? #register/transformative ^tr-032
+- what changed about the way you work when nobody is checking? #register/transformative ^tr-033
+- what did you stop being able to say without thinking? #register/transformative ^tr-034
+- what did the birth, the death, or the arrival rearrange in the house? #register/transformative ^tr-035
+- what became important that you had dismissed? #register/transformative ^tr-036
+- what did you learn to do in the year afterwards? #register/transformative ^tr-037
+- what changed about how you enter a room? #register/transformative ^tr-038
+- what did you stop keeping? #register/transformative ^tr-039
+- what did you become able to sit with? #register/transformative ^tr-040
+- what changed in what you found beautiful? #register/transformative ^tr-041
+- what did you have to renegotiate? #register/transformative ^tr-042
+- what became a habit after the change? #register/transformative ^tr-043
+- what did you stop measuring? #register/transformative ^tr-044
+- what did you begin to take seriously? #register/transformative ^tr-045
+- what changed about the way you sleep? #register/transformative ^tr-046
+- what did you have to tell your family? #register/transformative ^tr-047
+- what became clear that had been obscure for a decade? #register/transformative ^tr-048
+- what did you stop being good at? #register/transformative ^tr-049
+- what did you start being able to finish? #register/transformative ^tr-050
+- what changed about your appetite for risk? #register/transformative ^tr-051
+- what did you lose that you have not replaced? #register/transformative ^tr-052
+- what became possible once you had nothing to lose? #register/transformative ^tr-053
+- what did you start giving away? #register/transformative ^tr-054
+- what changed in how you talk to strangers? #register/transformative ^tr-055
+- what did you have to redesign around the new limit? #register/transformative ^tr-056
+- what became your responsibility that used to be somebody else's? #register/transformative ^tr-057
+- what did you stop putting off? #register/transformative ^tr-058
+- what did you begin to make time for? #register/transformative ^tr-059
+- what changed about the way you use the telephone? #register/transformative ^tr-060
+- what did you have to accept before you could move? #register/transformative ^tr-061
+- what became harder to explain? #register/transformative ^tr-062
+- what did you start being asked that you had never been asked before? #register/transformative ^tr-063
+- what changed in the way you are treated in public? #register/transformative ^tr-064
+- what did you stop wanting? #register/transformative ^tr-065
+- what did you become able to do alone? #register/transformative ^tr-066
+- what changed about what you bring to a conversation? #register/transformative ^tr-067
+- what did you have to leave in order to arrive? #register/transformative ^tr-068
+- what became an anniversary? #register/transformative ^tr-069
+- what did you start writing down? #register/transformative ^tr-070
+- what changed about your patience with people who have not been through it? #register/transformative ^tr-071
+- what did you stop finding interesting? #register/transformative ^tr-072
+- what did you become suspicious of? #register/transformative ^tr-073
+- what changed about your body that changed your mind? #register/transformative ^tr-074
+- what did you have to relearn about your own work? #register/transformative ^tr-075
+- what became a reflex? #register/transformative ^tr-076
+- what did you stop taking for granted, and for how long? #register/transformative ^tr-077
+- what did you begin to prepare for? #register/transformative ^tr-078
+- what changed in what you can lift? #register/transformative ^tr-079
+- what did you have to hand to someone else? #register/transformative ^tr-080
+- what became legible that you had been staring at? #register/transformative ^tr-081
+- what did you start refusing to attend? #register/transformative ^tr-082
+- what changed about how much time you need alone? #register/transformative ^tr-083
+- what did you stop explaining to your family? #register/transformative ^tr-084
+- what did you become the person who does? #register/transformative ^tr-085
+- what changed in your standards? #register/transformative ^tr-086
+- what did you have to be forgiven for? #register/transformative ^tr-087
+- what became routine that you had assumed would always be hard? #register/transformative ^tr-088
+- what did you start doing out of superstition? #register/transformative ^tr-089
+- what changed in what a good day means? #register/transformative ^tr-090
+- what did you stop apologising for? #register/transformative ^tr-091
+- what did you become able to listen to again? #register/transformative ^tr-092
+- what changed about how you answer the question of what you do? #register/transformative ^tr-093
+- what did you have to throw away? #register/transformative ^tr-094
+- what became simple? #register/transformative ^tr-095
+- what did you start carrying with you? #register/transformative ^tr-096
+- what changed about your relationship to your own name? #register/transformative ^tr-097
+- what did you stop being able to lie about? #register/transformative ^tr-098
+- what did you become fluent in? #register/transformative ^tr-099
+- what changed in the first thing you do in the morning? #register/transformative ^tr-100
