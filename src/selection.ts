@@ -8,7 +8,7 @@
 // block gets its id when the Ask is accepted, which is the same moment the
 // jar's own id-less paragraphs get theirs.
 //
-// The jar's furniture test (paragraphs.ts#readsAsParagraph) does not run
+// The jar's furniture test (furniture.ts#readsAsParagraph) does not run
 // here. Its word floor is the draw's standard, for choosing among a thousand
 // blocks unattended; what the owner selects by hand, they meant, and a short
 // line they point at is exactly what a Revisit wants. Only one thing is
@@ -19,9 +19,11 @@
 
 import type { App, TFile } from 'obsidian';
 import { paragraphAt } from './blocks';
-import { REVISIT_REGISTER, fileFacts, proseOf } from './paragraphs';
+import { proseOf } from './furniture';
+import { fileFacts, paragraphOf } from './paragraphs';
+import { Refused } from './refusal';
 import type { Paragraph } from './paragraphs';
-import { refOf, stripBlockDecoration } from './refs';
+import { stripBlockDecoration } from './refs';
 
 /**
  * Longest selection handed to bonsai. Past about this much the composed
@@ -31,7 +33,7 @@ import { refOf, stripBlockDecoration } from './refs';
 export const MAX_SELECTION = 1500;
 
 /** Why a selection cannot become a source. The message is for the owner. */
-export class NotSelectable extends Error {}
+export class NotSelectable extends Refused {}
 
 /**
  * The selected words as a paragraph source. `text` is the selection; the ref
@@ -59,14 +61,7 @@ export function selectionParagraph(
   }
   const block = paragraphAt(app.metadataCache.getFileCache(file), line);
   if (!block) throw new NotSelectable('Select inside a paragraph or a list item.');
-  return {
-    kind: 'paragraph',
-    file,
-    ref: refOf(file, block.id),
-    key: block.id ? `${file.path}#^${block.id}` : `${file.path}#L${block.start}`,
-    register: REVISIT_REGISTER,
-    text,
-    ...facts,
-    line: block.start,
-  };
+  // The text is the SELECTION; the ref, the key and the line are the whole
+  // block that holds it. Everything else a paragraph carries is the note's.
+  return paragraphOf(file, facts, { id: block.id, line: block.start, text });
 }

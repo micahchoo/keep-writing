@@ -36,7 +36,7 @@ const STOPWORDS = new Set([
 const MIN_TOKEN_LENGTH = 3;
 
 /** Lowercase, split on non-letters, drop stopwords and short tokens. */
-export function contentTokens(text: string): Set<string> {
+function contentTokens(text: string): Set<string> {
   const out = new Set<string>();
   for (const raw of text.toLowerCase().split(/[^\p{L}]+/u)) {
     if (raw.length < MIN_TOKEN_LENGTH) continue;

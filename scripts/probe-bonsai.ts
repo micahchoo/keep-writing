@@ -5,7 +5,7 @@ import { composeFollowUps, proposeRelation, isParrot, type BonsaiConfig, type Ca
 import { findCandidates, type Block } from '../src/lexical';
 
 const BASE_URL = 'http://127.0.0.1:8088/v1';
-const MODEL = 'bonsai-27b';
+const MODEL = 'bonsai-2-27b';
 const PREFLIGHT_MS = 30_000;
 
 const ANSWER =

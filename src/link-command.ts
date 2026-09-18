@@ -3,10 +3,11 @@
 
 import { FuzzySuggestModal, Notice } from 'obsidian';
 import type { App, MarkdownView, TFile } from 'obsidian';
-import { ensureBlockId, NotAParagraph } from './blocks';
+import { ensureBlockId } from './blocks';
 import { INVERSE, RELATIONS, linkBoth } from './links';
 import type { Relation } from './links';
-import { refOf, stripBlockDecoration } from './refs';
+import { refusalLine } from './refusal';
+import { blockTexts, refOf } from './refs';
 import type { Ref } from './refs';
 
 /**
@@ -83,18 +84,19 @@ function once<T>(open: (cb: (v: T | null) => void) => void): Promise<T | null> {
   return new Promise((resolve) => open(resolve));
 }
 
+/**
+ * The note's blocks as choices, in file order, with the whole note first.
+ * Reads them through `refs.ts#blockTexts`, which is the one place that knows
+ * how a block is read: one file read, sorted by line, empty blocks dropped.
+ * This used to spell that out again and lost both of those rules.
+ */
 async function blockChoices(app: App, file: TFile): Promise<BlockChoice[]> {
-  const blocks = app.metadataCache.getFileCache(file)?.blocks ?? {};
-  const ids = Object.keys(blocks);
-  if (ids.length === 0) return [];
-  const lines = (await app.vault.cachedRead(file)).split('\n');
-  const choices: BlockChoice[] = [{ label: 'whole note' }];
-  for (const id of ids) {
-    const b = blocks[id]!;
-    const text = stripBlockDecoration(lines.slice(b.position.start.line, b.position.end.line + 1).join(' '));
-    choices.push({ label: `^${id}  ${text.slice(0, 120)}`, blockId: id });
-  }
-  return choices;
+  const blocks = await blockTexts(app, file);
+  if (blocks.length === 0) return [];
+  return [
+    { label: 'whole note' },
+    ...blocks.map((b) => ({ label: `^${b.id}  ${b.text.replace(/\s+/g, ' ').slice(0, 120)}`, blockId: b.id })),
+  ];
 }
 
 export async function linkParagraphCommand(app: App, view: MarkdownView, bankFolder: string): Promise<void> {
@@ -104,7 +106,7 @@ export async function linkParagraphCommand(app: App, view: MarkdownView, bankFol
   try {
     sourceRef = await ensureBlockId(app, file, view.editor.getCursor().line);
   } catch (e) {
-    new Notice(e instanceof NotAParagraph ? e.message : String(e));
+    new Notice(refusalLine(e));
     return;
   }
 

@@ -1,13 +1,30 @@
 // Block refs: `Path/Note#^id` <-> { path, blockId }. Resolution and block
 // text go through metadataCache; nothing here parses markdown.
 
-import type { App, CachedMetadata, TFile } from 'obsidian';
+import type { App, CachedMetadata, FrontmatterLinkCache, TFile } from 'obsidian';
 
 export interface Ref {
   /** Link path as written, without `.md`: `Sittings/2026-09-13`. */
   path: string;
   /** Block id without the caret. Absent for a note-level ref. */
   blockId?: string;
+}
+
+/**
+ * The property a frontmatter link was written under. Obsidian keys a scalar
+ * property by its name (`about`) and each entry of a list property by its
+ * index (`answers.0`, `answers.1`), so the name is everything before the
+ * first dot. Four modules used to spell this rule out for themselves, in
+ * three different shapes; a relation, a Target and both readings of
+ * answered-ness all depend on getting it right.
+ */
+export function propertyName(key: string): string {
+  return key.split('.')[0] ?? key;
+}
+
+/** The frontmatter links of one property, scalar or list, in the order the cache holds them. */
+export function linksNamed(cache: CachedMetadata | null, name: string): FrontmatterLinkCache[] {
+  return (cache?.frontmatterLinks ?? []).filter((fl) => propertyName(fl.key) === name);
 }
 
 /** Parse `Path/Note#^id`, `[[Path/Note#^id]]`, or `[[Path/Note#^id|alias]]`. */
@@ -54,7 +71,7 @@ export function resolveRef(app: App, ref: Ref, sourcePath = ''): Resolved | null
 }
 
 /** A stable key for a resolved ref: `vault/path.md#^id`. */
-export function resolvedKey(r: Resolved): string {
+function resolvedKey(r: Resolved): string {
   return r.blockId ? `${r.file.path}#^${r.blockId}` : r.file.path;
 }
 
@@ -64,15 +81,39 @@ export function keyOfRef(app: App, ref: Ref, sourcePath = ''): string | null {
   return r ? resolvedKey(r) : null;
 }
 
-/** Read the text of a block from a file, by its block id. Null if unknown. */
-export async function blockText(app: App, file: TFile, blockId: string): Promise<string | null> {
-  const cache = app.metadataCache.getFileCache(file);
-  const block = cache?.blocks?.[blockId];
-  if (!block) return null;
-  const content = await app.vault.cachedRead(file);
-  const lines = content.split('\n');
-  const slice = lines.slice(block.position.start.line, block.position.end.line + 1);
-  return stripBlockDecoration(slice.join('\n'));
+/** One block of a note that carries an id, as text. */
+export interface BlockText {
+  id: string;
+  /** First line of the block, 0-based. */
+  line: number;
+  /** The block, its id and any list marker stripped. Never empty. */
+  text: string;
+}
+
+/**
+ * Every block of a note that carries an id, in file order, as text. One read
+ * and one split however many blocks there are.
+ *
+ * This used to be `blockText(app, file, id)`, which read and split the whole
+ * file to return ONE block, and both callers wanted all of them. Counted
+ * 2026-09-16 in this vault: 83 Pieces holding 1115 block ids, so filling the
+ * paragraph jar — which happens on every draw, so on every Skip and every
+ * Accept — split about 7 MB of text to produce 1115 strings. A block whose
+ * text is empty once stripped is dropped, which is what both callers did.
+ */
+export async function blockTexts(app: App, file: TFile): Promise<BlockText[]> {
+  const blocks = app.metadataCache.getFileCache(file)?.blocks;
+  const ids = Object.keys(blocks ?? {});
+  if (!blocks || ids.length === 0) return [];
+  ids.sort((a, b) => blocks[a]!.position.start.line - blocks[b]!.position.start.line);
+  const lines = (await app.vault.cachedRead(file)).split('\n');
+  const out: BlockText[] = [];
+  for (const id of ids) {
+    const { start, end } = blocks[id]!.position;
+    const text = stripBlockDecoration(lines.slice(start.line, end.line + 1).join('\n'));
+    if (text) out.push({ id, line: start.line, text });
+  }
+  return out;
 }
 
 /** Drop the trailing ` ^id` and a leading list marker. */

@@ -23,7 +23,7 @@ const fetcher: Fetcher = async (url, init) => {
   return { status: res.status, text: await res.text() };
 };
 
-const cfg: BonsaiConfig = { baseUrl: 'http://127.0.0.1:8088/v1', model: 'bonsai-27b', fetcher, timeoutMs: 120_000 };
+const cfg: BonsaiConfig = { baseUrl: 'http://127.0.0.1:8088/v1', model: 'bonsai-2-27b', fetcher, timeoutMs: 120_000 };
 
 interface Case { sitting: string; asked: string; answer: string; fresh: string }
 

@@ -6,7 +6,7 @@
 import type { App } from 'obsidian';
 import type { Well } from './target';
 
-export const LENSES_FOLDER = 'Lenses';
+const LENSES_FOLDER = 'Lenses';
 
 const LENS_OF: Record<Well['kind'], string | null> = {
   me: null,

@@ -10,7 +10,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { findCandidates, type Block } from '../src/lexical';
-import { isFurniture, readsAsParagraph } from '../src/paragraphs';
+import { isFurniture, readsAsParagraph } from '../src/furniture';
 
 const VAULT = join(import.meta.dir, '../../../..');
 const SKIP = new Set(['Bank', 'Templates', '.obsidian', '.smart-env', '.trash', '.bin', 'node_modules']);

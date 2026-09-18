@@ -7,7 +7,8 @@
 // in ten from the Bank.
 
 import type { App, TFile } from 'obsidian';
-import { keyOfRef, parseRef, refOf, resolveRef, stripBlockDecoration } from './refs';
+import { answeredKeys } from './links';
+import { refOf, resolveRef, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
 import { paragraphJar } from './paragraphs';
 import type { Paragraph } from './paragraphs';
@@ -35,7 +36,7 @@ export type Role = 'door' | 'bookmark';
  */
 export const BANK_SHARE = 0.7;
 
-export const NO_REGISTER = 'none';
+const NO_REGISTER = 'none';
 const REGISTER_PREFIX = '#register/';
 const ROLE_PREFIX = '#role/';
 const ROLES: readonly string[] = ['door', 'bookmark'];
@@ -141,12 +142,7 @@ export class AnsweredIndex {
     if (!this.dirty) return;
     this.keys = new Set();
     for (const file of this.app.vault.getMarkdownFiles()) {
-      for (const fl of this.app.metadataCache.getFileCache(file)?.frontmatterLinks ?? []) {
-        if (fl.key !== 'answers' && !fl.key.startsWith('answers.')) continue;
-        const ref = parseRef(fl.link);
-        const key = ref && keyOfRef(this.app, ref, file.path);
-        if (key) this.keys.add(key);
-      }
+      for (const key of answeredKeys(this.app, file)) this.keys.add(key);
     }
     this.dirty = false;
   }

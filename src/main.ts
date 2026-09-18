@@ -4,9 +4,9 @@
 // id appended to a paragraph (blocks.ts), and `> [!ask]` callouts (asks.ts).
 
 import { MarkdownView, Notice, Plugin } from 'obsidian';
-import type { WorkspaceLeaf } from 'obsidian';
-import { asksOf, markAnswered } from './asks';
+import type { App, TFile, WorkspaceLeaf } from 'obsidian';
 import { AnsweredIndex } from './bank';
+import { Interview } from './interview';
 import { linkParagraphCommand } from './link-command';
 import { createModel } from './model';
 import type { Model } from './model';
@@ -19,13 +19,41 @@ export default class KeepWritingPlugin extends Plugin {
   override settings: KeepWritingSettings = { ...DEFAULT_SETTINGS };
   index!: AnsweredIndex;
   model!: Model;
+  /**
+   * The Interview: CONTEXT.md calls it "the one thing that holds the state of
+   * it while a Sitting is open". One thing, so the plugin owns it. It was
+   * built inside AskView's constructor until 2026-09-17, which made it one per
+   * PANE: two Ask panes were two skipped sets over one Sitting, closing the
+   * pane threw the state away, and no command could reach an intent without
+   * opening a pane first.
+   */
+  interview!: Interview;
 
   override async onload(): Promise<void> {
     await this.loadSettings();
     this.index = new AnsweredIndex(this.app);
-    this.model = createModel(this.settings, (e) => console.debug('[keep-writing]', e));
+    this.model = this.buildModel();
+    // The Surface's three jobs are not the pane's: placing a cursor and saying
+    // a line are workspace work, and `changed` is every open pane's, not one's.
+    this.interview = new Interview(this, {
+      changed: () => {
+        for (const pane of this.askPanes()) pane.refresh();
+      },
+      placeCursor: (file, line) => placeCursor(this.app, file, line),
+      notice: (message) => {
+        new Notice(message);
+      },
+    });
 
-    this.registerEvent(this.app.metadataCache.on('changed', () => this.index.invalidate()));
+    // A note changed: answered-ness may have, and if it is the note the
+    // Interview follows, so may its Asks. Plugin-level, not pane-level: the
+    // Interview must keep up whether or not anything is drawing it.
+    this.registerEvent(
+      this.app.metadataCache.on('changed', (f) => {
+        this.index.invalidate();
+        if (f.path === this.interview.state.file?.path) void this.interview.reloadAsks();
+      }),
+    );
     this.registerEvent(this.app.metadataCache.on('deleted', () => this.index.invalidate()));
     this.registerEvent(this.app.metadataCache.on('resolved', () => this.index.invalidate()));
 
@@ -47,12 +75,12 @@ export default class KeepWritingPlugin extends Plugin {
     this.addCommand({
       id: 'draw-question',
       name: 'Draw a question',
-      callback: () => void this.askView().then((v) => v?.redraw('target')),
+      callback: () => void this.inPane(() => this.interview.redraw('target')),
     });
     this.addCommand({
       id: 'ask-closing-question',
       name: 'Ask a closing question',
-      callback: () => void this.askView().then((v) => v?.redraw('door')),
+      callback: () => void this.inPane(() => this.interview.redraw('door')),
     });
     this.addCommand({
       id: 'mark-answer-under-cursor',
@@ -101,43 +129,45 @@ export default class KeepWritingPlugin extends Plugin {
     return leaf;
   }
 
-  private async askView(): Promise<AskView | null> {
-    const leaf = await this.openPane(ASK_VIEW);
-    return leaf?.view instanceof AskView ? leaf.view : null;
+  /** Every open Ask pane. None open is legal: the intent runs, nothing draws it. */
+  private askPanes(): AskView[] {
+    return this.app.workspace
+      .getLeavesOfType(ASK_VIEW)
+      .map((leaf) => leaf.view)
+      .filter((view): view is AskView => view instanceof AskView);
+  }
+
+  /** Show the Ask pane, then run the intent, so the owner sees what it did. */
+  private async inPane(intent: () => Promise<void> | void): Promise<void> {
+    await this.openPane(ASK_VIEW);
+    await intent();
   }
 
   /**
-   * Hand the pane the words the owner selected. Read here, where the editor
-   * still holds the focus: opening the pane makes the pane the active leaf.
+   * Hand the Interview the words the owner selected. Read here, where the
+   * editor still holds the focus: opening the pane makes the pane the active
+   * leaf.
    */
   private async askAboutSelection(view: MarkdownView, selected: string, line: number): Promise<void> {
     const file = view.file;
     if (!file) return;
-    const pane = await this.askView();
-    await pane?.askAboutSelection({ file, selected, line });
+    await this.inPane(() => this.interview.askAbout({ file, selected, line }));
   }
 
+  /**
+   * Hand the Interview the note and the line the cursor is on, for the same
+   * reason askAboutSelection hands it the selection: opening the pane makes
+   * the pane the active leaf, so the editor has to be read here. Which Ask
+   * that line is under, and every way it can refuse, is the Interview's.
+   */
   private async markUnderCursor(view: MarkdownView, line: number): Promise<void> {
     const file = view.file;
-    if (!file || !file.path.startsWith(this.settings.sittingsFolder + '/')) {
-      new Notice('The active note is not a Sitting.');
-      return;
-    }
-    const asks = await asksOf(this.app, file);
-    const ask = asks.find((a) => a.answer.start <= line && line < a.answer.end);
-    if (!ask) {
-      new Notice('The cursor is not under an Ask.');
-      return;
-    }
-    if (ask.answered) {
-      new Notice('This answer is already linked.');
-      return;
-    }
-    const answerRef = await markAnswered(this.app, file, ask, { bankFolder: this.settings.bankFolder });
-    if (!answerRef) return;
-    new Notice('Answer linked.');
-    const pane = await this.askView();
-    if (pane) void pane.afterAnswer(file, answerRef, ask);
+    if (!file) return;
+    await this.inPane(() => this.interview.markAt({ file, line }));
+  }
+
+  private buildModel(): Model {
+    return createModel(this.settings, (e) => console.debug('[keep-writing]', e));
   }
 
   async loadSettings(): Promise<void> {
@@ -146,6 +176,19 @@ export default class KeepWritingPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
-    this.model = createModel(this.settings, (e) => console.debug('[keep-writing]', e));
+    this.model = this.buildModel();
   }
+}
+
+/**
+ * Put the cursor at a line of a note, if the owner is looking at that note.
+ * The Interview asks its Surface for this; it is workspace work, not the Ask
+ * pane's — the pane has no editor of its own.
+ */
+function placeCursor(app: App, file: TFile, line: number): void {
+  const view = app.workspace.getActiveViewOfType(MarkdownView);
+  if (view?.file?.path !== file.path) return;
+  view.editor.setCursor({ line, ch: 0 });
+  view.editor.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true);
+  view.editor.focus();
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { jarsLine } from '../src/view-ask';
+import { jarsLine } from '../src/interview';
 
 describe('the pane header while roaming', () => {
   test('reports what is left in the two jars', () => {

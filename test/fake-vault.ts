@@ -2,7 +2,14 @@
 // metadata cache (frontmatter, links in it, sections, headings, list items,
 // blocks) is
 // derived the way Obsidian would derive it, for the shapes this plugin reads.
-// `vault.process` edits the note in place and records the write.
+//
+// It is an adapter for Obsidian's `App`, and it covers both halves of what the
+// plugin does through that seam: the reads, and the whole write surface —
+// `vault.process` (a block id), `fileManager.processFrontMatter` (every typed
+// Link, and the Bookmark's `next`) and `vault.create` (today's Sitting). Every
+// write is recorded in `writes`. Before 2026-09-16 the frontmatter write was
+// missing, and `src/links.ts` — 220 lines carrying "every relation is written
+// on both ends" — could not be reached by a test at all.
 
 import type { App, TFile } from 'obsidian';
 
@@ -39,6 +46,36 @@ function parseFrontmatter(lines: string[]): { frontmatter: Record<string, unknow
 
 function unquote(v: string): string {
   return /^["'].*["']$/.test(v) ? v.slice(1, -1) : v;
+}
+
+/** A wikilink or anything with YAML punctuation in it goes back out quoted. */
+function quoteIfNeeded(v: string): string {
+  return /^\[\[|[:#]/.test(v) ? `"${v}"` : v;
+}
+
+/**
+ * Write a frontmatter object back into a note, in the shape `parseFrontmatter`
+ * reads: scalars inline, lists as `key:` then indented `- item` lines. Creates
+ * the block when the note has none, and drops it when nothing is left.
+ */
+function writeFrontmatter(markdown: string, fm: Record<string, unknown>): string {
+  const lines = markdown.split('\n');
+  const { end } = parseFrontmatter(lines);
+  const body = end >= 0 ? lines.slice(end + 1) : lines;
+  const keys = Object.keys(fm);
+  if (keys.length === 0) return body.join('\n');
+  const head = ['---'];
+  for (const key of keys) {
+    const value = fm[key];
+    if (Array.isArray(value)) {
+      head.push(`${key}:`);
+      for (const v of value) head.push(`  - ${quoteIfNeeded(String(v))}`);
+    } else {
+      head.push(`${key}: ${quoteIfNeeded(String(value))}`);
+    }
+  }
+  head.push('---');
+  return [...head, ...body].join('\n');
 }
 
 function cacheOf(markdown: string) {
@@ -107,39 +144,100 @@ export interface FakeVault {
   app: App;
   file(path: string): TFile;
   text(path: string): string;
-  /** Every `vault.process` write: the path and the new text. */
+  /** The frontmatter of a note as the cache reads it back. */
+  frontmatter(path: string): Record<string, unknown>;
+  /** Every write, in order: a block id, a frontmatter property, or a new note. */
   writes: { path: string; text: string }[];
 }
 
-export function fakeVault(notes: Record<string, string>): FakeVault {
+/** Hooks for tests that need to control WHEN a read lands, not just what it returns. */
+export interface VaultHooks {
+  /**
+   * Awaited before every `cachedRead`. Lets a test hold one read open while
+   * another completes, which is the only way to land two vault-reading calls
+   * out of the order they were made.
+   */
+  beforeRead?: (path: string) => Promise<void> | void;
+}
+
+export function fakeVault(notes: Record<string, string>, hooks: VaultHooks = {}): FakeVault {
   const bodies = new Map(Object.entries(notes));
-  const files = [...bodies.keys()].map(
-    (path) => ({ path, basename: path.replace(/^.*\//, '').replace(/\.md$/, ''), extension: 'md' }) as TFile,
-  );
+  const folders = new Set<string>();
+  const fileOf = (path: string): TFile =>
+    ({ path, basename: path.replace(/^.*\//, '').replace(/\.md$/, ''), extension: 'md' }) as TFile;
+  const files = [...bodies.keys()].map(fileOf);
   const byPath = new Map(files.map((f) => [f.path, f]));
+  for (const path of bodies.keys()) {
+    const slash = path.lastIndexOf('/');
+    if (slash > 0) folders.add(path.slice(0, slash));
+  }
   const writes: { path: string; text: string }[] = [];
+  const record = (path: string, text: string) => {
+    bodies.set(path, text);
+    writes.push({ path, text });
+  };
+  const resolve = (link: string): TFile | null =>
+    byPath.get(`${link}.md`) ?? files.find((f) => f.basename === link || f.path === link) ?? null;
+
   const app = {
     vault: {
       getMarkdownFiles: () => files,
-      cachedRead: async (f: TFile) => bodies.get(f.path) ?? '',
+      cachedRead: async (f: TFile) => {
+        await hooks.beforeRead?.(f.path);
+        return bodies.get(f.path) ?? '';
+      },
       getFileByPath: (path: string) => byPath.get(path) ?? null,
+      getFolderByPath: (path: string) => (folders.has(path) ? { path } : null),
+      createFolder: async (path: string) => {
+        folders.add(path);
+      },
+      create: async (path: string, data: string) => {
+        const f = fileOf(path);
+        files.push(f);
+        byPath.set(path, f);
+        record(path, data);
+        return f;
+      },
       process: async (f: TFile, fn: (data: string) => string) => {
         const next = fn(bodies.get(f.path) ?? '');
-        bodies.set(f.path, next);
-        writes.push({ path: f.path, text: next });
+        record(f.path, next);
         return next;
+      },
+    },
+    fileManager: {
+      // Obsidian hands the callback a plain object and writes back whatever it
+      // leaves behind, including deletions. The note's body is untouched.
+      processFrontMatter: async (f: TFile, fn: (fm: Record<string, unknown>) => void) => {
+        const data = bodies.get(f.path) ?? '';
+        const { frontmatter } = parseFrontmatter(data.split('\n'));
+        fn(frontmatter);
+        record(f.path, writeFrontmatter(data, frontmatter));
       },
     },
     metadataCache: {
       getFileCache: (f: TFile) => (bodies.has(f.path) ? cacheOf(bodies.get(f.path) as string) : null),
-      getFirstLinkpathDest: (link: string) =>
-        byPath.get(`${link}.md`) ?? files.find((f) => f.basename === link || f.path === link) ?? null,
+      getFirstLinkpathDest: (link: string) => resolve(link),
+      // Recomputed on read: a link written this tick is resolved on the next.
+      // Only frontmatter links, which is where every typed Link lives.
+      get resolvedLinks(): Record<string, Record<string, number>> {
+        const out: Record<string, Record<string, number>> = {};
+        for (const f of files) {
+          const counts: Record<string, number> = {};
+          for (const fl of cacheOf(bodies.get(f.path) ?? '').frontmatterLinks) {
+            const dest = resolve(fl.link.split('#')[0] as string);
+            if (dest) counts[dest.path] = (counts[dest.path] ?? 0) + 1;
+          }
+          out[f.path] = counts;
+        }
+        return out;
+      },
     },
   } as unknown as App;
   return {
     app,
     file: (path) => byPath.get(path) as TFile,
     text: (path) => bodies.get(path) ?? '',
+    frontmatter: (path) => parseFrontmatter((bodies.get(path) ?? '').split('\n')).frontmatter,
     writes,
   };
 }

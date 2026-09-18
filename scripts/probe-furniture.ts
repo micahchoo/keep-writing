@@ -6,8 +6,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { MIN_PROSE_WORDS, proseOf, readsAsParagraph } from '../src/paragraphs';
-import { readFileSync as _rf } from 'node:fs';
+import { MIN_PROSE_WORDS, proseOf, readsAsParagraph } from '../src/furniture';
 
 const PIECES = join(import.meta.dir, '../../../../Pieces');
 const ID_AT_END = /\s\^[A-Za-z0-9-]+\s*$/;

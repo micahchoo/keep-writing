@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { checkFollowUps, composeFollowUps, composeRevisit, isParrot, splitDue } from '../src/bonsai';
+import { checkFollowUps, checkProposal, checkRevisit, composeFollowUps, composeRevisit, extractJson, isParrot, locateQuote, splitDue } from '../src/bonsai';
+import type { Candidate } from '../src/bonsai';
 import type { CallLog } from '../src/bonsai';
 import type { BonsaiConfig } from '../src/bonsai';
 
@@ -198,5 +199,169 @@ describe('a follow-up never re-asks the question that was just answered', () => 
     const v = checkFollowUps({ questions: [earlier] }, answer, [asked, earlier]);
     expect(v.kind).toBe('invalid');
     if (v.kind === 'invalid') expect(v.reason).toContain(earlier);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The Proposal's half of "bonsai judges, code arbitrates" (CONTEXT.md). These
+// four functions are the whole distance between a model's output and a typed
+// Link written into the vault on both ends, and until 2026-09-16 no test
+// imported any of them.
+
+describe('extractJson', () => {
+  test('a bare object', () => {
+    expect(extractJson('{"relation":"echoes"}')).toEqual({ relation: 'echoes' });
+  });
+  test('inside a code fence, labelled or not', () => {
+    expect(extractJson('```json\n{"a":1}\n```')).toEqual({ a: 1 });
+    expect(extractJson('```\n{"a":1}\n```')).toEqual({ a: 1 });
+  });
+  test('with prose either side of it', () => {
+    expect(extractJson('Sure! {"a":1} hope that helps.')).toEqual({ a: 1 });
+  });
+  test('the first BALANCED object, so a nested one comes back whole', () => {
+    expect(extractJson('{"a":{"b":2},"c":3}')).toEqual({ a: { b: 2 }, c: 3 });
+  });
+  test('a closing brace inside a string does not end the object', () => {
+    expect(extractJson('{"quote":"a } brace, mid-sentence"}')).toEqual({ quote: 'a } brace, mid-sentence' });
+  });
+  test('an escaped quote inside a string does not end the string', () => {
+    expect(extractJson('{"quote":"she said \\"no\\" and left"}')).toEqual({ quote: 'she said "no" and left' });
+  });
+  test('no object at all, and an object that will not parse, are both null', () => {
+    expect(extractJson('I would rather not.')).toBeNull();
+    expect(extractJson('{"a": }')).toBeNull();
+  });
+});
+
+describe('locateQuote', () => {
+  const TEXT = 'I weighted the pelvis bone wrong in every rig I made that year.';
+
+  test('an exact substring is itself', () => {
+    expect(locateQuote('the pelvis bone', TEXT)).toBe('the pelvis bone');
+  });
+  test('words that are not there are null', () => {
+    expect(locateQuote('the femur', TEXT)).toBeNull();
+  });
+  test('a case change still fails: nothing but quote marks is normalized', () => {
+    expect(locateQuote('The Pelvis Bone', TEXT)).toBeNull();
+  });
+
+  // Measured 2026-09-13: bonsai swaps a phrase's inner double quotes for
+  // single ones when it writes JSON, and repeats the swap under the retry.
+  const SPOKEN = 'he called it "the hips" for years afterwards';
+
+  test('a swapped quote mark matches, and what comes back is the TEXT’s own characters', () => {
+    expect(locateQuote("he called it 'the hips'", SPOKEN)).toBe('he called it "the hips"');
+  });
+  test('regex metacharacters inside a swapped quote are escaped, not interpreted', () => {
+    const text = 'the invoice said "it cost $5 (roughly)" and nobody checked';
+    expect(locateQuote("the invoice said 'it cost $5 (roughly)'", text)).toBe('the invoice said "it cost $5 (roughly)"');
+    expect(locateQuote("the invoice said 'it cost .. (roughly)'", text)).toBeNull();
+  });
+});
+
+describe('checkProposal', () => {
+  const CANDIDATES: Candidate[] = [
+    { ref: 'Pieces/cities#^p-004', text: 'The pelvis bone was weighted wrong in every rig I made that year.' },
+    { ref: 'Sittings/2026-09-14#^y1', text: 'I only ever called it "the hips" because the rig sheet did.' },
+  ];
+
+  test('a ref, a relation and a quote that check out', () => {
+    expect(checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'weighted wrong in every rig' }, CANDIDATES))
+      .toEqual({ kind: 'ok', value: { ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'weighted wrong in every rig' } });
+  });
+
+  test('the relation is trimmed and lower-cased', () => {
+    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: '  Follows ', quote: 'weighted wrong in every rig' }, CANDIDATES);
+    expect(v).toMatchObject({ kind: 'ok', value: { relation: 'follows' } });
+  });
+
+  test('a ref the model invented is refused', () => {
+    const v = checkProposal({ ref: 'Pieces/never-written#^p-001', relation: 'echoes', quote: 'weighted wrong in every rig' }, CANDIDATES);
+    expect(v).toMatchObject({ kind: 'invalid' });
+    expect((v as { reason: string }).reason).toContain('not one of the candidate refs');
+  });
+
+  // `demonstrates` is a real relation in links.ts and NOT one bonsai may name:
+  // a Skill cites performance, which is the owner's claim to make, not a model's.
+  test('a relation outside the three is refused, even one the Link table knows', () => {
+    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'demonstrates', quote: 'weighted wrong in every rig' }, CANDIDATES);
+    expect(v).toMatchObject({ kind: 'invalid' });
+    expect((v as { reason: string }).reason).toContain('is not one of echoes, contradicts, follows');
+  });
+
+  test('a quote that is not in the block is refused', () => {
+    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'the femur was fine' }, CANDIDATES);
+    expect(v).toMatchObject({ kind: 'invalid' });
+    expect((v as { reason: string }).reason).toContain('is not an exact substring');
+  });
+
+  test('a quote under three words is refused: two words show no relation', () => {
+    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'The pelvis' }, CANDIDATES);
+    expect(v).toMatchObject({ kind: 'invalid' });
+    expect((v as { reason: string }).reason).toContain('fewer than 3 words');
+  });
+
+  test('a missing field is named', () => {
+    expect(checkProposal({}, CANDIDATES)).toEqual({ kind: 'invalid', reason: 'missing "ref"' });
+    expect(checkProposal({ ref: 'Pieces/cities#^p-004' }, CANDIDATES)).toEqual({ kind: 'invalid', reason: 'missing "relation"' });
+    expect(checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: '  ' }, CANDIDATES))
+      .toEqual({ kind: 'invalid', reason: 'missing "quote"' });
+  });
+
+  test('output that is not an object at all', () => {
+    expect(checkProposal(null, CANDIDATES)).toEqual({ kind: 'invalid', reason: 'output is not an object' });
+  });
+
+  // The Link carries the owner's characters, never the model's re-spelling.
+  test('a swapped quote mark passes, and the block’s own spelling is what is kept', () => {
+    const v = checkProposal(
+      { ref: 'Sittings/2026-09-14#^y1', relation: 'follows', quote: "called it 'the hips' because" },
+      CANDIDATES,
+    );
+    expect(v).toEqual({
+      kind: 'ok',
+      value: { ref: 'Sittings/2026-09-14#^y1', relation: 'follows', quote: 'called it "the hips" because' },
+    });
+  });
+});
+
+describe('checkRevisit', () => {
+  const PARAGRAPH = 'The map only aligned after I georeferenced it against the survey sheet.';
+
+  test('the due marker comes off before the checks and back on the kept question', () => {
+    expect(checkRevisit({ questions: ['which bone did you weight it to (due +3d)?'] }, PARAGRAPH, [])).toEqual({
+      kind: 'ok',
+      value: [{ question: 'which bone did you weight it to?', dueDays: 3 }],
+    });
+  });
+
+  test('the asked set reaches a candidate carrying a due marker', () => {
+    expect(
+      checkRevisit(
+        { questions: ['what broke in the rig?', 'which bone did you weight it to (due +3d)?'] },
+        PARAGRAPH,
+        ['what broke in the rig?'],
+      ),
+    ).toEqual({ kind: 'ok', value: [{ question: 'which bone did you weight it to?', dueDays: 3 }] });
+  });
+
+  test('nothing survives the asked set, so the whole output is invalid and the pane falls back', () => {
+    expect(checkRevisit({ questions: ['what broke in the rig?'] }, PARAGRAPH, ['what broke in the rig?']))
+      .toMatchObject({ kind: 'invalid' });
+  });
+
+  test('a missing questions array is named', () => {
+    expect(checkRevisit({ answer: 'no' }, PARAGRAPH, [])).toEqual({ kind: 'invalid', reason: 'missing "questions" array' });
+  });
+
+  // The candidate goes through the checks whole, so its due date is never
+  // matched back up to it by text afterwards. Two candidates that read the
+  // same are one question, and it keeps the first date offered.
+  test('two candidates that read the same are one, and it keeps the first date', () => {
+    expect(
+      checkRevisit({ questions: ['explain it back to me? (due +3d)', 'explain it back to me? (due +7d)'] }, PARAGRAPH, []),
+    ).toEqual({ kind: 'ok', value: [{ question: 'explain it back to me?', dueDays: 3 }] });
   });
 });

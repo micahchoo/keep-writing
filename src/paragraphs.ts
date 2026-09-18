@@ -15,16 +15,18 @@
 //
 // Not every block with an id is a paragraph the owner wrote. The corpus
 // carries furniture that the import gave an id to: Hugo shortcodes, figure
-// captions, project-sheet fields, bibliography entries. `readsAsParagraph`
-// keeps those out of the jar. See CONTEXT.md, "Furniture".
+// captions, project-sheet fields, bibliography entries. Furniture is its own
+// module (furniture.ts) with its own canon entry and three consumers; the jar
+// is the one that takes the word floor with it.
 
 import type { App, CachedMetadata, TFile } from 'obsidian';
-import { blockText, refOf, stripBlockDecoration } from './refs';
+import { headingAbove, readsAsParagraph } from './furniture';
+import { blockTexts, refOf, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
 import { ME_BASENAME, classify, gatheredBy, isSitting } from './target';
 
 /** The register a paragraph counts as. */
-export const REVISIT_REGISTER = 'revisit';
+const REVISIT_REGISTER = 'revisit';
 
 export type Origin = 'piece' | 'sitting' | 'domain' | 'learning';
 
@@ -122,115 +124,7 @@ export function sittingFraming(basename: string): string {
   return `in a Sitting they called "${called}"`;
 }
 
-// ---------------------------------------------------------------------------
-// Furniture: what carries a block id but is not a paragraph the owner wrote.
-
-/**
- * Fewest words of prose a block needs before the draw will put it in front of
- * the owner. Measured 2026-09-15 over the 989 drawable blocks in `Pieces/`:
- * under twelve, the corpus is mostly figure captions, project-sheet fields
- * and navigation. The floor costs some real short lines ("Who gets to hold
- * memory, and on whose terms?"), which is why it does not apply to a
- * Selection: what the owner picks by hand, they meant.
- */
-export const MIN_PROSE_WORDS = 12;
-
-/**
- * Labels the corpus puts in front of a colon when the block is a caption or a
- * project-sheet field, not prose. Read from `Pieces/` on 2026-09-15; closed,
- * because it is one person's corpus. Extend it by finding one.
- */
-const FIELD_LABEL =
-  /^(fig(?:ure)?\s*\d+|my role|my contribution|duration|project duration|project information|people involved|credits?)\s*:/i;
-
-/** Headings whose blocks are apparatus: the owner assembled them, did not write them. */
-const FURNITURE_HEADING =
-  /bibliograph|reference|citation|works cited|footnote|acknowledg|appendix|further reading/i;
-
-/**
- * Pure: the prose left in a block once the markup is out — what a question
- * could be about. An image is dropped whole (its alt text is written for a
- * machine); a link keeps its words and loses its URL.
- *
- * This is a measuring instrument, not a payload. It is never written to a
- * file, and it is never what bonsai reads: measured 2026-09-15 against
- * bonsai-27b, handing it stripped prose instead of raw changed no composed
- * question. Only `readsAsParagraph` calls it.
- */
-export function proseOf(text: string): string {
-  return text
-    .replace(/\{\{[<%][\s\S]*?[>%]\}\}/g, '') // Hugo shortcode
-    .replace(/\{:[^}]*\}/g, '') // kramdown attribute list
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // image
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // link: keep the words
-    .replace(/<[^>]+>/g, '') // html tag
-    .replace(/`[^`]*`/g, '') // inline code
-    .replace(/https?:\/\/\S+/g, '') // bare url
-    .replace(/[*_#>|~]+/g, ' ') // emphasis, heading, quote, table, strike
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/**
- * Pure: is this block Furniture — something carrying a block id that the
- * owner did not write as prose? `heading` is the nearest heading above it,
- * empty when there is none. Three species: nothing but markup, a caption or
- * field label, and apparatus sitting under a bibliography.
- *
- * This is the test that holds wherever the owner's own words are wanted. It
- * carries no length rule, because length is not what makes something
- * furniture: "Who gets to hold memory, and on whose terms?" is nine words and
- * is entirely the owner's.
- */
-export function isFurniture(text: string, heading = ''): boolean {
-  if (FURNITURE_HEADING.test(heading)) return true;
-  const prose = proseOf(text);
-  if (!prose) return true;
-  return FIELD_LABEL.test(prose);
-}
-
-/**
- * Pure: may the DRAW put this block in front of the owner? Not furniture, and
- * over the word floor.
- *
- * The floor belongs to the draw alone — it is choosing unattended among a
- * thousand blocks, and pays for that with some real short lines. The other
- * two paths take the furniture test without it: a Selection, because what the
- * owner points at they meant, and the Proposal pool (pool.ts), because a
- * short answer can still be the thing a later answer echoes.
- *
- * Counted over `Pieces/` on 2026-09-15, each rule catches a species the
- * others miss: 126 blocks only the floor rejects, 33 only the caption or
- * field label, 39 only the bibliography heading.
- */
-export function readsAsParagraph(text: string, heading = ''): boolean {
-  if (isFurniture(text, heading)) return false;
-  return proseOf(text).split(' ').filter(Boolean).length >= MIN_PROSE_WORDS;
-}
-
-/** The nearest heading at or above `line`, lower-cased; empty when there is none. */
-export function headingAbove(cache: CachedMetadata | null, line: number): string {
-  let found = '';
-  for (const h of cache?.headings ?? []) {
-    if (h.position.start.line > line) break;
-    found = h.heading;
-  }
-  return found.toLowerCase();
-}
-
 const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
-
-/** Blocks of a note that carry ids, in file order, as text. */
-async function idBlocks(app: App, file: TFile): Promise<{ id: string; line: number; text: string }[]> {
-  const blocks = app.metadataCache.getFileCache(file)?.blocks ?? {};
-  const ids = Object.keys(blocks).sort((a, b) => blocks[a]!.position.start.line - blocks[b]!.position.start.line);
-  const out: { id: string; line: number; text: string }[] = [];
-  for (const id of ids) {
-    const text = await blockText(app, file, id);
-    if (text) out.push({ id, line: blocks[id]!.position.start.line, text });
-  }
-  return out;
-}
 
 /**
  * What a note lends to every paragraph in it: the Well the draw files it
@@ -248,7 +142,7 @@ export interface ParagraphFacts {
   status?: string;
 }
 
-export function pieceFacts(app: App, piece: TFile, wells: string[]): ParagraphFacts {
+function pieceFacts(app: App, piece: TFile, wells: string[]): ParagraphFacts {
   const fm = app.metadataCache.getFileCache(piece)?.frontmatter ?? {};
   const pieceDate = str(fm['date']);
   const status = str(fm['status']);
@@ -290,7 +184,7 @@ export function noteFacts(note: TFile, origin: 'domain' | 'learning'): Paragraph
 }
 
 /** The Wells that gather this Piece; the self when no Domain does. */
-export function wellsOfPiece(app: App, piece: TFile): string[] {
+function wellsOfPiece(app: App, piece: TFile): string[] {
   const names: string[] = [];
   for (const [well, pieces] of gatheredBy(app)) {
     if (pieces.some((p) => p.path === piece.path)) names.push(well);
@@ -310,34 +204,52 @@ export function fileFacts(app: App, file: TFile, sittingsFolder: string): Paragr
   return null;
 }
 
-/** The paragraphs of one finished Piece: its blocks with ids. */
-export async function pieceParagraphs(app: App, piece: TFile, wells: string[]): Promise<Paragraph[]> {
-  const facts = pieceFacts(app, piece, wells);
-  return (await idBlocks(app, piece)).map((b) => ({
-    kind: 'paragraph',
-    file: piece,
-    ref: refOf(piece, b.id),
-    key: `${piece.path}#^${b.id}`,
-    register: REVISIT_REGISTER,
-    text: b.text,
-    ...facts,
-    line: b.line,
-  }));
+/** One unit of a note the draw or a Selection may take: a block, with or without an id. */
+export interface ParagraphBlock {
+  /** Absent while the paragraph has no block id: a Well body, or a fresh Selection. */
+  id?: string;
+  /** First line of the paragraph, 0-based. */
+  line: number;
+  /** The paragraph, block id and list marker already stripped. */
+  text: string;
 }
 
-/** The paragraphs of one Sitting: its blocks with ids, filed under the self. */
-export async function sittingParagraphs(app: App, sitting: TFile): Promise<Paragraph[]> {
-  const facts = sittingFacts(sitting);
-  return (await idBlocks(app, sitting)).map((b) => ({
+/**
+ * One paragraph of the jar: what the note lends every paragraph in it
+ * (`facts`) and what this block is.
+ *
+ * The key is the one thing every path here must agree on, because
+ * answered-ness is keyed by it (bank.ts#AnsweredIndex): a block with an id is
+ * addressed by the id, one without is addressed by its line and gets a real
+ * id when the Ask is accepted (blocks.ts#ensureBlockId). Before 2026-09-17
+ * this literal was written in four places — the two block shelves, the Well
+ * body shelf, and a Selection in another module — and two of them spelled the
+ * key without the branch.
+ */
+export function paragraphOf(file: TFile, facts: ParagraphFacts, block: ParagraphBlock): Paragraph {
+  return {
     kind: 'paragraph',
-    file: sitting,
-    ref: refOf(sitting, b.id),
-    key: `${sitting.path}#^${b.id}`,
+    file,
+    ref: refOf(file, block.id),
+    key: block.id ? `${file.path}#^${block.id}` : `${file.path}#L${block.line}`,
     register: REVISIT_REGISTER,
-    text: b.text,
+    text: block.text,
     ...facts,
-    line: b.line,
-  }));
+    line: block.line,
+  };
+}
+
+/**
+ * The paragraphs of a note whose blocks already carry ids: a finished Piece,
+ * or a Sitting. The two shelves differ only in the facts their note lends.
+ */
+async function blockParagraphs(app: App, file: TFile, facts: ParagraphFacts): Promise<Paragraph[]> {
+  return (await blockTexts(app, file)).map((b) => paragraphOf(file, facts, b));
+}
+
+/** The paragraphs of one finished Piece: its blocks with ids. */
+export async function pieceParagraphs(app: App, piece: TFile, wells: string[]): Promise<Paragraph[]> {
+  return blockParagraphs(app, piece, pieceFacts(app, piece, wells));
 }
 
 /** One unit of a note body that can carry an inline block id: a paragraph, or one list item. */
@@ -372,7 +284,7 @@ export function bodyUnits(cache: CachedMetadata | null): BodyUnit[] {
 }
 
 /** The paragraphs of a Domain or Learning note's body, id or not, filed under that note. */
-export async function bodyParagraphs(app: App, note: TFile, origin: 'domain' | 'learning'): Promise<Paragraph[]> {
+async function bodyParagraphs(app: App, note: TFile, origin: 'domain' | 'learning'): Promise<Paragraph[]> {
   const units = bodyUnits(app.metadataCache.getFileCache(note));
   if (units.length === 0) return [];
   const lines = (await app.vault.cachedRead(note)).split('\n');
@@ -381,16 +293,7 @@ export async function bodyParagraphs(app: App, note: TFile, origin: 'domain' | '
   for (const u of units) {
     const text = stripBlockDecoration(lines.slice(u.start, u.end + 1).join('\n'));
     if (!text) continue;
-    out.push({
-      kind: 'paragraph',
-      file: note,
-      ref: refOf(note, u.id),
-      key: u.id ? `${note.path}#^${u.id}` : `${note.path}#L${u.start}`,
-      register: REVISIT_REGISTER,
-      text,
-      ...facts,
-      line: u.start,
-    });
+    out.push(paragraphOf(note, facts, { id: u.id, line: u.start, text }));
   }
   return out;
 }
@@ -442,7 +345,7 @@ export async function paragraphJar(app: App, sittingsFolder: string): Promise<Pa
   for (const file of app.vault.getMarkdownFiles()) {
     const wells = wellsOf.get(file.path);
     if (wells) jar.push(...(await pieceParagraphs(app, file, wells)));
-    else if (isSitting(file, sittingsFolder)) jar.push(...(await sittingParagraphs(app, file)));
+    else if (isSitting(file, sittingsFolder)) jar.push(...(await blockParagraphs(app, file, sittingFacts(file))));
     else {
       const kind = classify(file);
       if (kind === 'domain' || kind === 'learning') jar.push(...(await bodyParagraphs(app, file, kind)));

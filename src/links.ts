@@ -3,7 +3,7 @@
 // in Bank/ get no inverse.
 
 import type { App, TFile } from 'obsidian';
-import { formatRef, parseRef, refOf, resolveRef, wikilink } from './refs';
+import { formatRef, keyOfRef, linksNamed, parseRef, propertyName, refOf, resolveRef, wikilink } from './refs';
 import type { Ref } from './refs';
 
 export const RELATIONS = ['answers', 'echoes', 'contradicts', 'follows', 'demonstrates'] as const;
@@ -17,9 +17,24 @@ export const INVERSE: Record<Relation, string> = {
   demonstrates: 'demonstrated-by',
 };
 
-/** Forward relation for any property name, or null if it is not a relation. */
+/**
+ * A relation that is its own inverse. Both notes carry the same property
+ * name, so neither end is the source: `echoes` and `contradicts` are things
+ * two blocks do to each other, while `answers` and `follows` run one way.
+ * Nothing but the table decides this; adding a symmetric relation is adding
+ * a row where the inverse equals the name.
+ */
+export function isSymmetric(relation: Relation): boolean {
+  return INVERSE[relation] === relation;
+}
+
+/**
+ * Forward relation for any property name, or null if it is not a relation.
+ * A symmetric relation always reads as forward, because its two names are
+ * one name: there is no inverse property to tell apart.
+ */
 export function relationOfKey(key: string): { relation: Relation; inverse: boolean } | null {
-  const name = key.split('.')[0] ?? key;
+  const name = propertyName(key);
   for (const r of RELATIONS) {
     if (name === r) return { relation: r, inverse: false };
     if (name === INVERSE[r]) return { relation: r, inverse: true };
@@ -33,6 +48,27 @@ export function isRelation(name: string): name is Relation {
 
 export function isBankPath(path: string, bankFolder: string): boolean {
   return path.startsWith(bankFolder + '/');
+}
+
+/**
+ * The source keys one note says it `answers`, resolved. The relation name is
+ * this module's, which is why the reading is too.
+ *
+ * Two modules read it at two scopes, on purpose — `bank.ts#AnsweredIndex`
+ * unions it over the whole vault, which is the canon's rule ("a source is
+ * answered when any block carries an `answers` link to it"), and
+ * `asks.ts#asksOf` takes one Sitting's own, because an answer lands in the
+ * Sitting that holds the Ask and a vault scan on every keystroke is not worth
+ * a case that cannot arise. The SCOPES differ; the reading is one.
+ */
+export function answeredKeys(app: App, file: TFile): string[] {
+  const keys: string[] = [];
+  for (const fl of linksNamed(app.metadataCache.getFileCache(file), 'answers')) {
+    const ref = parseRef(fl.link);
+    const key = ref && keyOfRef(app, ref, file.path);
+    if (key) keys.push(key);
+  }
+  return keys;
 }
 
 function asList(v: unknown): string[] {
@@ -113,8 +149,12 @@ export async function unlinkBoth(
 
 export interface TypedLink {
   relation: Relation;
-  /** `out`: this note is the source. `in`: this note is the target. */
-  direction: 'out' | 'in';
+  /**
+   * `out`: this note is the source. `in`: this note is the target. `both`:
+   * the relation is symmetric, so neither end is the source and the one link
+   * is one row.
+   */
+  direction: 'out' | 'in' | 'both';
   /** The other end, as it must be written to address it. */
   ref: Ref;
   /** Vault path of the other note. */
@@ -127,6 +167,12 @@ export interface TypedLink {
  * All typed links touching a note: its own properties (forward names are
  * out-links, inverse names are in-links) and other notes' forward properties
  * that point here. Rows describing the same link from both ends are merged.
+ *
+ * A symmetric relation is read twice by construction — this note's own
+ * `echoes` property, and the other note's `echoes` property pointing back —
+ * and the two readings are the same link. Both are marked `both`, which is
+ * what lets them merge; before 2026-09-16 they were `out` and `in`, and the
+ * pane showed one echo as two rows, the second of them note-level.
  */
 export function linksOf(app: App, file: TFile): TypedLink[] {
   const rows: TypedLink[] = [];
@@ -140,7 +186,7 @@ export function linksOf(app: App, file: TFile): TypedLink[] {
     if (!ref || !other) continue;
     const row: TypedLink = {
       relation: rel.relation,
-      direction: rel.inverse ? 'in' : 'out',
+      direction: isSymmetric(rel.relation) ? 'both' : rel.inverse ? 'in' : 'out',
       ref,
       otherPath: other.file.path,
     };
@@ -162,7 +208,7 @@ export function linksOf(app: App, file: TFile): TypedLink[] {
       if (!ref || !dest || dest.file.path !== file.path) continue;
       rows.push({
         relation: rel.relation,
-        direction: 'in',
+        direction: isSymmetric(rel.relation) ? 'both' : 'in',
         ref: refOf(src),
         otherPath: sourcePath,
         ownBlockId: ref.blockId,
@@ -211,7 +257,7 @@ function sourceBlockFromInverse(
   const inverse = INVERSE[relation];
   const hits: string[] = [];
   for (const fl of app.metadataCache.getFileCache(target)?.frontmatterLinks ?? []) {
-    if ((fl.key.split('.')[0] ?? fl.key) !== inverse) continue;
+    if (propertyName(fl.key) !== inverse) continue;
     const ref = parseRef(fl.link);
     const dest = ref && resolveRef(app, ref, target.path);
     if (ref && dest && dest.file.path === source.path && ref.blockId) hits.push(ref.blockId);

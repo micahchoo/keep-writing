@@ -10,7 +10,7 @@
 // the Target: a day spent on it draws its own paragraphs, nothing else.
 
 import type { App, CachedMetadata, TFile } from 'obsidian';
-import { parseRef, resolveRef } from './refs';
+import { linksNamed, parseRef, resolveRef } from './refs';
 
 export type WellKind = 'me' | 'domain' | 'learning';
 
@@ -33,9 +33,9 @@ export interface PieceTarget {
 export type Target = Well | PieceTarget;
 
 /** Folders from CONTEXT.md, Layout. */
-export const DOMAINS_FOLDER = 'Domains';
-export const LEARNING_FOLDER = 'Learning';
-export const PIECES_FOLDER = 'Pieces';
+const DOMAINS_FOLDER = 'Domains';
+const LEARNING_FOLDER = 'Learning';
+const PIECES_FOLDER = 'Pieces';
 export const ME_BASENAME = 'me';
 
 export const SELF: Well = { kind: 'me', name: ME_BASENAME, file: null };
@@ -86,7 +86,7 @@ export function allWells(app: App): Well[] {
  */
 export function readTarget(app: App, sitting: TFile): Target | null {
   const cache = app.metadataCache.getFileCache(sitting);
-  const fl = cache?.frontmatterLinks?.find((l) => l.key === 'about' || l.key.startsWith('about.'));
+  const fl = linksNamed(cache, 'about')[0];
   const raw = fl?.original ?? stringProp(cache?.frontmatter?.['about']);
   if (!raw) return null;
   const ref = parseRef(fl?.link ?? raw);
@@ -154,8 +154,7 @@ function tagsOf(cache: CachedMetadata | null): string[] {
 /** Basenames of the notes a note links in `about`. */
 function aboutOf(app: App, file: TFile, cache: CachedMetadata | null): string[] {
   const out: string[] = [];
-  for (const fl of cache?.frontmatterLinks ?? []) {
-    if (fl.key !== 'about' && !fl.key.startsWith('about.')) continue;
+  for (const fl of linksNamed(cache, 'about')) {
     const ref = parseRef(fl.link);
     const dest = ref && resolveRef(app, ref, file.path);
     out.push(dest ? dest.file.basename : (ref?.path.split('/').pop() ?? fl.link));

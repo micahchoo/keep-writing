@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import { appendAsk, parseAsks, questionsAbout } from '../src/asks';
+import { appendAsk, markAnswered, parseAsks, questionsAbout } from '../src/asks';
+import type { Ask } from '../src/asks';
+import { fakeVault } from './fake-vault';
 
 const sitting = `---
 about: "[[me]]"
@@ -167,5 +169,109 @@ describe('questionsAbout', () => {
   test('a malformed Ask with no source is never matched by ref', () => {
     const noSource = parseAsks('> [!ask] a question with no from-line\n\nan answer');
     expect(questionsAbout(noSource, 99, () => true)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// "Every answer is linked at birth" (CONTEXT.md, Invariants). Untestable
+// before 2026-09-16: the fake vault had no frontmatter write.
+
+const MARKABLE = `---
+about: "[[Blender]]"
+---
+
+## Asked
+
+> [!ask] what did you make?
+> from [[Bank/craft#^b1]]
+
+I rigged a walk cycle and it fell over twice.
+
+> [!ask] where should we pick up?
+> from [[Bank/closing#^bm1]]
+
+With the hips. That is where it broke.
+
+> [!ask] what did we not touch today?
+> from [[Bank/closing#^dr1]]
+
+`;
+
+const markVault = () =>
+  fakeVault({
+    'Sittings/2026-09-15.md': MARKABLE,
+    'Domains/Blender.md': '---\ngathers: [blender]\n---\n\nI rig badly. ^r1\n',
+    'me.md': '---\ntitle: me\n---\n\nThe self.\n',
+    'Bank/craft.md': '---\nkind: bank\n---\n\n- what did you make? #register/episode ^b1\n',
+    'Bank/closing.md':
+      '---\nkind: bank\n---\n\n- where should we pick up? #register/intention #role/bookmark ^bm1\n- what did we not touch today? #register/general-event #role/door ^dr1\n',
+  });
+
+describe('marking an answer done', () => {
+  const opts = { bankFolder: 'Bank' };
+  const asksIn = (v: ReturnType<typeof markVault>) => parseAsks(v.text('Sittings/2026-09-15.md'));
+  /** The answer block's ref, failing loudly if marking refused. */
+  const mark = async (v: ReturnType<typeof markVault>, ask: Ask) => {
+    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), ask, opts);
+    if (marked.kind !== 'ok') throw new Error(`refused: ${marked.reason}`);
+    return marked.ref;
+  };
+
+  test('the answer gets a block id and both ends of `answers` are written', async () => {
+    const v = markVault();
+    const ref = await mark(v, asksIn(v)[0] as Ask);
+    expect(ref.path).toBe('Sittings/2026-09-15');
+    expect(ref.blockId).toBeDefined();
+    expect(v.text('Sittings/2026-09-15.md')).toContain(`fell over twice. ^${ref.blockId}`);
+    expect(v.frontmatter('Sittings/2026-09-15.md')['answers']).toEqual(['[[Bank/craft#^b1]]']);
+  });
+
+  test('the block id lands on the FIRST paragraph of the answer, the link anchor', async () => {
+    const v = markVault();
+    const ref = await mark(v, asksIn(v)[0] as Ask);
+    const lines = v.text('Sittings/2026-09-15.md').split('\n');
+    const marked = lines.findIndex((l) => l.endsWith(`^${ref.blockId}`));
+    expect(lines[marked]).toContain('I rigged a walk cycle');
+  });
+
+  test('the source is in Bank/, so it gains no inverse', async () => {
+    const v = markVault();
+    await mark(v, asksIn(v)[0] as Ask);
+    expect(v.frontmatter('Bank/craft.md')).toEqual({ kind: 'bank' });
+  });
+
+  // Marking writes `answers` and nothing else. The Closing move a source may
+  // call for is closing.ts's, run by the Interview: test/closing.test.ts holds
+  // it, and test/interview.test.ts holds the chaining.
+  test('marking a Bookmark writes no `next`: that is the Interview’s to run', async () => {
+    const v = markVault();
+    await mark(v, asksIn(v)[1] as Ask);
+    expect(v.frontmatter('Domains/Blender.md')['next']).toBeUndefined();
+  });
+
+  test('marking twice writes the link once', async () => {
+    const v = markVault();
+    const first = await mark(v, asksIn(v)[0] as Ask);
+    const again = await mark(v, asksIn(v)[0] as Ask);
+    expect(again.blockId).toBe(first.blockId as string);
+    expect(v.frontmatter('Sittings/2026-09-15.md')['answers']).toEqual(['[[Bank/craft#^b1]]']);
+  });
+
+  // The refusal is data, not a Notice: the caller is handed the line to say.
+  test('an Ask with no answer under it refuses with a reason, and writes nothing', async () => {
+    const v = markVault();
+    const before = v.text('Sittings/2026-09-15.md');
+    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), asksIn(v)[2] as Ask, opts);
+    expect(marked).toEqual({ kind: 'refused', reason: 'No answer under this Ask yet.' });
+    expect(v.text('Sittings/2026-09-15.md')).toBe(before);
+    expect(v.writes).toHaveLength(0);
+  });
+
+  test('an Ask with no source link is malformed, and writes nothing', async () => {
+    const v = markVault();
+    const [ask] = parseAsks('> [!ask] a question with no from-line\n\nan answer');
+    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), ask as Ask, opts);
+    expect(marked).toEqual({ kind: 'refused', reason: 'This Ask has no source link; it is malformed.' });
+    expect(v.writes).toHaveLength(0);
   });
 });

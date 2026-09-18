@@ -13,7 +13,7 @@
 import { FOLLOW_UP_SYSTEM, extractJson } from '../src/bonsai';
 
 const BASE = 'http://127.0.0.1:8088/v1';
-const MODEL = 'bonsai-27b';
+const MODEL = 'bonsai-2-27b';
 
 const ASKED = 'What is one specific area where you feel the pressure to evolve is most intense right now?';
 const LIST = `1. Dating - It used to be easier since I would date only friends and I had lots of friends, making friends is much harder now

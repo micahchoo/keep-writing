@@ -2,6 +2,7 @@
 // Never changes an existing character.
 
 import type { App, CachedMetadata, TFile } from 'obsidian';
+import { Refused } from './refusal';
 import { newBlockId, refOf } from './refs';
 import type { Ref } from './refs';
 
@@ -46,7 +47,8 @@ export function paragraphAt(cache: CachedMetadata | null, line: number): Paragra
   };
 }
 
-export class NotAParagraph extends Error {}
+/** The cursor is not in something that can carry an inline block id. */
+export class NotAParagraph extends Refused {}
 
 /**
  * Give the paragraph containing `line` a block id if it has none, and return

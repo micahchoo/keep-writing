@@ -10,7 +10,8 @@
 // Usage: bun run scripts/probe-revisit-context.ts
 
 import { composeRevisit, type BonsaiConfig, type Fetcher } from '../src/bonsai';
-import { framingOf, readsAsParagraph } from '../src/paragraphs';
+import { readsAsParagraph } from '../src/furniture';
+import { framingOf } from '../src/paragraphs';
 
 const fetcher: Fetcher = async (url, init) => {
   const res = await fetch(url, { method: init.method, headers: init.headers, body: init.body });
@@ -19,7 +20,7 @@ const fetcher: Fetcher = async (url, init) => {
 
 const cfg: BonsaiConfig = {
   baseUrl: 'http://127.0.0.1:8088/v1',
-  model: 'bonsai-27b',
+  model: 'bonsai-2-27b',
   fetcher,
   timeoutMs: 120_000,
 };

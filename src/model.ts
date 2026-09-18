@@ -1,16 +1,18 @@
-// The model seam. Everything that needs bonsai (Follow-ups, Revisits, Proposals) goes
-// through a `Model`. Wired to src/bonsai.ts and src/lexical.ts; when the
-// model is switched off in settings the seam reports "not available" and
-// returns null, so every caller degrades to the bank-only behaviour.
+// The model seam. Everything that needs bonsai (Follow-ups, Revisits,
+// Proposals) goes through a `Model`. Wired to src/bonsai.ts; when the model is
+// switched off in settings the seam reports "not available" and returns
+// nothing, so every caller degrades to the bank-only behaviour.
+//
+// Only jobs bonsai does live here. Finding the candidate blocks is code's own
+// work (lexical.ts), and it sat on this seam as a re-export until 2026-09-16 —
+// a pass-through that made callers think the model was choosing.
 
 import { requestUrl } from 'obsidian';
 import { composeFollowUps, composeRevisit, proposeRelation } from './bonsai';
 import type { BonsaiConfig, CallLog, Candidate, Proposal, Relation, RevisitCandidate } from './bonsai';
-import { findCandidates } from './lexical';
-import type { Block } from './lexical';
 import type { KeepWritingSettings } from './settings';
 
-export type { Block, CallLog, Candidate, Proposal, Relation, RevisitCandidate };
+export type { CallLog, Candidate, Proposal, Relation, RevisitCandidate };
 
 export interface Model {
   /** False when the model is switched off in settings. */
@@ -21,7 +23,7 @@ export interface Model {
   composeFollowUps(question: string, answer: string, asked: string[], target: string): Promise<string[]>;
   /** Up to three questions about a paragraph the owner wrote before, through the Well's Lens; empty when none. `asked` is what was already asked from that block. */
   composeRevisit(paragraph: string, framing: string, asked: string[], lens: string): Promise<RevisitCandidate[]>;
-  findCandidates(answer: string, pool: Block[], k: number, excludeRef?: string): Block[];
+  /** Judge whether the answer relates to one of these blocks. Null is a legal abstain. */
   proposeRelation(answer: string, candidates: Candidate[]): Promise<Proposal | null>;
 }
 
@@ -38,7 +40,6 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
       reason: 'model switched off in settings',
       composeFollowUps: async () => [],
       composeRevisit: async () => [],
-      findCandidates: () => [],
       proposeRelation: async () => null,
     };
   }
@@ -49,7 +50,6 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
     reason: '',
     composeFollowUps: (question, answer, asked, target) => composeFollowUps(cfg, question, answer, asked, target),
     composeRevisit: (paragraph, framing, asked, lens) => composeRevisit(cfg, paragraph, framing, asked, lens),
-    findCandidates,
     proposeRelation: (answer, candidates) => proposeRelation(cfg, answer, candidates),
   };
 }

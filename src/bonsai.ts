@@ -278,10 +278,10 @@ Where to look for the question, in order of preference:
 6. A trailing thought, a "might", a tag, an aside: ask what is behind it.`;
 
 /**
- * Pure: keep the candidates that pass the code checks, in the model's order.
- * A candidate fails when it is not a question, parrots the answer, re-asks
- * `asked`, refers to the conversation, or runs long. The whole output is
- * invalid only when no candidate survives.
+ * Pure: the model's `questions`, keeping the ones that pass the code checks,
+ * in the model's order. A candidate fails when it is not a question, parrots
+ * the answer, re-asks `asked`, refers to the conversation, or runs long. The
+ * whole output is invalid only when no candidate survives.
  *
  * `asked` is every question already put to the owner about these words: for a
  * Follow-up, the questions of the Sitting it is composed in; for a Revisit,
@@ -298,15 +298,52 @@ Where to look for the question, in order of preference:
  * written the same Ask again.
  */
 export function checkFollowUps(obj: unknown, answer: string, asked: string[]): Verdict<string[]> {
+  const questions = questionsIn(obj);
+  if (questions.kind !== 'ok') return questions;
+  return keptOrWhyNot(keepQuestions(questions.value, (q) => q, answer, asked));
+}
+
+/**
+ * Pure: the `questions` array of a model reply, as strings. The one place that
+ * knows the wire shape — the checks below never see it, which is what lets a
+ * Revisit run them over candidates that carry a due date too.
+ */
+function questionsIn(obj: unknown): Verdict<string[]> {
   if (typeof obj !== 'object' || obj === null) return { kind: 'invalid', reason: 'output is not an object' };
   const raw = (obj as { questions?: unknown }).questions;
   if (!Array.isArray(raw)) return { kind: 'invalid', reason: 'missing "questions" array' };
+  return { kind: 'ok', value: raw.filter((q): q is string => typeof q === 'string') };
+}
+
+/** What the checks kept, and every reason they gave for the rest. */
+interface Kept<T> {
+  kept: T[];
+  reasons: string[];
+}
+
+/** Pure: a Kept as a Verdict. Invalid only when nothing survived. */
+function keptOrWhyNot<T>(k: Kept<T>): Verdict<T[]> {
+  if (k.kept.length === 0) return { kind: 'invalid', reason: k.reasons.join('; ') || 'no usable question' };
+  return { kind: 'ok', value: k.kept };
+}
+
+/**
+ * Pure: the checks themselves, over whatever carries the question — a bare
+ * string for a Follow-up, a RevisitCandidate with its due date for a Revisit.
+ * Items come back whole and in the model's order, so nothing has to be matched
+ * back up by text afterwards.
+ *
+ * Before 2026-09-17 a Revisit reached these by building a `{questions: [...]}`
+ * payload nobody had sent and then re-finding each candidate by string
+ * equality, which quietly dropped the due date of any second candidate whose
+ * question read the same.
+ */
+function keepQuestions<T>(items: T[], question: (item: T) => string, answer: string, asked: string[]): Kept<T> {
   const seen = new Set<string>();
-  const kept: string[] = [];
+  const kept: T[] = [];
   const reasons: string[] = [];
-  for (const item of raw) {
-    if (typeof item !== 'string') continue;
-    const q = item.trim();
+  for (const item of items) {
+    const q = question(item).trim();
     const key = normalize(q);
     if (!q || seen.has(key)) continue;
     seen.add(key);
@@ -318,11 +355,10 @@ export function checkFollowUps(obj: unknown, answer: string, asked: string[]): V
     const lower = q.toLowerCase();
     const hit = SELF_REFERENCE.find((p) => lower.includes(p));
     if (hit) { reasons.push(`"${q}" refers to the conversation ("${hit}")`); continue; }
-    kept.push(q);
+    kept.push(item);
     if (kept.length === MAX_FOLLOW_UPS) break;
   }
-  if (kept.length === 0) return { kind: 'invalid', reason: reasons.join('; ') || 'no usable question' };
-  return { kind: 'ok', value: kept };
+  return { kept, reasons };
 }
 
 function normalize(s: string): string {
@@ -414,8 +450,9 @@ export function splitDue(raw: string): RevisitCandidate {
 
 /**
  * Pure: the Follow-up checks, applied to Revisit output. Each candidate is
- * split off its due marker first, so the marker never fails the `?` test
- * and never reaches the owner; a kept question gets its `dueDays` back.
+ * split off its due marker first, so the marker never fails the `?` test and
+ * never reaches the owner, and the candidate carries its `dueDays` through the
+ * checks rather than being matched back up to it afterwards.
  *
  * `asked` is what the owner has already been asked about this block. A
  * Sitting block is almost always the first paragraph of an answer, so it
@@ -423,17 +460,10 @@ export function splitDue(raw: string): RevisitCandidate {
  * Revisit could hand that same question back days later.
  */
 export function checkRevisit(obj: unknown, paragraph: string, asked: string[]): Verdict<RevisitCandidate[]> {
-  if (typeof obj !== 'object' || obj === null) return { kind: 'invalid', reason: 'output is not an object' };
-  const raw = (obj as { questions?: unknown }).questions;
-  if (!Array.isArray(raw)) return { kind: 'invalid', reason: 'missing "questions" array' };
-  const split = raw.filter((q): q is string => typeof q === 'string').map(splitDue);
-  const verdict = checkFollowUps({ questions: split.map((c) => c.question) }, paragraph, asked);
-  if (verdict.kind !== 'ok') return verdict;
-  const value = verdict.value.map((question) => {
-    const days = split.find((c) => c.question === question)?.dueDays;
-    return days === undefined ? { question } : { question, dueDays: days };
-  });
-  return { kind: 'ok', value };
+  const questions = questionsIn(obj);
+  if (questions.kind !== 'ok') return questions;
+  const candidates = questions.value.map(splitDue);
+  return keptOrWhyNot(keepQuestions(candidates, (c) => c.question, paragraph, asked));
 }
 
 /**

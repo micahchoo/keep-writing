@@ -1,15 +1,25 @@
 // Asks in a Sitting: `> [!ask] question` callouts, their source line, and the
 // answer text that follows. The callout is the one thing this plugin parses
 // by hand; every regex for it lives here.
+//
+// This module does not read the Bank, at any remove. What a Bank entry is FOR
+// — its Role, and the Closing move that follows from it — is closing.ts's to
+// know, and the Interview's to run. `markAnswered` called `runClosing` until
+// 2026-09-17, so a callout parser still pulled in the Bank, the Target and the
+// paragraph jar; moving the Closing out of this module had only made the
+// import one hop longer.
+//
+// It does not speak to the owner either. `markAnswered` used to show its own
+// Notices, so its two callers could see THAT it refused and never why, and a
+// callout parser imported `obsidian` at runtime to say three sentences. The
+// reason is data now; the Interview's Surface says it.
 
-import { Notice } from 'obsidian';
 import type { App, TFile } from 'obsidian';
-import { ensureBlockId, NotAParagraph } from './blocks';
-import { linkBoth } from './links';
-import { formatRef, keyOfRef, parseRef, wikilink } from './refs';
+import { ensureBlockId } from './blocks';
+import { answeredKeys, linkBoth } from './links';
+import { refusalLine } from './refusal';
+import { formatRef, keyOfRef, parseRef } from './refs';
 import type { Ref } from './refs';
-import { ME_BASENAME, readTarget } from './target';
-import { questionAt } from './bank';
 
 const ASK_TITLE = /^>\s*\[!ask\][+-]?\s*(.*?)\s*$/i;
 // The from-line starts with the word `from`; an embed line (`> ![[...]]`)
@@ -139,16 +149,20 @@ export function questionsAbout(
     .map((a) => a.question);
 }
 
-/** Asks of a Sitting, with answered-ness read from its `answers` property. */
+/**
+ * Asks of a Sitting, with answered-ness read from THIS note's own `answers`
+ * property.
+ *
+ * That is narrower than the canon — "a source is answered when any block
+ * carries an `answers` link to it", which is what `bank.ts#AnsweredIndex`
+ * reads — and it is deliberate. An answer to an Ask lands in the Sitting that
+ * holds the Ask, so the two readings agree; widening this one would mean a
+ * vault scan on every keystroke in a Sitting, for a case that cannot arise.
+ * Do not "fix" it into the index.
+ */
 export async function asksOf(app: App, file: TFile): Promise<Ask[]> {
   const content = await app.vault.cachedRead(file);
-  const answered = new Set<string>();
-  for (const fl of app.metadataCache.getFileCache(file)?.frontmatterLinks ?? []) {
-    if (fl.key !== 'answers' && !fl.key.startsWith('answers.')) continue;
-    const ref = parseRef(fl.link);
-    const key = ref && keyOfRef(app, ref, file.path);
-    if (key) answered.add(key);
-  }
+  const answered = new Set(answeredKeys(app, file));
   return parseAsks(content, (src) => {
     const ref = parseRef(src);
     const key = ref && keyOfRef(app, ref, file.path);
@@ -218,40 +232,27 @@ export interface MarkOptions {
 }
 
 /**
- * Mark an Ask's answer done: give its first paragraph a block id and link it
- * `answers` -> source. For a Bookmark question, also write `next` on the
- * Sitting's Target. Refuses (with a Notice) when there is no answer.
- * Returns the answer block's ref, or null when it refused.
+ * What marking did: the answer block's ref, or the one line to tell the owner
+ * why it refused. Every refusal writes nothing at all.
  */
-export async function markAnswered(app: App, file: TFile, ask: Ask, opts: MarkOptions): Promise<Ref | null> {
-  if (!ask.firstParagraph) {
-    new Notice('No answer under this Ask yet.');
-    return null;
-  }
-  const source = parseRef(ask.sourceRef);
-  if (!source) {
-    new Notice('This Ask has no source link; it is malformed.');
-    return null;
-  }
-  let answerRef: Ref;
-  try {
-    answerRef = await ensureBlockId(app, file, ask.firstParagraph.start);
-  } catch (e) {
-    new Notice(e instanceof NotAParagraph ? e.message : String(e));
-    return null;
-  }
-  await linkBoth(app, answerRef, 'answers', source, opts);
+export type Marked = { kind: 'ok'; ref: Ref } | { kind: 'refused'; reason: string };
 
-  const question = await questionAt(app, source, file.path, opts.bankFolder);
-  if (question?.role === 'bookmark') {
-    // The bookmark lands on the Sitting's Target, or on `me` when roaming.
-    const target = readTarget(app, file);
-    const home = target?.file ?? app.vault.getFileByPath(`${ME_BASENAME}.md`);
-    if (home) {
-      await app.fileManager.processFrontMatter(home, (fm: Record<string, unknown>) => {
-        fm['next'] = wikilink(answerRef);
-      });
-    }
+/**
+ * Mark an Ask's answer done: give its first paragraph a block id and link it
+ * `answers` -> source. Whatever Closing move the source calls for runs after
+ * this, in the Interview (closing.ts#runClosing), beside the other thing that
+ * happens once an answer is linked.
+ */
+export async function markAnswered(app: App, file: TFile, ask: Ask, opts: MarkOptions): Promise<Marked> {
+  if (!ask.firstParagraph) return { kind: 'refused', reason: 'No answer under this Ask yet.' };
+  const source = parseRef(ask.sourceRef);
+  if (!source) return { kind: 'refused', reason: 'This Ask has no source link; it is malformed.' };
+  let ref: Ref;
+  try {
+    ref = await ensureBlockId(app, file, ask.firstParagraph.start);
+  } catch (e) {
+    return { kind: 'refused', reason: refusalLine(e) };
   }
-  return answerRef;
+  await linkBoth(app, ref, 'answers', source, opts);
+  return { kind: 'ok', ref };
 }

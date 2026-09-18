@@ -20,7 +20,7 @@ const fetcher = async (url: string, init: { method: string; headers: Record<stri
   const r = await fetch(url, init);
   return { status: r.status, text: await r.text() };
 };
-const cfg = { baseUrl: BASE, model: 'bonsai-27b', fetcher };
+const cfg = { baseUrl: BASE, model: 'bonsai-2-27b', fetcher };
 
 describe.skipIf(!live)('Revisit through a Lens', () => {
   test('craft lens on Jingle Tales (Teaching and Learning)', async () => {

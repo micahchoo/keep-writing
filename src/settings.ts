@@ -18,7 +18,7 @@ export interface KeepWritingSettings {
 
 export const DEFAULT_SETTINGS: KeepWritingSettings = {
   baseUrl: 'http://127.0.0.1:8088/v1',
-  model: 'bonsai-27b',
+  model: 'bonsai-2-27b',
   enableModel: true,
   sittingsFolder: 'Sittings',
   bankFolder: 'Bank',
