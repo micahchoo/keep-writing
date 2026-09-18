@@ -46,7 +46,14 @@ export class ChoiceModal<T> extends SuggestModal<Choice<T>> {
     return this.choices.filter((c) => c.title.toLowerCase().includes(q));
   }
 
+  /**
+   * `el` IS the `.suggestion-item`, which Obsidian keeps to one ellipsised
+   * line. A question is a sentence and a drawn paragraph is several, so the
+   * class goes on the row itself and `styles.css` lets it wrap. Scoped to our
+   * rows: every other suggester in Obsidian stays one line, as it should.
+   */
   renderSuggestion(choice: Choice<T>, el: HTMLElement): void {
+    el.addClass('kw-choice');
     el.createDiv({ text: choice.title });
     if (choice.note) el.createDiv({ text: choice.note, cls: 'kw-note' });
   }

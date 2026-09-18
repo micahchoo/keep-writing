@@ -377,13 +377,28 @@ describe('answering', () => {
       expect(v.writes).toHaveLength(0);
     });
 
-    test('an answer already linked refuses the second time', async () => {
-      const { v, interview, surface } = open(answered());
+    // NOT a refusal. Running it again on a linked answer is how the owner asks
+    // for another Follow-up: the chooser does not persist, so without this the
+    // questions were reachable exactly once, in the seconds after marking.
+    test('an answer already linked is marked again, writes nothing, and composes afresh', async () => {
+      const { model, seen } = recordingModel({ followUps: ['which bone did you weight it to?'] });
+      const { v, interview, surface } = open(answered(), model);
       await interview.markAt({ file: v.file(TODAY), line: 8 });
+      const before = v.text(TODAY);
       // The frontmatter write moved every body line down; find the answer again.
       const moved = (parseAsks(v.text(TODAY))[0] as Ask).firstParagraph?.start as number;
-      expect(await interview.markAt({ file: v.file(TODAY), line: moved })).toBeNull();
-      expect(surface.notices).toEqual(['Answer linked.', 'This answer is already linked.']);
+
+      const again = await interview.markAt({ file: v.file(TODAY), line: moved });
+
+      expect(again?.questions).toEqual(['which bone did you weight it to?']);
+      expect(seen.followUp).toHaveLength(2);
+      // Nothing CHANGES the second time: the block keeps the id it has and
+      // `answers` keeps the one entry. (`processFrontMatter` is still called,
+      // and still re-serialises; it just has nothing to add.)
+      expect(v.text(TODAY)).toBe(before);
+      expect(v.frontmatter(TODAY)['answers']).toEqual(['[[Bank/craft#^b1]]']);
+      // And it is not announced twice.
+      expect(surface.notices).toEqual(['Answer linked.']);
     });
 
     // markAnswered hands back the reason; this is the Surface saying it.

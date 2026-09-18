@@ -22,9 +22,20 @@
   font-size: var(--font-smaller);
 }
 
-/* The quieter second line of a chooser row: a register, a date, a Piece. */
+/* A chooser row. Obsidian keeps a suggestion to one ellipsised line; a
+   question is a sentence and a drawn paragraph is several, so ours wrap. The
+   class is on the row itself, so every other suggester stays one line. */
 
-.kw-note {
+.suggestion-item.kw-choice {
+  white-space: normal;
+  line-height: var(--line-height-tight);
+  padding: var(--size-4-2) var(--size-4-3);
+}
+
+/* The quieter second line: a register, a date, a Piece. */
+
+.kw-choice .kw-note {
   color: var(--text-muted);
   font-size: var(--font-smaller);
+  margin-top: var(--size-2-1);
 }

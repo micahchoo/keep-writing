@@ -24,8 +24,12 @@ import { formatRef } from './refs';
 import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
 import type { KeepWritingSettings } from './settings';
 
-/** Longest a drawn paragraph reads in the chooser before it is cut. */
-const TITLE_MAX = 120;
+/**
+ * Longest a drawn paragraph reads in the chooser before it is cut. A row wraps
+ * (styles.css), so this is about how much of a paragraph is enough to
+ * recognise it, not about how much fits on a line.
+ */
+const TITLE_MAX = 240;
 
 export default class KeepWritingPlugin extends Plugin {
   override settings: KeepWritingSettings = { ...DEFAULT_SETTINGS };
@@ -55,7 +59,7 @@ export default class KeepWritingPlugin extends Plugin {
     this.addCommand({ id: 'draw-question', name: 'Draw a question', callback: () => void this.drawQuestion() });
     this.addCommand({
       id: 'mark-answer-under-cursor',
-      name: 'Mark answer under cursor as done',
+      name: 'Mark this answer done, and follow up',
       editorCallback: (editor, view) => {
         if (view instanceof MarkdownView) void this.markUnderCursor(view, editor.getCursor().line);
       },
@@ -129,13 +133,7 @@ export default class KeepWritingPlugin extends Plugin {
 
   /** bonsai's questions about a paragraph, as the second chooser. */
   private async offerRevisit(sitting: TFile, paragraph: Paragraph): Promise<void> {
-    const notice = new Notice('Composing…', 0);
-    let offer;
-    try {
-      offer = await this.interview.revisitOffer(paragraph);
-    } finally {
-      notice.hide();
-    }
+    const offer = await this.composing(() => this.interview.revisitOffer(paragraph));
     const lens = offer.lens ? ` · through the ${offer.lens} lens` : '';
     // A paragraph is never a dead end: with nothing composed, the one fixed form.
     const candidates: RevisitCandidate[] = offer.candidates.length
@@ -152,18 +150,42 @@ export default class KeepWritingPlugin extends Plugin {
   /**
    * Mark the answer the cursor is in, then offer whatever bonsai found in it.
    * The note and the line are read here, while the editor still holds focus.
+   *
+   * Run it again on the same answer to ask for another Follow-up: marking an
+   * answer twice writes nothing, and the questions are composed afresh. That
+   * is the only way back to them, because the chooser does not persist.
    */
   private async markUnderCursor(view: MarkdownView, line: number): Promise<void> {
     const file = view.file;
     if (!file) return;
-    const answered = await this.interview.markAt({ file, line });
-    if (!answered || answered.questions.length === 0) return;
+    const answered = await this.composing(() => this.interview.markAt({ file, line }));
+    if (!answered) return;
+    if (answered.questions.length === 0) {
+      // Never nothing: a silent command reads as a broken one.
+      new Notice(this.model.available ? 'Nothing to follow up with. Run it again to ask afresh.' : this.model.reason);
+      return;
+    }
     choose(
       this.app,
       answered.questions.map((q) => ({ value: q, title: q })),
       'follow up on this answer',
       (question) => void this.interview.acceptFollowUp(file, question, answered.ref),
     );
+  }
+
+  /**
+   * Hold a "Composing…" notice for as long as bonsai is reading. Every model
+   * call here takes seconds, and without this the command looks like it did
+   * nothing.
+   */
+  private async composing<T>(job: () => Promise<T>): Promise<T> {
+    if (!this.model.available) return job();
+    const notice = new Notice('Composing…', 0);
+    try {
+      return await job();
+    } finally {
+      notice.hide();
+    }
   }
 
   // -------------------------------------------------------------------------

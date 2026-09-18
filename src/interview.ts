@@ -85,8 +85,13 @@ export interface Answered {
 /** The one fixed Revisit form, for when the model is off or offers nothing. A paragraph is never a dead end. */
 export const REVISIT_FALLBACK = 'what would you write under this now?';
 
-/** How many sources a draw puts in front of the owner at once. */
-export const DRAW_COUNT = 8;
+/**
+ * How many sources a draw puts in front of the owner at once. More than one so
+ * that Escape is the refusal and no set of refused sources has to be kept; few
+ * enough to read at a glance. Eight for one day, 2026-09-17, and eight is a
+ * wall of text: the owner is choosing, not shopping.
+ */
+export const DRAW_COUNT = 3;
 
 export class Interview {
   constructor(
@@ -236,6 +241,15 @@ export class Interview {
    * holds the focus and hands them over; which Ask that line is under, and
    * every way this can refuse, is decided here.
    *
+   * **An answer already linked is not refused.** Marking it again writes
+   * nothing — `ensureBlockId` hands back the id it already has and
+   * `linkBoth` skips a link that is already there — and the Follow-ups are
+   * composed afresh. That is how the owner asks for another question about an
+   * answer: put the cursor in it and run this again, today or next week. It
+   * refused with "This answer is already linked." until 2026-09-17, which made
+   * the Follow-up reachable exactly once, in the seconds after marking, and
+   * never again if the chooser was dismissed.
+   *
    * Null when nothing was marked. Every refusal is one line the owner reads.
    */
   async markAt(picked: { file: TFile; line: number }): Promise<Answered | null> {
@@ -249,10 +263,6 @@ export class Interview {
       this.surface.notice('The cursor is not under an Ask.');
       return null;
     }
-    if (ask.answered) {
-      this.surface.notice('This answer is already linked.');
-      return null;
-    }
 
     const { bankFolder } = this.host.settings;
     const marked = await markAnswered(this.app, file, ask, { bankFolder });
@@ -260,7 +270,7 @@ export class Interview {
       this.surface.notice(marked.reason);
       return null;
     }
-    this.surface.notice('Answer linked.');
+    if (!ask.answered) this.surface.notice('Answer linked.');
     // A Closing move answers somewhere else too (the Bookmark writes `next`);
     // an ordinary question does not. The source decides, never the file it
     // sits in.
