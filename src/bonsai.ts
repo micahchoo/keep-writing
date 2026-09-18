@@ -1,11 +1,13 @@
-// bonsai-27b client. Two jobs: compose a Follow-up, and compose a Revisit
-// (the same job, with the Well's Lens appended).
+// bonsai-27b client. Three jobs, and two of them are the same interviewer:
+// compose a Follow-up, compose a Revisit (the interviewer again, over an old
+// paragraph), and compose an Invitation.
+//
+// The Invitation is the one that is not an interview. See INVITATION_SYSTEM.
 //
 // There was a third until 2026-09-17 — proposeRelation, which read a fresh
 // answer against five lexically-near blocks and named a relation between
 // them. It produced one link in the vault's life, and it ran on every answer.
-// The owner writes a lateral relation by hand now (link-command.ts), which is
-// how the only one that exists was written.
+// The four relations it proposed were cut the same day.
 //
 // Contract (CONTEXT.md, "Bonsai judges, code arbitrates"): one job per call,
 // small payload, temperature 0, JSON out, every candidate measured in code
@@ -21,7 +23,7 @@ export type Fetcher = (
 ) => Promise<{ status: number; text: string }>;
 
 export interface CallLog {
-  job: 'follow-up' | 'revisit';
+  job: 'follow-up' | 'revisit' | 'invitation';
   attempt: number;
   ms: number;
   outcome: 'ok' | 'abstain' | 'invalid' | 'error';
@@ -460,4 +462,83 @@ export async function composeRevisit(
   const system = lens.trim() ? `${FOLLOW_UP_SYSTEM}\n\n${lens.trim()}` : FOLLOW_UP_SYSTEM;
   const user = `Something they wrote ${framing}:\n\n${paragraph}`;
   return valueOrNull(await runJob(cfg, 'revisit', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Invitation
+
+/**
+ * The other composer. A Revisit interviews the old paragraph: its whole list
+ * of where-to-look aims backward, INTO the text. That is right when the owner
+ * went and pointed at the paragraph, and wrong when the draw handed them one,
+ * because 99% of what the draw can reach is years old. Measured 2026-09-17
+ * over the real corpus: 989 of 999 drawable blocks came from finished Pieces,
+ * 609 of them from 2020 or earlier. The owner's verdict on drawn Revisits:
+ * "a lot of them are older or produce questions less contextual to who i am
+ * rn, some of them are good."
+ *
+ * So the old paragraph becomes a SEED and the question aims at the present.
+ * The five qualities below are `.bin/curation/PROMPT-RUBRIC.md`, which scores
+ * the composed entries already in the Bank — and one of those, `^c258`, drew
+ * the longest engagement in the vault's life.
+ *
+ * The framing line is deliberately NOT sent. A Revisit needs it ("in 2021, in
+ * 'Koramangala'") or the model asks about the literal words in front of it.
+ * An Invitation must not have it: telling the model the paragraph is from 2021
+ * is an invitation to ask about 2021, which is the whole defect being fixed.
+ *
+ * Measured live against bonsai-2-27b, 2026-09-17, both arms over the same real
+ * corpus blocks (`scripts/probe-invitation.ts`). Given a bullet list about
+ * exporting a Mapbox PNG and georeferencing it in QGIS:
+ *
+ *   REVISIT     "What specific data layer did you align the PNG against in QGIS?"
+ *   INVITATION  "What does it cost to make a thing fit the map it was never
+ *                drawn for?"
+ *
+ * And given a bare cross-reference line — one markdown link, no prose — the
+ * Revisit asked three questions about the logistics of writing a follow-up
+ * piece, while the Invitation asked what it costs to keep a practice alive
+ * once the people who started it are gone. The Invitation degrades far more
+ * gracefully on furniture, because it was never reading the words for facts.
+ */
+export const INVITATION_SYSTEM = `A person keeps a notebook so their own words become material for their writing. You are shown ONE paragraph they wrote some time ago. Do not ask them about that paragraph. Find the concern under it and turn it into an invitation they can answer from their life NOW.
+
+Reply with a JSON object and nothing else:
+{"questions": ["...", "...", "..."]}
+
+Give up to three invitations, best first. Each one:
+- is a single question, ending with "?", in plain words, under 25 words;
+- carries a distinctive focus: one particular relationship or tension to explore, not a subject heading;
+- opens something that can be sustained — a pull in two directions, a cost, a thing that is both true and not;
+- is open to many readings, so they could answer it from work, from a room, from a person, from a habit;
+- leaves the form free: it could be answered as a story, an argument, a list, or a poem;
+- is about their present, not about the paragraph, not about the past, not about writing;
+- never quotes or paraphrases the paragraph, and never names what it was about if that would only send them back to it.
+
+Do not explain. Do not praise. Do not refer to the paragraph, to what they wrote, or to when they wrote it.
+
+Where to find the concern, in order of preference:
+1. A tension they held without resolving: name it as a question about now.
+2. A cost they paid or refused to pay: ask where that cost falls today.
+3. A thing they treated as permanent: ask what it would mean for it to end.
+4. A distinction they leaned on: ask where it stops holding.
+5. A want with no object: ask what it is reaching for.`;
+
+/**
+ * Compose up to three Invitations from a paragraph the owner wrote before.
+ *
+ * Same checks as the Follow-up, and they are the right ones here: a candidate
+ * that hands the paragraph back is exactly what this job must not produce, and
+ * "you said" / "your answer" is a reference to the very thing it is supposed
+ * to leave behind.
+ */
+export async function composeInvitation(
+  cfg: BonsaiConfig,
+  paragraph: string,
+  asked: string[],
+  lens = '',
+): Promise<RevisitCandidate[]> {
+  const system = lens.trim() ? `${INVITATION_SYSTEM}\n\n${lens.trim()}` : INVITATION_SYSTEM;
+  const user = `Something they wrote some time ago:\n\n${paragraph}`;
+  return valueOrNull(await runJob(cfg, 'invitation', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
 }

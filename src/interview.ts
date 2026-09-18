@@ -27,7 +27,7 @@ import { drawMany, parseDue } from './bank';
 import type { AnsweredIndex, Drawn, JarCounts } from './bank';
 import { ensureBlockId } from './blocks';
 import { runClosing } from './closing';
-import { CRAFT, lensFor } from './lens';
+import { CRAFT, INVITATION, lensFor } from './lens';
 import type { Model, RevisitCandidate } from './model';
 import type { Paragraph } from './paragraphs';
 import { refusalLine } from './refusal';
@@ -68,7 +68,22 @@ export interface Drawing {
   target: string | null;
 }
 
-/** The questions bonsai composed about a paragraph, and the Lens it read through. */
+/**
+ * How the owner came by a paragraph, which decides everything about what is
+ * asked of it.
+ *
+ * `pointed` — they highlighted it, so they went there on purpose and they want
+ * to talk about THAT. The interviewer composes; the paragraph is embedded
+ * under the Ask so it reads in place.
+ *
+ * `picked` — the draw handed it over, so they did not choose it and 99% of
+ * what the draw can reach is years old. The Invitation composes: the paragraph
+ * is a seed and the question aims at their present. It is NOT embedded —
+ * showing the 2020 prose under a question about now undoes the work.
+ */
+export type Reach = 'pointed' | 'picked';
+
+/** The questions bonsai composed from a paragraph, and the Lens it read through. */
 export interface RevisitOffer {
   candidates: RevisitCandidate[];
   lens: string | null;
@@ -169,17 +184,23 @@ export class Interview {
   }
 
   /**
-   * Ask bonsai for questions about a paragraph, with one line of framing (when
-   * and where it was written) and the Well's Lens. Without the model the offer
-   * is empty, and the caller shows the fallback.
+   * Ask bonsai for questions from a paragraph. `reach` picks the composer and
+   * the Lens: pointed at, and it is interviewed with its framing; picked by the
+   * draw, and it seeds an Invitation with no framing at all. Without the model
+   * the offer is empty, and the caller shows the fallback.
    */
-  async revisitOffer(paragraph: Paragraph): Promise<RevisitOffer> {
+  async offerFrom(paragraph: Paragraph, reach: Reach): Promise<RevisitOffer> {
     const { model } = this.host;
-    const lens = await lensFor(this.app);
-    const name = lens ? CRAFT : null;
+    const page = reach === 'pointed' ? CRAFT : INVITATION;
+    const lens = await lensFor(this.app, page);
+    const name = lens ? page : null;
     if (!model.available) return { candidates: [], lens: name };
     const asked = await this.askedAbout(paragraph);
-    return { candidates: await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens), lens: name };
+    const candidates =
+      reach === 'pointed'
+        ? await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens)
+        : await model.composeInvitation(paragraph.text, asked, lens);
+    return { candidates, lens: name };
   }
 
   /**
@@ -204,12 +225,22 @@ export class Interview {
   }
 
   /**
-   * Place a Revisit: the chosen question as the Ask, the paragraph as its
-   * source, embedded under the from-line. A paragraph with no block id yet (a
-   * Domain or Learning body) is given one now, so the Ask can cite it. A
-   * candidate with `dueDays` sets the Ask's due date.
+   * Place the chosen question as an Ask, citing the paragraph it came from. A
+   * paragraph with no block id yet is given one now, so the Ask can cite it. A
+   * candidate with `dueDays` sets the Ask's due date — nothing asks for one
+   * today, and a Lens is prose the owner edits, so any Lens can start.
+   *
+   * `pointed` embeds the paragraph under the from-line so it reads in place.
+   * `picked` does not: the question is about the owner's present, and the old
+   * prose sitting under it would pull them back into the year it came from.
+   * The SOURCE is linked either way — that is what stops it coming back.
    */
-  async acceptRevisit(sitting: TFile, source: Paragraph, candidate: RevisitCandidate): Promise<void> {
+  async acceptFrom(
+    sitting: TFile,
+    source: Paragraph,
+    candidate: RevisitCandidate,
+    reach: Reach,
+  ): Promise<void> {
     let ref = source.ref;
     if (!ref.blockId) {
       try {
@@ -219,7 +250,7 @@ export class Interview {
         return;
       }
     }
-    const opts: AskOptions = { embed: true };
+    const opts: AskOptions = reach === 'pointed' ? { embed: true } : {};
     const due = candidate.dueDays !== undefined ? parseDue(`+${candidate.dueDays}d`, new Date()) : null;
     if (due) opts.due = due;
     this.landed(sitting, await insertAsk(this.app, sitting, candidate.question, ref, opts));

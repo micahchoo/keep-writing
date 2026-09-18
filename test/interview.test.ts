@@ -21,12 +21,14 @@ import type { VaultHooks } from './fake-vault';
 
 interface Plan {
   revisit?: RevisitCandidate[];
+  invitation?: RevisitCandidate[];
   followUps?: string[];
 }
 
 function recordingModel(plan: Plan = {}) {
   const seen = {
     revisit: [] as { paragraph: string; framing: string; asked: string[]; lens: string }[],
+    invitation: [] as { paragraph: string; asked: string[]; lens: string }[],
     followUp: [] as { question: string; answer: string; asked: string[]; target: string }[],
   };
   const model: Model = {
@@ -35,6 +37,10 @@ function recordingModel(plan: Plan = {}) {
     composeRevisit: async (paragraph, framing, asked, lens) => {
       seen.revisit.push({ paragraph, framing, asked, lens });
       return plan.revisit ?? [];
+    },
+    composeInvitation: async (paragraph, asked, lens) => {
+      seen.invitation.push({ paragraph, asked, lens });
+      return plan.invitation ?? [];
     },
     composeFollowUps: async (question, answer, asked, target) => {
       seen.followUp.push({ question, answer, asked, target });
@@ -48,6 +54,7 @@ const OFF: Model = {
   available: false,
   reason: 'model switched off in settings',
   composeRevisit: async () => [],
+  composeInvitation: async () => [],
   composeFollowUps: async () => [],
 };
 
@@ -98,6 +105,7 @@ const paragraphOnly = () => ({
   [TODAY]: EMPTY_SITTING,
   'Pieces/rigging.md': `---\ntitle: Rigging\nstatus: published\ndate: 2021-03-04\n---\n\n${PARAGRAPH} ^p-001\n`,
   'Lenses/craft.md': '---\nkind: lens\n---\n\nAsk for a time it went wrong.\n',
+  'Lenses/invitation.md': '---\nkind: lens\n---\n\nThe paragraph is a seed, not a subject.\n',
 });
 
 const ANSWERED = 'The hips broke because I weighted the pelvis to the wrong bone entirely.';
@@ -204,69 +212,89 @@ describe('the draw', () => {
   });
 });
 
-describe('the Revisit', () => {
-  test('the paragraph goes to bonsai with its framing and the Lens', async () => {
+// Who chose the paragraph decides everything about what is asked of it.
+describe('the Invitation — the draw found it', () => {
+  test('the paragraph seeds the question, with NO framing and the invitation Lens', async () => {
     const { model, seen } = recordingModel();
     const { v, interview } = open(paragraphOnly(), model);
     const paragraph = await drawnParagraph(interview, v.file(TODAY));
-    const offer = await interview.revisitOffer(paragraph);
+    const offer = await interview.offerFrom(paragraph, 'picked');
 
-    expect(seen.revisit).toHaveLength(1);
-    expect(seen.revisit[0]?.paragraph).toBe(PARAGRAPH);
-    expect(seen.revisit[0]?.framing).toBe('in 2021, in "Rigging"');
-    expect(seen.revisit[0]?.lens).toBe('Ask for a time it went wrong.');
-    expect(offer).toEqual({ candidates: [], lens: 'craft' });
+    expect(seen.invitation).toHaveLength(1);
+    expect(seen.revisit).toHaveLength(0);
+    expect(seen.invitation[0]?.paragraph).toBe(PARAGRAPH);
+    expect(seen.invitation[0]?.lens).toBe('The paragraph is a seed, not a subject.');
+    expect(offer.lens).toBe('invitation');
   });
 
-  test('a Sitting block carries the question it answered into the Asked set', async () => {
+  // The framing is what stops a Revisit reading as random. It is what would
+  // make an Invitation read as a question about 2021.
+  test('the framing is not sent at all: there is nowhere to put it', async () => {
+    const { model, seen } = recordingModel();
+    const { v, interview } = open(paragraphOnly(), model);
+    await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'picked');
+    expect(Object.keys(seen.invitation[0] ?? {})).not.toContain('framing');
+  });
+
+  test('a Sitting block still carries the question it answered into the Asked set', async () => {
     const { model, seen } = recordingModel();
     const { v, interview } = open(sittingBlock(), model);
-    await interview.revisitOffer(await drawnParagraph(interview, v.file(TODAY)));
-
-    expect(seen.revisit[0]?.paragraph).toBe(ANSWERED);
-    expect(seen.revisit[0]?.framing).toBe('in a Sitting on 2026-09-14');
+    await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'picked');
     // Without this the draw could hand back the question that made the block.
-    expect(seen.revisit[0]?.asked).toEqual(['what broke in the rig?']);
-    // No Lens note in this fixture, so nothing is appended.
-    expect(seen.revisit[0]?.lens).toBe('');
+    expect(seen.invitation[0]?.asked).toEqual(['what broke in the rig?']);
+  });
+
+  // Showing the 2020 prose under a question about now undoes the work.
+  test('accepting cites the paragraph and does NOT embed it', async () => {
+    const { model } = recordingModel({ invitation: [{ question: 'what do you keep repairing?' }] });
+    const { v, interview } = open(paragraphOnly(), model);
+    const sitting = v.file(TODAY);
+    const paragraph = await drawnParagraph(interview, sitting);
+    await interview.acceptFrom(sitting, paragraph, { question: 'what do you keep repairing?' }, 'picked');
+
+    const written = v.text(TODAY);
+    expect(written).toContain('> [!ask] what do you keep repairing?');
+    expect(written).toContain('> from [[Pieces/rigging#^p-001]]');
+    expect(written).not.toContain('![[Pieces/rigging#^p-001]]');
+  });
+});
+
+describe('the Revisit — the owner pointed at it', () => {
+  test('the paragraph is interviewed, with its framing and the craft Lens', async () => {
+    const { model, seen } = recordingModel();
+    const { v, interview } = open(paragraphOnly(), model);
+    const paragraph = await drawnParagraph(interview, v.file(TODAY));
+    const offer = await interview.offerFrom(paragraph, 'pointed');
+
+    expect(seen.revisit).toHaveLength(1);
+    expect(seen.invitation).toHaveLength(0);
+    expect(seen.revisit[0]?.framing).toBe('in 2021, in "Rigging"');
+    expect(seen.revisit[0]?.lens).toBe('Ask for a time it went wrong.');
+    expect(offer.lens).toBe('craft');
   });
 
   test('a paragraph from a Piece has no Asked set, and says so by being empty', async () => {
     const { model, seen } = recordingModel();
-    const { v, interview } = open(
-      {
-        [TODAY]: EMPTY_SITTING,
-        'Pieces/cities.md': `---\ntitle: Cities\nstatus: published\ndate: 2021-03-04\n---\n\n${PARAGRAPH} ^p-004\n`,
-      },
-      model,
-    );
-    await interview.revisitOffer(await drawnParagraph(interview, v.file(TODAY)));
-    expect(seen.revisit[0]?.framing).toBe('in 2021, in "Cities"');
+    const { v, interview } = open(paragraphOnly(), model);
+    await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'pointed');
     expect(seen.revisit[0]?.asked).toEqual([]);
   });
 
-  test('with the model off the offer is empty, so the caller shows the one fixed fallback', async () => {
-    const { v, interview } = open(paragraphOnly());
-    const offer = await interview.revisitOffer(await drawnParagraph(interview, v.file(TODAY)));
-    expect(offer).toEqual({ candidates: [], lens: 'craft' });
-  });
-
-  test('accepting a Revisit embeds the paragraph under the Ask', async () => {
+  test('accepting embeds the paragraph under the Ask, so it reads in place', async () => {
     const { model } = recordingModel({ revisit: [{ question: 'which corner broke it first?' }] });
     const { v, interview } = open(paragraphOnly(), model);
     const sitting = v.file(TODAY);
     const paragraph = await drawnParagraph(interview, sitting);
-    await interview.acceptRevisit(sitting, paragraph, { question: 'which corner broke it first?' });
+    await interview.acceptFrom(sitting, paragraph, { question: 'which corner broke it first?' }, 'pointed');
 
     const written = v.text(TODAY);
-    expect(written).toContain('> [!ask] which corner broke it first?');
     expect(written).toContain('> from [[Pieces/rigging#^p-001]]');
     expect(written).toContain('> ![[Pieces/rigging#^p-001]]');
   });
 
   // The jar only reaches blocks that already carry an id. A paragraph without
   // one is reached by pointing at it, and gets its id when the Ask is written.
-  test('a pointed-at paragraph with no id is given one so the Ask can cite it', async () => {
+  test('a paragraph with no id is given one so the Ask can cite it', async () => {
     const { v, interview } = open({
       [TODAY]: EMPTY_SITTING,
       'Anywhere/notebook.md': `---\n---\n\n${PARAGRAPH}\n`,
@@ -277,18 +305,28 @@ describe('the Revisit', () => {
       selected: PARAGRAPH,
       line: 3,
     }) as Paragraph;
-    await interview.acceptRevisit(sitting, picked, { question: 'which corner broke it first?' });
+    await interview.acceptFrom(sitting, picked, { question: 'which corner broke it first?' }, 'pointed');
 
     const id = /\^([a-z0-9]{6})/.exec(v.text('Anywhere/notebook.md'))?.[1];
     expect(id).toBeDefined();
     expect(v.text(TODAY)).toContain(`> from [[Anywhere/notebook#^${id}]]`);
   });
+});
 
+describe('either way', () => {
+  test('with the model off the offer is empty, so the caller shows the one fixed fallback', async () => {
+    const { v, interview } = open(paragraphOnly());
+    expect((await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'picked')).candidates).toEqual([]);
+    expect((await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'pointed')).candidates).toEqual([]);
+  });
+
+  // Nothing asks for a due marker today. A Lens is prose the owner edits, so
+  // any Lens can start; the mechanism stays.
   test('a due marker on the candidate becomes a due line on the Ask', async () => {
     const { v, interview } = open(paragraphOnly());
     const sitting = v.file(TODAY);
     const paragraph = await drawnParagraph(interview, sitting);
-    await interview.acceptRevisit(sitting, paragraph, { question: 'can you rig one by Friday?', dueDays: 7 });
+    await interview.acceptFrom(sitting, paragraph, { question: 'can you rig one by Friday?', dueDays: 7 }, 'picked');
     expect(v.text(TODAY)).toMatch(/> due: \d{4}-\d{2}-\d{2}/);
   });
 });
@@ -451,7 +489,7 @@ describe('asking about a selection', () => {
       selected: 'the hips always break',
       line: 6,
     });
-    await interview.revisitOffer(picked as Paragraph);
+    await interview.offerFrom(picked as Paragraph, 'pointed');
     expect(seen.revisit[0]?.paragraph).toBe('the hips always break');
     expect(seen.revisit[0]?.framing).toBe('in 2021, in "Cities"');
   });
@@ -460,7 +498,7 @@ describe('asking about a selection', () => {
     const { model, seen } = recordingModel();
     const { v, interview } = open(reading(), model);
     const picked = interview.selection({ file: v.file('Pieces/cities.md'), selected: 'the hips', line: 6 });
-    await interview.revisitOffer(picked as Paragraph);
+    await interview.offerFrom(picked as Paragraph, 'pointed');
     expect(seen.revisit[0]?.paragraph).toBe('the hips');
   });
 
@@ -475,7 +513,7 @@ describe('asking about a selection', () => {
     // reading the Piece, so the cursor cannot land in the Sitting.
     const sitting = await interview.sitting(piece);
     surface.landing = false;
-    await interview.acceptRevisit(sitting, picked as Paragraph, { question: 'which corner broke it first?' });
+    await interview.acceptFrom(sitting, picked as Paragraph, { question: 'which corner broke it first?' }, 'pointed');
 
     expect(v.text('Sittings/2026-09-13.md')).toContain('> [!ask] which corner broke it first?');
     expect(surface.notices).toContain('Asked in 2026-09-13.');

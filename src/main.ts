@@ -14,6 +14,7 @@ import type { App, Menu, TFile } from 'obsidian';
 import { AnsweredIndex } from './bank';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
+import type { Reach } from './interview';
 import { createModel } from './model';
 import type { Model, RevisitCandidate } from './model';
 import { choose } from './modals';
@@ -128,7 +129,8 @@ export default class KeepWritingPlugin extends Plugin {
     const where = target ? `only ${target}` : jarsLine(jars);
     choose(this.app, drawn.map(drawnChoice), where, (pick) => {
       if (pick.source.kind === 'question') void this.interview.accept(sitting, pick);
-      else void this.offerRevisit(sitting, pick.source);
+      // The draw chose it, not the owner: an Invitation, aimed at their present.
+      else void this.offer(sitting, pick.source, 'picked');
     });
   }
 
@@ -141,12 +143,13 @@ export default class KeepWritingPlugin extends Plugin {
     if (!file) return;
     const paragraph = this.interview.selection({ file, selected, line });
     if (!paragraph) return;
-    await this.offerRevisit(await this.interview.sitting(file), paragraph);
+    // The owner went and pointed at this: interview it.
+    await this.offer(await this.interview.sitting(file), paragraph, 'pointed');
   }
 
-  /** bonsai's questions about a paragraph, as the second chooser. */
-  private async offerRevisit(sitting: TFile, paragraph: Paragraph): Promise<void> {
-    const offer = await this.composing(() => this.interview.revisitOffer(paragraph));
+  /** bonsai's questions from a paragraph, as the second chooser. */
+  private async offer(sitting: TFile, paragraph: Paragraph, reach: Reach): Promise<void> {
+    const offer = await this.composing(() => this.interview.offerFrom(paragraph, reach));
     const lens = offer.lens ? ` · through the ${offer.lens} lens` : '';
     // A paragraph is never a dead end: with nothing composed, the one fixed form.
     const candidates: RevisitCandidate[] = offer.candidates.length
@@ -156,7 +159,7 @@ export default class KeepWritingPlugin extends Plugin {
       this.app,
       candidates.map((c) => revisitChoice(c)),
       `${paragraph.title}${lens}`,
-      (candidate) => void this.interview.acceptRevisit(sitting, paragraph, candidate),
+      (candidate) => void this.interview.acceptFrom(sitting, paragraph, candidate, reach),
     );
   }
 

@@ -9,7 +9,7 @@ keep-writing puts a question into your daily note in [Obsidian](https://obsidian
 ## What it does
 
 - **Draws a question** into today's note. Three at a time — pick one, or press Escape and nothing is written.
-- **Asks about your own past writing.** A drawn paragraph from a finished piece, or one you highlight yourself in any note at all, goes to a local model that composes a question about it.
+- **Turns your old writing into new questions.** Two ways, and which one you get depends on who chose the paragraph. Highlight one yourself and you are asked about *that paragraph*. Let the draw find one and it becomes a seed for a question about your life *now* — because most of what a draw can reach is years old, and a question about 2020 is a question for whoever you were then.
 - **Follows up.** Mark an answer done and the model reads it, then offers the next question. Run it again on the same answer, next week, and it composes fresh ones.
 - **Links every answer** to the question that caused it, in frontmatter, both ends. That is what stops a question coming back once you have answered it.
 - **Never writes your prose.** See [What it will not do](#what-it-will-not-do).
@@ -93,11 +93,12 @@ Turn it off in settings and the plugin runs bank-only: the draw, the Ask, and th
 Two jobs, one call each, temperature 0, JSON out, one retry, then it gives up quietly:
 
 - **Follow-up** — reads the question and your whole answer, offers up to three next questions. Candidates that hand your answer back, re-ask what you just answered, or refer to the conversation are dropped in code before you see them.
-- **Revisit** — reads a paragraph you wrote before, with one line of framing (`in 2021, in "Koramangala"`), and offers up to three questions about it.
+- **Revisit** — for a paragraph you pointed at. Reads it with one line of framing (`in 2021, in "Koramangala"`) and asks about it.
+- **Invitation** — for a paragraph the draw found. Reads it with *no* framing, finds the concern under it, and asks something you can answer from today. Given the same list about georeferencing a map in QGIS, the Revisit asked "what specific data layer did you align the PNG against?" and the Invitation asked "what does it cost to make a thing fit the map it was never drawn for?"
 
 The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]`.
 
-`Lenses/craft.md` is a prose note whose body is appended to the composition prompt verbatim. Edit it to change how the model asks. It's the interviewer's technique as a page you control, not a string in the source.
+`Lenses/craft.md` and `Lenses/invitation.md` are prose notes whose bodies are appended to the composition prompt verbatim — one per composer. Edit them to change how the model asks. It's the interviewer's technique as a page you control, not a string in the source.
 
 ## Installing
 

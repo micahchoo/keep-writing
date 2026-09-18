@@ -3,18 +3,21 @@
 // page the owner can edit, which is the whole point of it being a note.
 //
 // It was chosen by the Well a paragraph came from until 2026-09-17 — craft for
-// a Domain, learning for a Learning note, none for the self. There is one now,
-// because the folder a paragraph sits in has nothing to do with how it should
-// be asked about. When the second composer lands (the invitation, aimed at the
-// owner's present rather than at the old text), the Lens is chosen by the PATH
-// instead: one page for the interviewer, one for the invitation.
+// a Domain, learning for a Learning note, none for the self — which made how a
+// paragraph is asked about a property of the folder it sits in.
+//
+// It is chosen by the PATH now. The owner pointed at this paragraph, so ask
+// about it: `craft.md`. The draw handed it over, so do not: `invitation.md`.
 
 import type { App } from 'obsidian';
 
 const LENSES_FOLDER = 'Lenses';
 
-/** The Lens the interviewer reads through. */
+/** The Lens the interviewer reads through: the owner pointed at this paragraph. */
 export const CRAFT = 'craft';
+
+/** The Lens the Invitation reads through: the draw found this paragraph. */
+export const INVITATION = 'invitation';
 
 /**
  * The body of the Lens, after the frontmatter, trimmed. Empty when the note is

@@ -8,7 +8,7 @@
 // had produced one link in the vault's life.
 
 import { requestUrl } from 'obsidian';
-import { composeFollowUps, composeRevisit } from './bonsai';
+import { composeFollowUps, composeInvitation, composeRevisit } from './bonsai';
 import type { BonsaiConfig, CallLog, RevisitCandidate } from './bonsai';
 import type { KeepWritingSettings } from './settings';
 
@@ -21,8 +21,10 @@ export interface Model {
   readonly reason: string;
   /** Up to three follow-up questions, best first; empty when none. `asked` is every other question already put in this Sitting. */
   composeFollowUps(question: string, answer: string, asked: string[], target: string): Promise<string[]>;
-  /** Up to three questions about a paragraph the owner wrote before, through the Well's Lens; empty when none. `asked` is what was already asked from that block. */
+  /** Up to three questions ABOUT a paragraph the owner pointed at; empty when none. `asked` is what was already asked from that block. */
   composeRevisit(paragraph: string, framing: string, asked: string[], lens: string): Promise<RevisitCandidate[]>;
+  /** Up to three invitations SEEDED by a paragraph the draw found, aimed at the owner's present. No framing: see INVITATION_SYSTEM. */
+  composeInvitation(paragraph: string, asked: string[], lens: string): Promise<RevisitCandidate[]>;
 }
 
 /** Obsidian's requestUrl, in the fetch-like shape bonsai.ts expects. */
@@ -38,6 +40,7 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
       reason: 'model switched off in settings',
       composeFollowUps: async () => [],
       composeRevisit: async () => [],
+      composeInvitation: async () => [],
     };
   }
   const cfg: BonsaiConfig = { baseUrl: settings.baseUrl, model: settings.model, fetcher };
@@ -47,5 +50,6 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
     reason: '',
     composeFollowUps: (question, answer, asked, target) => composeFollowUps(cfg, question, answer, asked, target),
     composeRevisit: (paragraph, framing, asked, lens) => composeRevisit(cfg, paragraph, framing, asked, lens),
+    composeInvitation: (paragraph, asked, lens) => composeInvitation(cfg, paragraph, asked, lens),
   };
 }
