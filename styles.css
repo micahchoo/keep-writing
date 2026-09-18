@@ -32,6 +32,18 @@
   padding: var(--size-4-2) var(--size-4-3);
 }
 
+/* A drawn paragraph is as long as the owner wrote it, so nothing cuts it at a
+   character count — a count has to guess at the width and always guesses
+   wrong. The row wraps and stops at ten lines, which is the whole of nearly
+   every paragraph in the corpus and a readable amount of the rest. */
+
+.kw-choice .kw-choice-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 10;
+  overflow: hidden;
+}
+
 /* The quieter second line: a register, a date, a Piece. */
 
 .kw-choice .kw-note {

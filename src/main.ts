@@ -10,7 +10,7 @@
 // what a modal is for. What is left is commands.
 
 import { MarkdownView, Notice, Plugin } from 'obsidian';
-import type { App, TFile } from 'obsidian';
+import type { App, Menu, TFile } from 'obsidian';
 import { AnsweredIndex } from './bank';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
@@ -24,12 +24,21 @@ import { formatRef } from './refs';
 import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
 import type { KeepWritingSettings } from './settings';
 
+// The four things the plugin does. The command palette and the context menu
+// read the same four names, so they cannot drift apart.
+const DRAW = 'Draw a question';
+const ASK_SELECTION = 'Ask about the selection';
+const MARK = 'Mark this answer done, and follow up';
+const LINK = 'Link this paragraph to…';
+
 /**
- * Longest a drawn paragraph reads in the chooser before it is cut. A row wraps
- * (styles.css), so this is about how much of a paragraph is enough to
- * recognise it, not about how much fits on a line.
+ * `MenuItem.setSubmenu` is absent from the published typings and present in
+ * the app: Obsidian builds its own menus with it — `setSubmenu().addItem(e =>
+ * e.setSection(...))` reads straight out of obsidian.asar, checked 2026-09-17
+ * against the installed 1.13. This is the one place the plugin reaches past
+ * its types, and it is a menu: nothing the interview does depends on it.
  */
-const TITLE_MAX = 240;
+type Submenuable = { setSubmenu(): Menu };
 
 export default class KeepWritingPlugin extends Plugin {
   override settings: KeepWritingSettings = { ...DEFAULT_SETTINGS };
@@ -56,39 +65,59 @@ export default class KeepWritingPlugin extends Plugin {
 
     this.addRibbonIcon('message-circle-question', 'Draw a question', () => void this.drawQuestion());
 
-    this.addCommand({ id: 'draw-question', name: 'Draw a question', callback: () => void this.drawQuestion() });
+    this.addCommand({ id: 'draw-question', name: DRAW, callback: () => void this.drawQuestion() });
     this.addCommand({
       id: 'mark-answer-under-cursor',
-      name: 'Mark this answer done, and follow up',
+      name: MARK,
       editorCallback: (editor, view) => {
         if (view instanceof MarkdownView) void this.markUnderCursor(view, editor.getCursor().line);
       },
     });
     this.addCommand({
       id: 'ask-about-selection',
-      name: 'Ask about the selection',
+      name: ASK_SELECTION,
       editorCallback: (editor, view) => {
         if (view instanceof MarkdownView) {
           void this.askAboutSelection(view, editor.getSelection(), editor.getCursor('from').line);
         }
       },
     });
+    // Everything the plugin does, under one submenu of the editor's own
+    // context menu. Right-clicking is how the owner reaches it without
+    // learning four command names.
     this.registerEvent(
       this.app.workspace.on('editor-menu', (menu, editor, view) => {
-        if (!(view instanceof MarkdownView) || !editor.getSelection().trim()) return;
+        if (!(view instanceof MarkdownView)) return;
+        // Read the editor HERE, while it still holds what was right-clicked.
+        // By the time an item is clicked the menu has the focus.
         const selected = editor.getSelection();
-        const line = editor.getCursor('from').line;
-        menu.addItem((item) =>
-          item
-            .setTitle('Ask about the selection')
-            .setIcon('message-circle-question')
-            .onClick(() => void this.askAboutSelection(view, selected, line)),
-        );
+        const from = editor.getCursor('from').line;
+        const at = editor.getCursor().line;
+        menu.addItem((item) => {
+          item.setTitle('keep-writing').setIcon('message-circle-question');
+          const sub = (item as unknown as Submenuable).setSubmenu();
+          sub.addItem((i) => i.setTitle(DRAW).setIcon('shuffle').onClick(() => void this.drawQuestion()));
+          if (selected.trim()) {
+            sub.addItem((i) =>
+              i
+                .setTitle(ASK_SELECTION)
+                .setIcon('message-circle-question')
+                .onClick(() => void this.askAboutSelection(view, selected, from)),
+            );
+          }
+          sub.addItem((i) => i.setTitle(MARK).setIcon('check').onClick(() => void this.markUnderCursor(view, at)));
+          sub.addItem((i) =>
+            i
+              .setTitle(LINK)
+              .setIcon('link')
+              .onClick(() => void linkParagraphCommand(this.app, view, this.settings.bankFolder)),
+          );
+        });
       }),
     );
     this.addCommand({
       id: 'link-paragraph',
-      name: 'Link this paragraph to…',
+      name: LINK,
       editorCallback: (_editor, view) => {
         if (view instanceof MarkdownView) void linkParagraphCommand(this.app, view, this.settings.bankFolder);
       },
@@ -223,7 +252,7 @@ export function drawnChoice(drawn: Drawn): Choice<Drawn> {
     return { value: drawn, title: drawn.source.text, note: parts.join(' · ') };
   }
   const { text, title, meta } = drawn.source;
-  return { value: drawn, title: cut(text), note: ['revisit', title, ...meta].join(' · ') };
+  return { value: drawn, title: text.replace(/\s+/g, ' ').trim(), note: ['revisit', title, ...meta].join(' · ') };
 }
 
 /** Pure: one composed question as a row, with its due marker when it has one. */
@@ -231,12 +260,6 @@ export function revisitChoice(candidate: RevisitCandidate): Choice<RevisitCandid
   const row: Choice<RevisitCandidate> = { value: candidate, title: candidate.question };
   if (candidate.dueDays !== undefined) row.note = `due in ${candidate.dueDays} days`;
   return row;
-}
-
-/** Pure: a paragraph shortened to one readable row. */
-export function cut(text: string, max: number = TITLE_MAX): string {
-  const one = text.replace(/\s+/g, ' ').trim();
-  return one.length <= max ? one : `${one.slice(0, max - 1).trimEnd()}…`;
 }
 
 /**

@@ -54,7 +54,7 @@ export class ChoiceModal<T> extends SuggestModal<Choice<T>> {
    */
   renderSuggestion(choice: Choice<T>, el: HTMLElement): void {
     el.addClass('kw-choice');
-    el.createDiv({ text: choice.title });
+    el.createDiv({ text: choice.title, cls: 'kw-choice-title' });
     if (choice.note) el.createDiv({ text: choice.note, cls: 'kw-note' });
   }
 
