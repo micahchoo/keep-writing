@@ -77,6 +77,49 @@ describe('composeFollowUps with a fake server', () => {
   });
 });
 
+// Nothing configured, nothing leaves. A key is sent as a bearer token when
+// the owner set one, and never logged: `CallLog` carries the job, the timing
+// and the outcome, and no part of the request.
+describe('the API key', () => {
+  const seen: { headers: Record<string, string>; logs: CallLog[] } = { headers: {}, logs: [] };
+  const cfg = (apiKey?: string): BonsaiConfig => {
+    seen.headers = {};
+    seen.logs = [];
+    const c: BonsaiConfig = {
+      baseUrl: 'http://fake',
+      model: 'fake',
+      fetcher: async (_url, init) => {
+        seen.headers = init.headers;
+        return { status: 200, text: JSON.stringify({ choices: [{ message: { content: '{"abstain":true}' } }] }) };
+      },
+      onLog: (e) => seen.logs.push(e),
+    };
+    if (apiKey !== undefined) c.apiKey = apiKey;
+    return c;
+  };
+
+  test('no key configured: no Authorization header at all', async () => {
+    await composeFollowUps(cfg(), 'q?', ANSWER, [], 'me');
+    expect(Object.keys(seen.headers)).toEqual(['Content-Type']);
+  });
+
+  test('an empty or blank key is no key', async () => {
+    await composeFollowUps(cfg('   '), 'q?', ANSWER, [], 'me');
+    expect(seen.headers['Authorization']).toBeUndefined();
+  });
+
+  test('a key is sent as a bearer token, trimmed', async () => {
+    await composeFollowUps(cfg(' sk-secret '), 'q?', ANSWER, [], 'me');
+    expect(seen.headers['Authorization']).toBe('Bearer sk-secret');
+  });
+
+  test('the key is never in the log', async () => {
+    await composeFollowUps(cfg('sk-secret'), 'q?', ANSWER, [], 'me');
+    expect(seen.logs.length).toBeGreaterThan(0);
+    expect(JSON.stringify(seen.logs)).not.toContain('sk-secret');
+  });
+});
+
 describe('splitDue', () => {
   test('no marker: the question, trimmed', () => {
     expect(splitDue('  What happened?  ')).toEqual({ question: 'What happened?' });

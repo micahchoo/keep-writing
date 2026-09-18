@@ -102,17 +102,19 @@ There is no code path that inserts, edits or rewords prose. The body of a note i
 
 ## The model
 
-Follow-up and revisit questions need an OpenAI-compatible endpoint. It's on by default and points at `http://127.0.0.1:8088/v1` — a local server. **Nothing leaves your machine unless you point it somewhere else.**
+Composing a question from your own writing needs an OpenAI-compatible endpoint. Any will do — a local server, or a hosted one with an API key. It ships pointing at `http://127.0.0.1:8088/v1` with the key field empty, so **nothing configured, nothing leaves.** Point it somewhere else and your paragraphs go there instead; that is the whole of what changes.
 
-Turn it off in settings and the plugin runs bank-only: the draw, the Ask, and the linking all still work. You lose the questions composed from your own writing.
+Turn the model off in settings and the plugin makes no network call at all: the draw, the Ask, the seeded question and the linking all still work. You lose the questions composed from your own writing.
 
-Two jobs, one call each, temperature 0, JSON out, one retry, then it gives up quietly:
+Three jobs, one call each, temperature 0, JSON out, one retry, then it gives up quietly:
 
 - **Follow-up** — reads the question and your whole answer, offers up to three next questions. Candidates that hand your answer back, re-ask what you just answered, or refer to the conversation are dropped in code before you see them.
 - **Revisit** — for a paragraph you pointed at. Reads it with one line of framing (`in 2021, in "Koramangala"`) and asks about it.
 - **Invitation** — for a paragraph the draw found. Reads it with *no* framing, finds the concern under it, and asks something you can answer from today. Given the same list about georeferencing a map in QGIS, the Revisit asked "what specific data layer did you align the PNG against?" and the Invitation asked "what does it cost to make a thing fit the map it was never drawn for?"
 
-The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]`.
+The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]` — the job, how long it took and how it ended, never the request or your key.
+
+Your key is stored in plain text at `.obsidian/plugins/keep-writing/data.json`, like every Obsidian setting. Don't commit that file to a public repository.
 
 `Lenses/craft.md` and `Lenses/invitation.md` are prose notes whose bodies are appended to the composition prompt verbatim — one per composer. Edit them to change how the model asks. It's the interviewer's technique as a page you control, not a string in the source.
 
@@ -135,6 +137,7 @@ Not in the community plugins browser yet.
 | Enable model | on | Off makes it bank-only |
 | Base URL | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible endpoint |
 | Model | `bonsai-2-27b` | Model id sent to that endpoint |
+| API key | empty | Sent as a bearer token. A local server needs none |
 
 A `Templates/Sitting.md` with a `## Asked` heading is copied into a new daily note when the plugin has to make one. Anything under a later heading stays at the bottom, below every drawn question.
 

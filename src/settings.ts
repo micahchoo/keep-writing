@@ -8,6 +8,12 @@ export interface KeepWritingSettings {
   baseUrl: string;
   /** Model id sent to the endpoint. */
   model: string;
+  /**
+   * Bearer token for the endpoint. Empty for a local server, which is the
+   * default: nothing configured, nothing leaves the machine. Stored in
+   * `data.json` in the vault, in plain text, like every Obsidian setting.
+   */
+  apiKey: string;
   /** When off, follow-ups and Proposals are not attempted. */
   enableModel: boolean;
   /** Folder that holds Sittings (daily notes). */
@@ -28,6 +34,7 @@ export interface KeepWritingSettings {
 export const DEFAULT_SETTINGS: KeepWritingSettings = {
   baseUrl: 'http://127.0.0.1:8088/v1',
   model: 'bonsai-2-27b',
+  apiKey: '',
   enableModel: true,
   sittingsFolder: 'Sittings',
   bankFolder: 'Bank',
@@ -92,8 +99,11 @@ export class KeepWritingSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName('Model').setHeading();
 
     new Setting(containerEl)
-      .setName('Use the local model')
-      .setDesc('Compose follow-ups and Proposals with bonsai. Off: the plugin only draws from the Bank.')
+      .setName('Use a model')
+      .setDesc(
+        'Compose questions from your own writing. Off: the plugin draws from the Bank ' +
+          'only, and makes no network call at all.',
+      )
       .addToggle((t) =>
         t.setValue(s.enableModel).onChange((v) => {
           s.enableModel = v;
@@ -103,7 +113,11 @@ export class KeepWritingSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Endpoint base URL')
-      .setDesc('OpenAI-compatible endpoint. Local only.')
+      .setDesc(
+        'Any OpenAI-compatible endpoint. The default is a server on this machine, so ' +
+          'nothing you write leaves it. Point this somewhere else and your paragraphs go ' +
+          'there instead — that is the whole of what changes.',
+      )
       .addText((t) =>
         t.setValue(s.baseUrl).onChange((v) => {
           s.baseUrl = v.trim() || DEFAULT_SETTINGS.baseUrl;
@@ -113,12 +127,29 @@ export class KeepWritingSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Model id')
+      .setDesc('Sent to that endpoint as the model name.')
       .addText((t) =>
         t.setValue(s.model).onChange((v) => {
           s.model = v.trim() || DEFAULT_SETTINGS.model;
           save();
         }),
       );
+
+    new Setting(containerEl)
+      .setName('API key')
+      .setDesc(
+        'Sent as a bearer token. Leave it empty for a local server, which needs none. ' +
+          'It is kept in plain text in this vault, at ' +
+          '.obsidian/plugins/keep-writing/data.json, like every Obsidian setting — so ' +
+          'do not commit that file to a public repository.',
+      )
+      .addText((t) => {
+        t.inputEl.type = 'password';
+        t.setPlaceholder('none').setValue(s.apiKey).onChange((v) => {
+          s.apiKey = v.trim();
+          save();
+        });
+      });
   }
 }
 

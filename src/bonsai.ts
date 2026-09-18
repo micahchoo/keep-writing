@@ -34,6 +34,13 @@ export interface BonsaiConfig {
   baseUrl: string;
   model: string;
   fetcher: Fetcher;
+  /**
+   * Bearer token for the endpoint. Absent or empty for a local server, which
+   * is the shipped default and wants no key. It is sent in a header and
+   * NEVER logged: `CallLog` carries the job, the timing and the outcome, and
+   * no part of the request.
+   */
+  apiKey?: string;
   timeoutMs?: number;
   onLog?: (entry: CallLog) => void;
 }
@@ -78,6 +85,9 @@ async function chat(cfg: BonsaiConfig, messages: Message[]): Promise<string> {
     messages,
   });
   const timeoutMs = cfg.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const key = cfg.apiKey?.trim();
+  if (key) headers['Authorization'] = `Bearer ${key}`;
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
@@ -85,7 +95,7 @@ async function chat(cfg: BonsaiConfig, messages: Message[]): Promise<string> {
   });
   try {
     const res = await Promise.race([
-      cfg.fetcher(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }),
+      cfg.fetcher(url, { method: 'POST', headers, body }),
       timeout,
     ]);
     if (res.status < 200 || res.status >= 300) {

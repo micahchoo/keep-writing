@@ -44,6 +44,7 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
     };
   }
   const cfg: BonsaiConfig = { baseUrl: settings.baseUrl, model: settings.model, fetcher };
+  if (settings.apiKey.trim()) cfg.apiKey = settings.apiKey.trim();
   if (onLog) cfg.onLog = onLog;
   return {
     available: true,
