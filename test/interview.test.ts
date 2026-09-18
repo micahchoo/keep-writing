@@ -9,7 +9,7 @@ import { parseAsks } from '../src/asks';
 import type { Ask } from '../src/asks';
 import { AnsweredIndex } from '../src/bank';
 import type { Model, RevisitCandidate } from '../src/model';
-import { Interview } from '../src/interview';
+import { Interview, dayStamp } from '../src/interview';
 import type { InterviewHost } from '../src/interview';
 import type { Paragraph } from '../src/paragraphs';
 import { DEFAULT_SETTINGS } from '../src/settings';
@@ -707,20 +707,32 @@ describe('asking about a selection', () => {
     expect(seen.revisit[0]?.paragraph).toBe('the hips');
   });
 
+  // Padding is the whole of it, and the whole of what moment did here. A
+  // one-digit month or day would name a Sitting the vault sorts wrong and the
+  // draw would never find twice.
+  test('a day is named zero-padded, in local time', () => {
+    expect(dayStamp(new Date(2026, 0, 5))).toBe('2026-01-05');
+    expect(dayStamp(new Date(2026, 11, 31))).toBe('2026-12-31');
+    expect(dayStamp(new Date(2026, 8, 17, 23, 59))).toBe('2026-09-17');
+  });
+
+  // The date came from a mocked `moment()` until 2026-09-17. The Sitting is
+  // named from the real clock now, so the fixture is too: the test says which
+  // day it is exactly once, and it is the same day the code will pick.
   test('a selection read outside a Sitting lands its Ask in today’s Sitting', async () => {
+    const today = dayStamp(new Date());
     const { v, interview, surface } = open({
-      'Sittings/2026-09-13.md': EMPTY_SITTING,
+      [`Sittings/${today}.md`]: EMPTY_SITTING,
       'Pieces/cities.md': reading()['Pieces/cities.md'] as string,
     });
     const piece = v.file('Pieces/cities.md');
     const picked = interview.selection({ file: piece, selected: 'the hips always break', line: 6 });
-    // `moment()` is fixed at 2026-09-13 in the test harness; the owner is
-    // reading the Piece, so the cursor cannot land in the Sitting.
+    // The owner is reading the Piece, so the cursor cannot land in the Sitting.
     const sitting = await interview.sitting(piece);
     surface.landing = false;
     await interview.acceptFrom(sitting, picked as Paragraph, { question: 'which corner broke it first?' }, 'pointed');
 
-    expect(v.text('Sittings/2026-09-13.md')).toContain('> [!ask] which corner broke it first?');
-    expect(surface.notices).toContain('Asked in 2026-09-13.');
+    expect(v.text(`Sittings/${today}.md`)).toContain('> [!ask] which corner broke it first?');
+    expect(surface.notices).toContain(`Asked in ${today}.`);
   });
 });

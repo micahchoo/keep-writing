@@ -89,9 +89,14 @@ async function chat(cfg: BonsaiConfig, messages: Message[]): Promise<string> {
   const key = cfg.apiKey?.trim();
   if (key) headers['Authorization'] = `Bearer ${key}`;
 
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  // `window.setTimeout`, not the bare global: Obsidian can put a plugin's view
+  // in a popout window, and a timer taken off the wrong window outlives it.
+  // Obsidian's community review flags the bare call. `bun test` defines
+  // `window` — the fake-server tests below run this line — but `bun -e` does
+  // not, so a script that imports this module needs a browser-ish global.
+  let timer: number | undefined; // what the DOM's setTimeout returns, not node's Timeout
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`timeout after ${timeoutMs} ms`)), timeoutMs);
+    timer = window.setTimeout(() => reject(new Error(`timeout after ${timeoutMs} ms`)), timeoutMs);
   });
   try {
     const res = await Promise.race([
@@ -106,7 +111,7 @@ async function chat(cfg: BonsaiConfig, messages: Message[]): Promise<string> {
     if (typeof content !== 'string') throw new Error('no message content in response');
     return content;
   } finally {
-    if (timer !== undefined) clearTimeout(timer);
+    if (timer !== undefined) window.clearTimeout(timer);
   }
 }
 

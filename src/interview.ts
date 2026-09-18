@@ -20,7 +20,7 @@
 // it decides nothing.
 
 import type { App, TFile } from 'obsidian';
-import { moment, normalizePath } from 'obsidian';
+import { normalizePath } from 'obsidian';
 import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
 import { bankJar, drawMany, parseDue, pickOne } from './bank';
@@ -124,7 +124,7 @@ export class Interview {
    */
   async sitting(active: TFile | null): Promise<TFile> {
     const folder = this.host.settings.sittingsFolder;
-    if (isSitting(active, folder)) return active as TFile;
+    if (isSitting(active, folder)) return active;
     return todaysSitting(this.app, folder);
   }
 
@@ -403,16 +403,30 @@ export class Interview {
 const DEFAULT_TEMPLATE = '## Asked\n';
 
 /**
+ * Pure: a day as a Sitting's name, `YYYY-MM-DD`, in local time.
+ *
+ * This was `moment().format('YYYY-MM-DD')` until 2026-09-17. Obsidian re-exports
+ * moment, but its declaration is `import * as Moment from 'moment'`, which
+ * resolves to `any` wherever that package is not installed beside it — so the
+ * one date in the plugin was an unchecked call, and the community review said
+ * so. Four lines of Date owe nothing to a dependency and can be tested.
+ */
+export function dayStamp(date: Date): string {
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/**
  * Today's Sitting as a file, made from Templates/Sitting.md (verbatim) when
  * today has none. Where an Ask goes when the owner is reading something that
  * is not a Sitting.
  */
-export async function todaysSitting(app: App, sittingsFolder: string): Promise<TFile> {
+export async function todaysSitting(app: App, sittingsFolder: string, today: Date = new Date()): Promise<TFile> {
   // Every vault path the plugin builds goes through `normalizePath`: the
   // folder is whatever the owner typed into settings, and it scrubs repeated
   // or backward slashes, leading and trailing ones, and non-breaking spaces.
   const folder = normalizePath(sittingsFolder);
-  const path = normalizePath(`${folder}/${moment().format('YYYY-MM-DD')}.md`);
+  const path = normalizePath(`${folder}/${dayStamp(today)}.md`);
   const existing = app.vault.getFileByPath(path);
   if (existing) return existing;
   const template = app.vault.getFileByPath(normalizePath('Templates/Sitting.md'));

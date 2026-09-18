@@ -1,0 +1,71 @@
+# Cuts the release Obsidian actually downloads, and attests what it built.
+#
+# Obsidian reads a plugin's assets off the GitHub release whose tag matches
+# `manifest.json`'s version, and the tag is BARE — `0.2.0`, never `v0.2.0`.
+# Pushing the branch ships nothing on its own: the question bank is compiled
+# into main.js, so the release IS the delivery.
+#
+# The attestation is why this is a workflow rather than `gh release create`
+# from a laptop. It signs main.js against this repository and this commit, so
+# anyone can check that the file they installed was built from the source they
+# can read — which matters more here than for most plugins, because main.js
+# carries 2,274 questions nobody can diff by eye.
+
+name: Release
+
+on:
+  push:
+    tags: ['[0-9]*.[0-9]*.[0-9]*']
+
+permissions:
+  contents: write # create the release, upload the assets
+  id-token: write # sign the provenance
+  attestations: write # record it
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: oven-sh/setup-bun@v2
+
+      # A tag that disagrees with the manifest installs as the wrong version
+      # and never updates. Fail here rather than in someone's vault.
+      - name: The tag, the manifest and versions.json must agree
+        run: |
+          version=$(node -p "require('./manifest.json').version")
+          if [ "$GITHUB_REF_NAME" != "$version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match manifest version $version" >&2
+            exit 1
+          fi
+          node -e "
+            const v = require('./versions.json'), m = require('./manifest.json');
+            if (v[m.version] !== m.minAppVersion) {
+              console.error('versions.json['+m.version+'] is '+v[m.version]+', manifest says '+m.minAppVersion);
+              process.exit(1);
+            }
+          "
+
+      - run: npm ci
+      - run: bun test # install.test.ts is the release gate
+      - run: npm run build # tsc -noEmit, then the production bundle
+
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            main.js manifest.json styles.css

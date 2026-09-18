@@ -1,7 +1,7 @@
 // Plugin settings and the settings tab.
 
-import { PluginSettingTab, Setting } from 'obsidian';
-import type { App, Plugin } from 'obsidian';
+import { PluginSettingTab } from 'obsidian';
+import type { App, Plugin, Setting, SettingDefinitionItem } from 'obsidian';
 
 export interface KeepWritingSettings {
   /** OpenAI-compatible endpoint base URL for bonsai. */
@@ -53,112 +53,185 @@ export interface SettingsHost extends Plugin {
   saveSettings(): Promise<void>;
 }
 
+/**
+ * The settings tab, declared rather than drawn.
+ *
+ * This built the tab imperatively in `display()` until 2026-09-17, which works
+ * on every version but leaves the settings out of Obsidian's settings SEARCH:
+ * the app can only index what it can read as data. `getSettingDefinitions()`
+ * is that data, the base `display()` renders it, and the same array is what
+ * search reads — one description of each setting, not two. It arrived in
+ * 1.13.0, which is why `minAppVersion` is 1.13.0.
+ *
+ * The two folder fields are real folder pickers now. That is the change worth
+ * having: naming folders is most of what this tab does, and a free-text field
+ * takes a name no folder has and says nothing.
+ */
 export class KeepWritingSettingTab extends PluginSettingTab {
   constructor(app: App, private host: SettingsHost) {
     super(app, host);
   }
 
-  override display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
+  override getSettingDefinitions(): SettingDefinitionItem<ControlKey>[] {
+    return [
+      {
+        type: 'group',
+        heading: 'Vault',
+        items: [
+          {
+            name: 'Sittings folder',
+            desc: 'Daily notes live here. A note in this folder is a Sitting.',
+            control: { type: 'folder', key: 'sittingsFolder', defaultValue: DEFAULT_SETTINGS.sittingsFolder },
+          },
+          {
+            name: 'Bank folder',
+            desc: 'Question notes live here, one per channel.',
+            control: { type: 'folder', key: 'bankFolder', defaultValue: DEFAULT_SETTINGS.bankFolder },
+          },
+          {
+            name: 'Draw your own writing from',
+            desc:
+              'One folder per line. Every paragraph in these folders that carries a block id ' +
+              '(` ^abc123`) can be drawn, and the model turns it into a question about your ' +
+              'life now. Your daily notes folder is here by default, so your own answers come ' +
+              'back to you; add a folder of finished pieces and the plugin reaches into those ' +
+              'too. Nothing outside these folders is ever read. A note with `status: page` in ' +
+              'its frontmatter is skipped.',
+            aliases: ['pieces', 'corpus', 'paragraphs'],
+            control: {
+              type: 'textarea',
+              key: 'writingFolders',
+              rows: 4,
+              defaultValue: DEFAULT_SETTINGS.writingFolders.join('\n'),
+            },
+          },
+        ],
+      },
+      {
+        type: 'group',
+        heading: 'Model',
+        items: [
+          {
+            name: 'Use a model',
+            desc:
+              'Compose questions from your own writing. Off: the plugin draws from the Bank ' +
+              'only, and makes no network call at all.',
+            control: { type: 'toggle', key: 'enableModel', defaultValue: DEFAULT_SETTINGS.enableModel },
+          },
+          {
+            name: 'Endpoint base URL',
+            desc:
+              'Any OpenAI-compatible endpoint. The default is a server on this machine, so ' +
+              'nothing you write leaves it. Point this somewhere else and your paragraphs go ' +
+              'there instead — that is the whole of what changes.',
+            // The one setting that decides whether anything leaves the machine,
+            // so it says why it is refusing rather than silently keeping the
+            // old value.
+            control: {
+              type: 'text',
+              key: 'baseUrl',
+              defaultValue: DEFAULT_SETTINGS.baseUrl,
+              validate: (v) => (isEndpoint(v) ? undefined : 'Not a URL. Expected something like http://127.0.0.1:8088/v1'),
+              disabled: () => !this.host.settings.enableModel,
+            },
+          },
+          {
+            name: 'Model id',
+            desc: 'Sent to that endpoint as the model name.',
+            control: {
+              type: 'text',
+              key: 'model',
+              defaultValue: DEFAULT_SETTINGS.model,
+              disabled: () => !this.host.settings.enableModel,
+            },
+          },
+          {
+            name: 'API key',
+            desc:
+              'Sent as a bearer token. Leave it empty for a local server, which needs none. ' +
+              'It is kept in plain text in this vault, at ' +
+              // Obsidian's configuration folder only has its default name until
+              // the owner renames it, which they may. A sentence that names the
+              // default sends them looking in a folder that is not there.
+              `${this.app.vault.configDir}/plugins/keep-writing/data.json, like every ` +
+              'Obsidian setting — so do not commit that file to a public repository.',
+            aliases: ['token', 'bearer', 'secret'],
+            // Rendered by hand, not declared: no declarative control masks its
+            // input, and a key legible over a shoulder is worse than a setting
+            // that is one line longer here.
+            render: (setting: Setting) => {
+              setting.addText((t) => {
+                t.inputEl.type = 'password';
+                t.setPlaceholder('none')
+                  .setValue(this.host.settings.apiKey)
+                  .onChange((v) => void this.setControlValue('apiKey', v));
+              });
+            },
+          },
+        ],
+      },
+    ];
+  }
+
+  /**
+   * Both halves of the binding, written out rather than inherited, because two
+   * of these keys are not what they look like: `writingFolders` is a list
+   * behind a textarea, and a folder field that the owner empties must fall
+   * back to the default rather than storing '' and reaching nothing.
+   */
+  override getControlValue(key: string): unknown {
     const s = this.host.settings;
-    const save = () => void this.host.saveSettings();
+    switch (key as ControlKey) {
+      case 'writingFolders':
+        return s.writingFolders.join('\n');
+      case 'sittingsFolder':
+        return s.sittingsFolder;
+      case 'bankFolder':
+        return s.bankFolder;
+      case 'enableModel':
+        return s.enableModel;
+      case 'baseUrl':
+        return s.baseUrl;
+      case 'model':
+        return s.model;
+      case 'apiKey':
+        return s.apiKey;
+    }
+  }
 
-    new Setting(containerEl).setName('Vault').setHeading();
-
-    new Setting(containerEl)
-      .setName('Sittings folder')
-      .setDesc('Daily notes live here. A note in this folder is a Sitting.')
-      .addText((t) =>
-        t.setValue(s.sittingsFolder).onChange((v) => {
-          s.sittingsFolder = stripSlashes(v) || DEFAULT_SETTINGS.sittingsFolder;
-          save();
-        }),
-      );
-
-    new Setting(containerEl)
-      .setName('Bank folder')
-      .setDesc('Question notes live here, one per channel.')
-      .addText((t) =>
-        t.setValue(s.bankFolder).onChange((v) => {
-          s.bankFolder = stripSlashes(v) || DEFAULT_SETTINGS.bankFolder;
-          save();
-        }),
-      );
-
-    new Setting(containerEl)
-      .setName('Draw your own writing from')
-      .setDesc(
-        'One folder per line. Every paragraph in these folders that carries a block id ' +
-          '(` ^abc123`) can be drawn, and the model turns it into a question about your ' +
-          'life now. Your daily notes folder is here by default, so your own answers come ' +
-          'back to you; add a folder of finished pieces and the plugin reaches into those ' +
-          'too. Nothing outside these folders is ever read. A note with `status: page` in ' +
-          'its frontmatter is skipped.',
-      )
-      .addTextArea((t) =>
-        t.setValue(s.writingFolders.join('\n')).onChange((v) => {
-          s.writingFolders = parseFolders(v);
-          save();
-        }),
-      );
-
-    new Setting(containerEl).setName('Model').setHeading();
-
-    new Setting(containerEl)
-      .setName('Use a model')
-      .setDesc(
-        'Compose questions from your own writing. Off: the plugin draws from the Bank ' +
-          'only, and makes no network call at all.',
-      )
-      .addToggle((t) =>
-        t.setValue(s.enableModel).onChange((v) => {
-          s.enableModel = v;
-          save();
-        }),
-      );
-
-    new Setting(containerEl)
-      .setName('Endpoint base URL')
-      .setDesc(
-        'Any OpenAI-compatible endpoint. The default is a server on this machine, so ' +
-          'nothing you write leaves it. Point this somewhere else and your paragraphs go ' +
-          'there instead — that is the whole of what changes.',
-      )
-      .addText((t) =>
-        t.setValue(s.baseUrl).onChange((v) => {
-          s.baseUrl = v.trim() || DEFAULT_SETTINGS.baseUrl;
-          save();
-        }),
-      );
-
-    new Setting(containerEl)
-      .setName('Model id')
-      .setDesc('Sent to that endpoint as the model name.')
-      .addText((t) =>
-        t.setValue(s.model).onChange((v) => {
-          s.model = v.trim() || DEFAULT_SETTINGS.model;
-          save();
-        }),
-      );
-
-    new Setting(containerEl)
-      .setName('API key')
-      .setDesc(
-        'Sent as a bearer token. Leave it empty for a local server, which needs none. ' +
-          'It is kept in plain text in this vault, at ' +
-          '.obsidian/plugins/keep-writing/data.json, like every Obsidian setting — so ' +
-          'do not commit that file to a public repository.',
-      )
-      .addText((t) => {
-        t.inputEl.type = 'password';
-        t.setPlaceholder('none').setValue(s.apiKey).onChange((v) => {
-          s.apiKey = v.trim();
-          save();
-        });
-      });
+  override setControlValue(key: string, value: unknown): Promise<void> {
+    const s = this.host.settings;
+    const text = typeof value === 'string' ? value : '';
+    switch (key as ControlKey) {
+      case 'writingFolders':
+        s.writingFolders = parseFolders(text);
+        break;
+      case 'sittingsFolder':
+        s.sittingsFolder = stripSlashes(text) || DEFAULT_SETTINGS.sittingsFolder;
+        break;
+      case 'bankFolder':
+        s.bankFolder = stripSlashes(text) || DEFAULT_SETTINGS.bankFolder;
+        break;
+      case 'enableModel':
+        s.enableModel = value === true;
+        this.refreshDomState(); // the endpoint and model id hang off this one
+        break;
+      case 'baseUrl':
+        s.baseUrl = text.trim() || DEFAULT_SETTINGS.baseUrl;
+        break;
+      case 'model':
+        s.model = text.trim() || DEFAULT_SETTINGS.model;
+        break;
+      case 'apiKey':
+        s.apiKey = text.trim();
+        break;
+    }
+    return this.host.saveSettings();
   }
 }
+
+/** Every setting the tab binds. `starterOffered` is not one: nothing shows it. */
+type ControlKey = 'sittingsFolder' | 'bankFolder' | 'writingFolders' | 'enableModel' | 'baseUrl' | 'model' | 'apiKey';
 
 function stripSlashes(v: string): string {
   return v.trim().replace(/^\/+|\/+$/g, '');
@@ -167,4 +240,14 @@ function stripSlashes(v: string): string {
 /** Pure: one folder per line, blank lines and stray slashes dropped. */
 export function parseFolders(v: string): string[] {
   return [...new Set(v.split('\n').map(stripSlashes).filter(Boolean))];
+}
+
+/** Pure: something the endpoint call can actually be made against. */
+export function isEndpoint(v: string): boolean {
+  try {
+    const u = new URL(v.trim());
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }

@@ -124,14 +124,16 @@ export interface BlockText {
  * text is empty once stripped is dropped, which is what both callers did.
  */
 export async function blockTexts(app: App, file: TFile): Promise<BlockText[]> {
-  const blocks = app.metadataCache.getFileCache(file)?.blocks;
-  const ids = Object.keys(blocks ?? {});
-  if (!blocks || ids.length === 0) return [];
-  ids.sort((a, b) => blocks[a]!.position.start.line - blocks[b]!.position.start.line);
+  // Entries rather than keys: indexing a Record back by its own key is three
+  // lookups the compiler cannot prove safe, so it took three `!` to say what
+  // Object.entries already knows.
+  const entries = Object.entries(app.metadataCache.getFileCache(file)?.blocks ?? {});
+  if (entries.length === 0) return [];
+  entries.sort(([, a], [, b]) => a.position.start.line - b.position.start.line);
   const lines = (await app.vault.cachedRead(file)).split('\n');
   const out: BlockText[] = [];
-  for (const id of ids) {
-    const { start, end } = blocks[id]!.position;
+  for (const [id, block] of entries) {
+    const { start, end } = block.position;
     const text = stripBlockDecoration(lines.slice(start.line, end.line + 1).join('\n'));
     if (text) out.push({ id, line: start.line, text });
   }

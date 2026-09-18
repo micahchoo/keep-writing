@@ -136,7 +136,9 @@ Your key is stored in plain text at `.obsidian/plugins/keep-writing/data.json`, 
 
 ## Installing
 
-Not in the community plugins browser yet.
+Not in the community plugins browser yet. **Needs Obsidian 1.13 or newer** — the
+settings tab is declared rather than drawn, so Obsidian's own settings search
+can find it.
 
 1. Clone or download this repo into `<your vault>/.obsidian/plugins/keep-writing`.
 2. `npm install && npm run build` — this produces `main.js`.

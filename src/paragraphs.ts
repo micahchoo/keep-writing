@@ -106,8 +106,8 @@ export function noteFraming(name: string): string {
  * it ("2026-09-12-prattler", "Suffering a Repitition").
  */
 export function sittingName(basename: string): { date: string; called: string } {
-  const m = /^(\d{4}-\d{2}-\d{2})[-\s]*(.*)$/.exec(basename);
-  if (m) return { date: m[1] as string, called: (m[2] ?? '').trim() };
+  const [, date = '', called = ''] = /^(\d{4}-\d{2}-\d{2})[-\s]*(.*)$/.exec(basename) ?? [];
+  if (date) return { date, called: called.trim() };
   return { date: '', called: basename.trim() };
 }
 

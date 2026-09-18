@@ -1,0 +1,10 @@
+keep-writing bundles two kinds of work under two licences.
+
+  The code            MIT              LICENSE
+  starter/*.md        CC BY-SA 4.0     starter/LICENSE
+
+The question bank in starter/ is creative work, not code, and MIT does
+not reach it. It is compiled into main.js by the esbuild text loader, so
+a build of this repository carries both licences.
+
+Your own answers are yours. Neither licence reaches anything you write.
