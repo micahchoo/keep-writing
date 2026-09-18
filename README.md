@@ -1,220 +1,134 @@
 # keep-writing
 
-An Obsidian plugin for a vault that interviews its owner. It draws a source
-from one of two jars, places a question in today's Sitting as an Ask, and
-links the answer to what provoked it. The words in this README are the
-vault's own; `CONTEXT.md` at the vault root defines them.
+A vault that interviews you, so that you keep writing.
+
+keep-writing puts a question into your daily note in [Obsidian](https://obsidian.md), you answer it in your own words, and every answer is linked to whatever provoked it. Over time the vault becomes the well your writing projects draw from — and the questions start coming from what you have already written.
+
+> **Early, and not in the community store.** Install it manually (below). It ships with no question bank yet, so you bring your own or write one; a starter bank is the next thing planned. The follow-up questions need a local model, and everything else works without one.
 
 ## What it does
 
-- **Draw.** For the active Sitting, flip a coin between two jars. The Bank
-  jar holds questions other people wrote; one is asked as it is, unanswered
-  first, balanced across registers. The paragraph jar holds paragraphs the
-  owner wrote, filed under Wells; the draw picks a Well uniformly among those
-  with an unanswered paragraph, then a paragraph, and hands it to bonsai to
-  compose the question. If a jar is empty, the other is used.
-- **Ask.** Accept the drawn question and it lands at the end of `## Asked` as
-  a `> [!ask]` callout whose second line cites the source block. The cursor
-  goes to the line where your answer starts.
-- **Mark answered.** The first paragraph under an Ask gets a block id and an
-  `answers` link to the source. A non-Bank source gets `answered-by` back.
-  A Bookmark question also writes `next` on the Target note, or on `me`.
-- **Link.** Any paragraph can be linked to a note or block by one of five
-  relations (`answers`, `echoes`, `contradicts`, `follows`, `demonstrates`).
-  Both ends are written; Bank targets get no inverse.
-- **Links pane.** Every typed link in and out of the active note, grouped by
-  relation, with the rows for the block under the cursor highlighted, and a
-  remove control on each row.
+- **Draws a question** into today's note. Three at a time — pick one, or press Escape and nothing is written.
+- **Asks about your own past writing.** A drawn paragraph from a finished piece, or one you highlight yourself in any note at all, goes to a local model that composes a question about it.
+- **Follows up.** Mark an answer done and the model reads it, then offers the next question. Run it again on the same answer, next week, and it composes fresh ones.
+- **Links every answer** to the question that caused it, in frontmatter, both ends. That is what stops a question coming back once you have answered it.
+- **Never writes your prose.** See [What it will not do](#what-it-will-not-do).
 
-## The write surface
+## Getting started
 
-The plugin never writes body text. Everything it writes is one of:
+1. Open today's daily note.
+2. Run **Draw a question** (ribbon icon, command palette, or right-click → keep-writing).
+3. Pick one of the three. It lands in your note and the cursor goes where your answer starts:
 
-1. A frontmatter property, through `app.fileManager.processFrontMatter`
-   (`links.ts`, `asks.ts` for `next`).
-2. A block id ` ^xxxxxx` appended to the last line of a paragraph
-   (`blocks.ts#ensureBlockId`). No existing character changes. A paragraph
-   of a Domain or Learning note gets its id this way, only when it is drawn
-   and a question about it is accepted.
-3. A `> [!ask]` callout, with one blank line after it, at the end of the
-   `## Asked` section (`asks.ts#appendAsk`). If the heading is missing, the
-   plugin adds it. A Revisit's callout carries a third line that embeds the
-   paragraph (`> ![[Pieces/x#^p-004]]`); the paragraph itself is not copied.
+```markdown
+## Asked
 
-One fallback creates a file: "Open today's Sitting" uses the daily-notes core
-plugin's command. When that command is absent, the plugin copies
-`Templates/Sitting.md` verbatim to `Sittings/YYYY-MM-DD.md`.
+> [!ask] what do you get complimented on the most?
+> from [[Bank/questions for meaningful introductions#^b17850831]]
+
+▏
+```
+
+4. Write. Then, with the cursor still in your answer, run **Mark this answer done, and follow up**.
+
+Your answer gets a block id and an `answers` link to the question. Then the model reads what you wrote and offers the next question:
+
+```yaml
+---
+answers:
+  - "[[Bank/questions for meaningful introductions#^b17850831]]"
+---
+```
 
 ## Commands
 
+All three are on the editor's right-click menu, under **keep-writing**.
+
 | Command | What happens |
 |---|---|
-| Open Ask pane | Right sidebar: what the jars hold, one drawn source, open Asks, Proposals. |
-| Open Links pane | Right sidebar: typed links of the active note. |
-| Draw a question | Redraw. |
-| Ask a closing question | Draw an entry tagged `#role/door`. |
-| Mark answer under cursor as done | Link the answer the cursor is in to its Ask's source. |
-| Ask about the selection | Compose a question about the words selected, in any note the owner writes paragraphs in. |
-| Link this paragraph to… | Note, then block or whole note, then relation. |
+| **Draw a question** | Three sources to choose from. A bank question becomes an Ask at once; a paragraph of yours goes to the model first, and its questions are the second chooser. |
+| **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers follow-up questions. Safe to run again on an answer already linked — it writes nothing and composes afresh. |
+| **Ask about the selection** | Highlight any run of text, in **any** note, and be asked about it. The Ask lands in today's note. |
 
-The Ask pane's buttons: **Accept** inserts the Ask. **Skip** redraws and keeps
-the skipped source out for this session. **Bookmark** draws an entry tagged
-`#role/bookmark`; **Open door** draws one tagged `#role/door`. A role is read
-off the entry, so a closing move is legal in any bank note; `Bank/closing.md`
-is only where they are kept.
-**Ask about selection** takes the words selected in the editor as the source;
-it sits at the top of the pane and works while any note is open.
+## Where questions come from
 
-While roaming, the pane's header reads what is left to draw, for instance
-`roaming · 3980 questions · 1102 paragraphs across 9 wells`. With `about`
-set on the Sitting it reads `only <Target>`.
+Two jars. Seven draws in ten come from the first.
 
-## The two jars
-
-| Jar | What is in it | How it is asked |
+| Jar | What's in it | How it's asked |
 |---|---|---|
-| Bank | every list item with a block id and no `#role/` tag, in a `Bank/*.md` with `kind: bank` | as written |
-| paragraphs | every paragraph with a block id in a finished Piece or a Sitting; every paragraph of a Domain or Learning note's body, id or not | bonsai composes the question (a Revisit) |
+| **The bank** | Questions other people wrote — every list item with a block id in a note in `Bank/` whose frontmatter says `kind: bank` | As written |
+| **Your writing** | Every block with an id in your daily notes, and in finished pieces in `Pieces/` | The model composes a question about it |
 
-There are no forms with holes in them. A Bank question is asked as it is,
-whoever it was written for. Everything that is about the owner's own practice
-comes from a paragraph the owner wrote.
+A bank note is ordinary Markdown. One question per list item, a `#register/…` tag saying what kind of answer it calls for, and a block id so the Ask can cite it:
 
-Seven draws in ten come from the Bank (`BANK_SHARE` in `bank.ts`). Not a half,
-because a Revisit is not the only way the owner's own words come back: every
-answer marked done offers up to three Follow-ups, and a Follow-up is not a
-draw. It never passes through the jars. Whatever this share gives, the
-Follow-ups sit on top of it.
+```markdown
+---
+kind: bank
+---
 
-A source is answered when any block carries an `answers` link to it. The same
-rule holds for a question and for a paragraph.
-
-### What a Well is
-
-A Well is where a paragraph comes from, for balance and for the Lens:
-
-| Well | Its paragraphs |
-|---|---|
-| the self (`me`) | Sittings, and the finished Pieces no Domain gathers |
-| a note in `Domains/` | the finished Pieces it gathers, plus its own body |
-| a note in `Learning/` | its own body |
-
-A Well is entered by writing a paragraph in a note in `Domains/` or
-`Learning/`. There is no command for it: a Well with no paragraph is silent,
-and that silence is correct. The draw spreads across Wells, so a Learning note
-with two paragraphs is drawn as often as a Domain with a hundred.
-
-Which Domain a Piece belongs to is Gathering. A Domain note lists `gathers:`,
-a list of tags; a finished Piece whose `tags` meet that list, or that links
-the Domain in `about`, belongs to it. A Piece can belong to several Domains.
-Nothing is stored on the Piece; `target.ts#gatheredBy` computes it on every
-draw. An open Piece (no `status`) is not a Well and is not drawn.
-
-Set `about` on a Sitting to one Well or one finished Piece to spend a day on
-it: the Bank jar is then closed, and the paragraph jar holds that Well's
-paragraphs only (a finished Piece: its own). Remove `about` to roam again.
-
-## Revisits
-
-A Revisit is an Ask whose source is a paragraph the owner wrote before. The
-corpus of finished Pieces lives in `Pieces/`, one note per Piece, every prose
-paragraph ending in a block id `^p-NNN`. Sitting answers carry the id they
-got when marked done. A Domain or Learning body paragraph may have no id yet.
-
-When the draw lands on a paragraph, the pane shows the paragraph and one line
-of framing (title · date · publisher; `Sitting 2026-09-12`; the note's name).
-There is no fixed question for it: the paragraph is prose, story, or poem, so
-bonsai composes the question the way it composes a Follow-up, with the
-paragraph as context and the framing (`in 2021, for Branch Magazine`; `in a
-Sitting on 2026-09-12`; `in their note on Blender`; `in what they wrote about
-wanting to learn Dutch`).
-
-A paragraph of a Domain or Learning Well is read through a Lens. A Lens is a
-note in `Lenses/`, prose, that tells bonsai where to look: `Lenses/craft.md`
-for Domains, `Lenses/learning.md` for Learning notes. Its body, after the
-frontmatter, is appended to the composition prompt verbatim (`lens.ts`), and
-the framing line in the pane says so: `through the craft lens`. The self has
-no Lens; the Bank is never steered. The learning Lens may end a question with
-`(due +7d)`; the plugin strips the marker and writes the Ask with a `due:`
-line that many days from today.
-
-Up to three candidates appear, each with a +. Choosing one places the Ask with
-the paragraph as its source, embedded under the from-line so it reads in
-place. A paragraph without an id is given one at this moment, so the Ask can
-cite it.
-
-```
-> [!ask] what did the buffaloes see that you left out?
-> from [[Pieces/2021-feeling-through-the-cities-koramangala#^p-004]]
-> ![[Pieces/2021-feeling-through-the-cities-koramangala#^p-004]]
+- what do you get complimented on the most? #register/value ^b17850831
+- what did you make this week? #register/episode ^b17850832
 ```
 
-With the model off, or when it offers nothing, one plain button asks the one
-fixed form, "what would you write under this now?", so a paragraph is never a
-dead end. Skip keeps the paragraph out for this session, like a question.
+A question is *answered* when any block in the vault carries an `answers` link to it. Answered questions leave the jar. So do ones already asked in the note you're writing in.
 
-Marking the answer done writes `answers` on the answer block and `answered-by`
-on the source note, so a Piece's properties list every answer that revisits
-it. A Revisit never draws the paragraph into the well; it draws an answer
-about it.
+Put `about: "[[some note]]"` in a daily note's frontmatter to spend the day on one thing: the bank closes and only that note's paragraphs are drawn.
 
-## Ask about the selection
+## What it will not do
 
-The draw can only reach a paragraph that the jar holds, and the jar holds a
-Sitting's blocks only when they carry an id — which means the first paragraph
-of each marked answer, and nothing after it. "Ask about the selection" is the
-way in by hand: select any run of text, in a Sitting, a Piece, a Domain or a
-Learning note, and it becomes the source of a question composed exactly as a
-Revisit is composed.
+The plugin never writes a sentence into your notes. Its entire write surface is three things:
 
-Three ways to it: the command **Ask about the selection**, the same item on
-the editor's right-click menu, and the **Ask about selection** button at the
-top of the pane.
+1. **Frontmatter properties** — via Obsidian's own `processFrontMatter`.
+2. **A block id** appended to a paragraph you already wrote (` ^a1b2c3`). No existing character changes.
+3. **A `> [!ask]` callout**, at the end of the `## Asked` section.
 
-What it takes from the note is the same as a drawn paragraph: the framing,
-the Well, and so the Lens. The question is composed from the selection alone,
-so selecting one sentence of a long paragraph asks about that sentence. The
-Ask still cites the whole block that holds it, because a block is the
-smallest thing Obsidian can link and embed. A block with no id is given one
-when the Ask is accepted.
-
-An Ask always lands in a Sitting. When the selection is in a Piece or a
-Domain note, it lands in today's Sitting (made now if today has none) and the
-pane says which. When the selection is in the Sitting already open, the
-cursor goes under the new Ask, as a draw does.
-
-## Enable it
-
-1. Build: `npm install`, then `npm run build`. This produces `main.js`.
-2. In Obsidian: Settings → Community plugins → turn off Restricted mode.
-3. Enable **keep-writing** in the list.
-4. Optional: Settings → keep-writing to change the Sittings or Bank folder.
-
-`npm run dev` rebuilds on every change. `npm test` runs the unit tests.
+There is no code path that inserts, edits or rewords prose. The body of a note is yours. Nothing is written without you picking it first, and Escape always means no.
 
 ## The model
 
-`src/model.ts` is the seam for bonsai (`src/bonsai.ts`, `src/lexical.ts`).
-It is on by default and calls `http://127.0.0.1:8088/v1`; switch it off in
-settings and the plugin runs bank-only.
+Follow-up and revisit questions need an OpenAI-compatible endpoint. It's on by default and points at `http://127.0.0.1:8088/v1` — a local server. **Nothing leaves your machine unless you point it somewhere else.**
 
-When you mark an answer done, two small jobs run, each one call at
-temperature 0:
+Turn it off in settings and the plugin runs bank-only: the draw, the Ask, and the linking all still work. You lose the questions composed from your own writing.
 
-- **Follow-up.** bonsai reads the question and your whole answer and offers
-  up to three next questions. They appear as a card in the Ask pane; the +
-  next to one places it as an Ask whose source is your answer block. Code
-  drops a candidate that hands your answer back, or that re-asks the question
-  you just answered. If every candidate re-asks it, a second arm runs with
-  the question removed and your answer alone, which is what makes the model
-  let go of it (`scripts/probe-question-echo.ts` holds the measurement). An
-  abstain is left alone: the model declining is a legal answer.
-- **Revisit.** When the draw lands on a paragraph, bonsai reads it with one
-  line of framing and the Well's Lens, and offers up to three questions,
-  checked the same way.
-- **Proposal.** Code finds up to five earlier blocks that share words with
-  the answer; bonsai picks at most one and a relation (echoes, contradicts,
-  follows) with a quote from it. Link writes the relation on both ends.
-  Ignore drops it. Nothing is written without you.
+Two jobs, one call each, temperature 0, JSON out, one retry, then it gives up quietly:
 
-Calls are logged to the developer console under `[keep-writing]`.
+- **Follow-up** — reads the question and your whole answer, offers up to three next questions. Candidates that hand your answer back, re-ask what you just answered, or refer to the conversation are dropped in code before you see them.
+- **Revisit** — reads a paragraph you wrote before, with one line of framing (`in 2021, in "Koramangala"`), and offers up to three questions about it.
+
+The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]`.
+
+`Lenses/craft.md` is a prose note whose body is appended to the composition prompt verbatim. Edit it to change how the model asks. It's the interviewer's technique as a page you control, not a string in the source.
+
+## Installing
+
+Not in the community plugins browser yet.
+
+1. Clone or download this repo into `<your vault>/.obsidian/plugins/keep-writing`.
+2. `npm install && npm run build` — this produces `main.js`.
+3. Obsidian → Settings → Community plugins → turn off Restricted mode.
+4. Enable **keep-writing**.
+
+## Settings
+
+| Setting | Default | |
+|---|---|---|
+| Sittings folder | `Sittings` | Where daily notes live |
+| Bank folder | `Bank` | Where question notes live |
+| Enable model | on | Off makes it bank-only |
+| Base URL | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible endpoint |
+| Model | `bonsai-2-27b` | Model id sent to that endpoint |
+
+A `Templates/Sitting.md` with a `## Asked` heading is copied into a new daily note when the plugin has to make one. Anything under a later heading stays at the bottom, below every drawn question.
+
+## Development
+
+```bash
+npm install
+npm run dev     # rebuild on change
+npm test        # unit tests, no vault and no model needed
+npm run build   # typecheck, then bundle
+```
+
+`test/fake-vault.ts` stands in for Obsidian's `App` — reads and the whole write surface — so the interview can be run and tested with no Obsidian and no DOM.
+
+Tests that need a live model are skipped unless `KW_LIVE=1` and a server answers on the configured address.
