@@ -12,40 +12,19 @@
 //
 // `gathers:` stays in the Domain notes as ordinary Obsidian tags. The tag pane
 // reads them, search reads them, and no code does.
+//
+// There was a `Pieces/` folder name in here until 2026-09-17, and `classify`,
+// `isFinishedPiece` and `isRevisitable` read it: a note was the owner's
+// writing because of where it sat. Nobody else's vault has that folder. The
+// owner NAMES the folders now (settings.ts, `writingFolders`), and what a note
+// lends its paragraphs is read off its frontmatter rather than its path
+// (paragraphs.ts#fileFacts).
 
 import type { App, TFile } from 'obsidian';
 import { refNamed, resolveRef } from './refs';
 
-/** Where the owner's finished writing lives. Becomes a setting when the plugin ships. */
-const PIECES_FOLDER = 'Pieces';
 /** The note a bookmark lands on when the day has no Target. */
 export const ME_BASENAME = 'me';
-
-export type NoteKind = 'me' | 'piece';
-
-export function classify(file: TFile | null): NoteKind | null {
-  if (!file) return null;
-  if (file.basename === ME_BASENAME && !file.path.includes('/')) return 'me';
-  if (file.path.startsWith(PIECES_FOLDER + '/')) return 'piece';
-  return null;
-}
-
-/** A Piece with a `status` (published, set-down, page) is finished. */
-export function isFinishedPiece(app: App, file: TFile): boolean {
-  if (classify(file) !== 'piece') return false;
-  const status = app.metadataCache.getFileCache(file)?.frontmatter?.['status'];
-  return typeof status === 'string' ? status.trim() !== '' : status != null;
-}
-
-/**
- * A Piece whose paragraphs the draw may reach: published or set-down.
- * `status: page` marks site furniture (a resume, a section index): finished
- * and linkable, but never put in front of the owner.
- */
-export function isRevisitable(app: App, file: TFile): boolean {
-  if (!isFinishedPiece(app, file)) return false;
-  return app.metadataCache.getFileCache(file)?.frontmatter?.['status'] !== 'page';
-}
 
 /**
  * `about` on a Sitting: the one note the day is spent on. Its paragraphs are

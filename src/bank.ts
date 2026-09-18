@@ -189,6 +189,8 @@ export interface DrawContext {
   app: App;
   bankFolder: string;
   sittingsFolder: string;
+  /** Folders whose paragraphs the draw may reach. */
+  writingFolders: string[];
   index: AnsweredIndex;
   /** Source keys skipped this session. */
   skipped: Set<string>;
@@ -231,7 +233,7 @@ export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<
   const bank = await bankJar(ctx, target);
 
   const today = ctx.sitting?.path;
-  let paragraphs = (await paragraphJar(ctx.app, ctx.sittingsFolder)).filter(
+  let paragraphs = (await paragraphJar(ctx.app, ctx.sittingsFolder, ctx.writingFolders)).filter(
     (p) => drawable(p.key) && p.file.path !== today,
   );
   if (target) paragraphs = paragraphs.filter((p) => p.file.path === target.path);

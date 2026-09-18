@@ -68,7 +68,9 @@ function open(notes: Record<string, string>, model: Model = OFF, hooks: VaultHoo
   };
   const host: InterviewHost = {
     app: v.app,
-    settings: { ...DEFAULT_SETTINGS },
+    // The folders this test vault keeps writing in. The shipped default names
+    // only the Sittings folder; every fixture here that holds a Piece says so.
+    settings: { ...DEFAULT_SETTINGS, writingFolders: ['Sittings', 'Pieces'] },
     index: new AnsweredIndex(v.app),
     model,
   };

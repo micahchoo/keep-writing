@@ -31,6 +31,7 @@ const ctx = (skipped: string[] = []): DrawContext => ({
   app,
   bankFolder: 'Bank',
   sittingsFolder: 'Sittings',
+  writingFolders: ['Sittings', 'Pieces'],
   index: new AnsweredIndex(app),
   skipped: new Set(skipped),
 });
@@ -49,10 +50,14 @@ describe('fillJars, roaming', () => {
     expect(jars.bank.map((q) => q.key).sort()).toEqual(['Bank/q.md#^b1', 'Bank/q.md#^b2']);
     expect(jars.paragraphs.map((p) => p.key).sort()).toEqual([
       'Pieces/2021-koramangala.md#^p-002',
+      // An open Piece is in the jar from 2026-09-17. It is in a folder the
+      // owner named, and requiring a `status` to be finished by is a rule
+      // nobody else's vault can satisfy.
+      'Pieces/rivers.md#^p-001',
       'Sittings/2026-09-12.md#^ans1',
       'Sittings/2026-09-15.md#^ans2',
     ]);
-    expect(jarCounts(jars)).toEqual({ questions: 2, paragraphs: 3 });
+    expect(jarCounts(jars)).toEqual({ questions: 2, paragraphs: 4 });
   });
 
   test('a paragraph is answered when any block carries an answers link to it', async () => {
@@ -74,15 +79,18 @@ describe('fillJars with a Target', () => {
     expect(jars.paragraphs.map((p) => p.key)).toEqual(['Pieces/2021-koramangala.md#^p-002']);
   });
 
-  // A note whose paragraphs the jar cannot reach empties it, and that is
-  // honest: the day was spent on one thing and there is nothing to draw from
-  // it. An open Piece is the same case.
-  test('a note the jar does not reach: nothing to draw', async () => {
+  // A note in no named folder empties the jar, and that is honest: the day was
+  // spent on one thing and there is nothing to draw from it. `Domains/` is in
+  // neither folder this vault named.
+  test('a note in no named folder: nothing to draw', async () => {
     const jars = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-15.md')));
     expect(jars.bank).toEqual([]);
     expect(jars.paragraphs).toEqual([]);
+  });
+
+  test('an open Piece as Target draws the draft being written', async () => {
     const open = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-16.md')));
-    expect(open.paragraphs).toEqual([]);
+    expect(open.paragraphs.map((p) => p.key)).toEqual(['Pieces/rivers.md#^p-001']);
   });
 });
 

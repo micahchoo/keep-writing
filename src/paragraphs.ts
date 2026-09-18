@@ -1,9 +1,14 @@
-// The paragraph jar: every paragraph the owner wrote that the draw can put
-// in front of them. Two shelves, both of blocks that already carry an id:
+// The paragraph jar: every paragraph the owner wrote that the draw can put in
+// front of them. One rule — every block with an id, in a folder the owner
+// named (settings.ts, `writingFolders`). Their daily notes are in that list by
+// default, so their own answers come back to them; a folder of finished
+// writing is the other thing most people add.
 //
-// - finished Pieces (published, set-down);
-// - Sittings — answers are paragraphs too; an Ask callout has no id, so it is
-//   never here.
+// The two shelves were `Pieces/` and `Sittings/`, by path, until 2026-09-17,
+// and `Pieces` was a folder name compiled into the plugin. A note also had to
+// carry a `status` to be reached, which for anybody but this vault's owner
+// would have meant an empty jar and no way to find out why. Now: named the
+// folder, in the jar. One note may opt out with `status: page`.
 //
 // A paragraph from this jar is handed to bonsai to compose the question (a
 // Revisit), with one line of framing: when and where it was written.
@@ -25,7 +30,7 @@ import type { App, TFile } from 'obsidian';
 import { headingAbove, readsAsParagraph } from './furniture';
 import { blockTexts, refOf, resolveRef } from './refs';
 import type { Ref } from './refs';
-import { classify, isRevisitable, isSitting } from './target';
+import { isSitting } from './target';
 
 /** The register a paragraph counts as. */
 const REVISIT_REGISTER = 'revisit';
@@ -181,8 +186,31 @@ export function noteFacts(note: TFile): ParagraphFacts {
 }
 
 /**
+ * `status: page` marks site furniture — a resume, a section index. Finished
+ * and linkable, and never put in front of the owner. It is the one way a note
+ * inside a writing folder stays out of the jar.
+ */
+const NOT_DRAWN = 'page';
+
+/** Is this note one the draw may reach at all? */
+export function isDrawn(app: App, file: TFile): boolean {
+  return app.metadataCache.getFileCache(file)?.frontmatter?.['status'] !== NOT_DRAWN;
+}
+
+/** Is this note under one of the folders the owner named? */
+export function inFolders(file: TFile, folders: string[]): boolean {
+  return folders.some((f) => f && file.path.startsWith(f + '/'));
+}
+
+/**
  * The facts of whatever note this is. Never null: the owner may point at a
  * paragraph in ANY note and be asked about it.
+ *
+ * It read the note's PATH until 2026-09-17 — a Piece was a Piece because it
+ * sat in `Pieces/`. It reads the frontmatter now: a note that says when it was
+ * written, that it is finished, or what it is called, can be framed with a
+ * year and a title — which is what a composed question needs, and what the
+ * folder name never told anyone. Everything else is just a note.
  *
  * It returned null for anything that was not a Sitting, a Piece, a Domain or a
  * Learning note until 2026-09-17, and a Selection refused with "Ask about the
@@ -191,8 +219,9 @@ export function noteFacts(note: TFile): ParagraphFacts {
  */
 export function fileFacts(app: App, file: TFile, sittingsFolder: string): ParagraphFacts {
   if (isSitting(file, sittingsFolder)) return sittingFacts(file);
-  if (classify(file) === 'piece') return pieceFacts(app, file);
-  return noteFacts(file);
+  const fm = app.metadataCache.getFileCache(file)?.frontmatter ?? {};
+  const declared = str(fm['date']) || str(fm['status']) || str(fm['title']);
+  return declared ? pieceFacts(app, file) : noteFacts(file);
 }
 
 /** One unit of a note the draw or a Selection may take: a block, with or without an id. */
@@ -254,11 +283,6 @@ async function blockParagraphs(app: App, file: TFile, facts: ParagraphFacts): Pr
   return (await blockTexts(app, file)).map((b) => paragraphOf(file, facts, b));
 }
 
-/** The paragraphs of one finished Piece: its blocks with ids. */
-export async function pieceParagraphs(app: App, piece: TFile): Promise<Paragraph[]> {
-  return blockParagraphs(app, piece, pieceFacts(app, piece));
-}
-
 /**
  * Pure: one paragraph per distinct text. The corpus keeps every telling of a
  * Piece (CONTEXT.md, "Piece"), so the same words reach the jar under two
@@ -290,16 +314,20 @@ export function oneTellingEach(paragraphs: Paragraph[]): Paragraph[] {
 }
 
 /**
- * The whole paragraph jar, before answered-ness: both shelves, every
- * paragraph. Furniture is strained out here, and so is a second telling of the
- * same words, in the one place both shelves pass through, so no caller can
- * forget either.
+ * The whole paragraph jar, before answered-ness: every id'd block of every
+ * note in the folders the owner named. Furniture is strained out here, and so
+ * is a second telling of the same words, in the one place every paragraph
+ * passes through, so no caller can forget either.
  */
-export async function paragraphJar(app: App, sittingsFolder: string): Promise<Paragraph[]> {
+export async function paragraphJar(
+  app: App,
+  sittingsFolder: string,
+  writingFolders: string[],
+): Promise<Paragraph[]> {
   const jar: Paragraph[] = [];
   for (const file of app.vault.getMarkdownFiles()) {
-    if (isSitting(file, sittingsFolder)) jar.push(...(await blockParagraphs(app, file, sittingFacts(file))));
-    else if (isRevisitable(app, file)) jar.push(...(await pieceParagraphs(app, file)));
+    if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
+    jar.push(...(await blockParagraphs(app, file, fileFacts(app, file, sittingsFolder))));
   }
   const prose = jar.filter((p) =>
     readsAsParagraph(p.text, headingAbove(app.metadataCache.getFileCache(p.file), p.line)),

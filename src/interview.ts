@@ -199,14 +199,14 @@ export class Interview {
 
   /** What the Draw reads the vault through, with this Sitting's Asks already placed. */
   private async context(sitting: TFile) {
-    const { sittingsFolder, bankFolder } = this.host.settings;
+    const { sittingsFolder, bankFolder, writingFolders } = this.host.settings;
     const placed = new Set<string>();
     for (const a of await asksOf(this.app, sitting)) {
       const ref = parseRef(a.sourceRef);
       const key = ref && keyOfRef(this.app, ref, sitting.path);
       if (key) placed.add(key);
     }
-    return { app: this.app, bankFolder, sittingsFolder, index: this.host.index, skipped: placed, sitting };
+    return { app: this.app, bankFolder, sittingsFolder, writingFolders, index: this.host.index, skipped: placed, sitting };
   }
 
   /** Write a drawn Bank question as an Ask, and put the cursor under it. */

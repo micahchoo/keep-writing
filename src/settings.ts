@@ -14,6 +14,15 @@ export interface KeepWritingSettings {
   sittingsFolder: string;
   /** Folder that holds Bank notes. */
   bankFolder: string;
+  /**
+   * Folders whose paragraphs the draw may reach. The daily notes folder is in
+   * here by default, so the owner's own answers come back to them; a folder of
+   * finished writing is the other thing most people add.
+   *
+   * This was the compiled-in name `Pieces` until 2026-09-17, which is a folder
+   * only this vault has.
+   */
+  writingFolders: string[];
 }
 
 export const DEFAULT_SETTINGS: KeepWritingSettings = {
@@ -22,6 +31,7 @@ export const DEFAULT_SETTINGS: KeepWritingSettings = {
   enableModel: true,
   sittingsFolder: 'Sittings',
   bankFolder: 'Bank',
+  writingFolders: ['Sittings'],
 };
 
 export interface SettingsHost extends Plugin {
@@ -62,6 +72,23 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         }),
       );
 
+    new Setting(containerEl)
+      .setName('Draw your own writing from')
+      .setDesc(
+        'One folder per line. Every paragraph in these folders that carries a block id ' +
+          '(` ^abc123`) can be drawn, and the model turns it into a question about your ' +
+          'life now. Your daily notes folder is here by default, so your own answers come ' +
+          'back to you; add a folder of finished pieces and the plugin reaches into those ' +
+          'too. Nothing outside these folders is ever read. A note with `status: page` in ' +
+          'its frontmatter is skipped.',
+      )
+      .addTextArea((t) =>
+        t.setValue(s.writingFolders.join('\n')).onChange((v) => {
+          s.writingFolders = parseFolders(v);
+          save();
+        }),
+      );
+
     new Setting(containerEl).setName('Model').setHeading();
 
     new Setting(containerEl)
@@ -97,4 +124,9 @@ export class KeepWritingSettingTab extends PluginSettingTab {
 
 function stripSlashes(v: string): string {
   return v.trim().replace(/^\/+|\/+$/g, '');
+}
+
+/** Pure: one folder per line, blank lines and stray slashes dropped. */
+export function parseFolders(v: string): string[] {
+  return [...new Set(v.split('\n').map(stripSlashes).filter(Boolean))];
 }

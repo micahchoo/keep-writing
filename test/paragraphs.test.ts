@@ -4,10 +4,10 @@ import {
   noteFraming,
   oneTellingEach,
   paragraphJar,
-  pieceParagraphs,
   sittingFraming,
   sittingName,
 } from '../src/paragraphs';
+import { blockTexts } from '../src/refs';
 import { fakeVault } from './fake-vault';
 
 describe('framing', () => {
@@ -125,42 +125,55 @@ describe('paragraphJar', () => {
     'Bank/q.md': '---\nkind: bank\n---\n- a question? #register/value ^b1\n',
   });
 
-  // Two shelves, both of blocks that already carry an id: finished Pieces and
-  // Sittings. A third held the bodies of Domain and Learning notes, drawable
-  // with or without an id, until 2026-09-17. Those notes are still reachable
-  // by pointing at a paragraph in one; they are no longer drawn.
-  test('both shelves; open Pieces, pages, me.md and every other note stay out; furniture never enters', async () => {
-    const jar = await paragraphJar(vault.app, 'Sittings');
-    expect(jar.map((p) => p.key).sort()).toEqual([
+  /** What the owner named in settings. `Domains/` and `me.md` are in neither. */
+  const FOLDERS = ['Sittings', 'Pieces'];
+  const jarOf = (folders = FOLDERS) => paragraphJar(vault.app, 'Sittings', folders);
+
+  // The jar was `Pieces/` and `Sittings/` by path, and a Piece also needed a
+  // `status`, until 2026-09-17. One rule now: an id'd block in a folder the
+  // owner named. An open Piece is IN — it has no status to be finished by, and
+  // a rule that needs one is a rule nobody else's vault can satisfy.
+  test('every id`d block of every named folder; furniture never enters', async () => {
+    expect((await jarOf()).map((p) => p.key).sort()).toEqual([
       'Pieces/2019-loose.md#^p-001',
       'Pieces/2021-koramangala.md#^p-001',
       'Pieces/2021-koramangala.md#^p-002',
+      'Pieces/rivers.md#^p-001',
       'Sittings/2026-09-12.md#^ans1',
       'Sittings/Suffering a Repitition.md#^ans9',
     ]);
   });
 
+  // The fence that mattered was never the folder name; it is what reads as a
+  // paragraph the owner wrote.
   test('the three species of furniture are strained out, each by its own rule', async () => {
-    const piece = vault.file('Pieces/2021-koramangala.md');
-    // The shelf holds every block with an id, furniture included...
-    const shelf = (await pieceParagraphs(vault.app, piece)).map((p) => p.key);
-    expect(shelf.sort()).toEqual([
-      'Pieces/2021-koramangala.md#^p-001',
-      'Pieces/2021-koramangala.md#^p-002',
-      'Pieces/2021-koramangala.md#^p-003',
-      'Pieces/2021-koramangala.md#^p-004',
-      'Pieces/2021-koramangala.md#^p-005',
-    ]);
-    // ...the jar holds only the two that are paragraphs the owner wrote.
-    const keys = (await paragraphJar(vault.app, 'Sittings')).map((p) => p.key);
+    // The file carries five blocks with ids...
+    const ids = (await blockTexts(vault.app, vault.file('Pieces/2021-koramangala.md'))).map((b) => b.id);
+    expect(ids.sort()).toEqual(['p-001', 'p-002', 'p-003', 'p-004', 'p-005']);
+    // ...the jar keeps the two that are paragraphs, not a figure, a caption or
+    // a citation.
+    const keys = (await jarOf()).map((p) => p.key);
     expect(keys.filter((k) => k.startsWith('Pieces/2021-koramangala')).sort()).toEqual([
       'Pieces/2021-koramangala.md#^p-001',
       'Pieces/2021-koramangala.md#^p-002',
     ]);
   });
 
+  test('a folder the owner did not name is never read', async () => {
+    const keys = (await jarOf(['Sittings'])).map((p) => p.key);
+    expect(keys.every((k) => k.startsWith('Sittings/'))).toBe(true);
+    // And naming it brings it in: `Domains/Cities.md` has one id`d paragraph.
+    expect((await jarOf(['Domains'])).map((p) => p.key)).toEqual(['Domains/Cities.md#^w1']);
+  });
+
+  // The one opt-out a note inside a named folder has. `Pieces/index.md` is a
+  // section index: finished and linkable, never put in front of the owner.
+  test('`status: page` keeps a note out of the jar', async () => {
+    expect((await jarOf()).some((p) => p.file.path === 'Pieces/index.md')).toBe(false);
+  });
+
   test('a Piece paragraph carries its framing and pane facts', async () => {
-    const jar = await paragraphJar(vault.app, 'Sittings');
+    const jar = await jarOf();
     const p = jar.find((x) => x.key === 'Pieces/2021-koramangala.md#^p-001')!;
     expect(p.text).toBe('The buffaloes did not look up when the whole procession went past the auto stand.');
     expect(p.framing).toBe('in 2021, in "Koramangala", for Branch Magazine');
@@ -173,7 +186,7 @@ describe('paragraphJar', () => {
   });
 
   test('a Sitting answer is a paragraph of the self, framed by its day', async () => {
-    const jar = await paragraphJar(vault.app, 'Sittings');
+    const jar = await jarOf();
     const p = jar.find((x) => x.key === 'Sittings/2026-09-12.md#^ans1')!;
     expect(p.text).toBe('The river, again, and the way it goes quiet under the bridge near the market.');
     expect(p.framing).toBe('in a Sitting on 2026-09-12');
@@ -181,7 +194,7 @@ describe('paragraphJar', () => {
   });
 
   test('a renamed Sitting is framed and shown by the name the owner gave it', async () => {
-    const jar = await paragraphJar(vault.app, 'Sittings');
+    const jar = await jarOf();
     const p = jar.find((x) => x.key === 'Sittings/Suffering a Repitition.md#^ans9')!;
     expect(p.framing).toBe('in a Sitting they called "Suffering a Repitition"');
     expect(p.title).toBe('Suffering a Repitition');

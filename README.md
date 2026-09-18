@@ -59,7 +59,7 @@ Two jars. Seven draws in ten come from the first.
 | Jar | What's in it | How it's asked |
 |---|---|---|
 | **The bank** | Questions other people wrote — every list item with a block id in a note in `Bank/` whose frontmatter says `kind: bank` | As written |
-| **Your writing** | Every block with an id in your daily notes, and in finished pieces in `Pieces/` | The model composes a question about it |
+| **Your writing** | Every block with an id, in the folders you name in settings | The model composes a question about it |
 
 A bank note is ordinary Markdown. One question per list item, a `#register/…` tag saying what kind of answer it calls for, and a block id so the Ask can cite it:
 
@@ -71,6 +71,8 @@ kind: bank
 - what do you get complimented on the most? #register/value ^b17850831
 - what did you make this week? #register/episode ^b17850832
 ```
+
+Your daily notes folder is the only one named to start with, so your own answers come back to you from day one. Add a folder of finished writing and the plugin reaches into that too. Nothing outside those folders is read, and a note with `status: page` in its frontmatter is skipped.
 
 A question is *answered* when any block in the vault carries an `answers` link to it. Answered questions leave the jar. So do ones already asked in the note you're writing in.
 
@@ -129,6 +131,7 @@ Not in the community plugins browser yet.
 |---|---|---|
 | Sittings folder | `Sittings` | Where daily notes live |
 | Bank folder | `Bank` | Where question notes live |
+| Draw your own writing from | `Sittings` | One folder per line. Every block with an id in these can be drawn |
 | Enable model | on | Off makes it bank-only |
 | Base URL | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible endpoint |
 | Model | `bonsai-2-27b` | Model id sent to that endpoint |
