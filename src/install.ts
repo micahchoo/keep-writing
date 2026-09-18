@@ -13,6 +13,7 @@
 // refuses without `--force` for the same reason — the markdown becomes the
 // source of truth the moment the owner can edit it in Obsidian.
 
+import { normalizePath } from 'obsidian';
 import type { App } from 'obsidian';
 
 export interface StarterNote {
@@ -40,11 +41,14 @@ export function questionCount(notes: StarterNote[]): number {
  * the same as running it once.
  */
 export async function installBank(app: App, bankFolder: string, notes: StarterNote[]): Promise<Installed> {
-  if (!app.vault.getFolderByPath(bankFolder)) await app.vault.createFolder(bankFolder);
+  // The folder is whatever the owner typed into settings; `normalizePath`
+  // scrubs it before anything is created under it.
+  const folder = normalizePath(bankFolder);
+  if (!app.vault.getFolderByPath(folder)) await app.vault.createFolder(folder);
   const written: string[] = [];
   const skipped: string[] = [];
   for (const note of notes) {
-    const path = `${bankFolder}/${note.name}`;
+    const path = normalizePath(`${folder}/${note.name}`);
     if (app.vault.getFileByPath(path)) {
       skipped.push(note.name);
       continue;

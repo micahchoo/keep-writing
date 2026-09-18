@@ -36,6 +36,13 @@ mock.module('obsidian', () => ({
   setIcon: () => {},
   debounce: (fn: (...a: unknown[]) => void) => fn,
   moment: () => ({ format: () => '2026-09-13' }),
+  // The real thing, not a pass-through: a mock that handed the path back
+  // unchanged would make every test about path handling a lie. Matches the
+  // documented behaviour — collapse `\` and repeated `/` to one `/`, drop
+  // leading and trailing slashes, turn non-breaking spaces into spaces, then
+  // String.prototype.normalize.
+  normalizePath: (path: string) =>
+    path.replace(/([\\/])+/g, '/').replace(/(^\/+|\/+$)/g, '').replace(/\u00A0/g, ' ').normalize(),
   MarkdownRenderer: { render: async () => {} },
   requestUrl: async () => ({ status: 0, text: '' }),
 }));

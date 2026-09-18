@@ -1,0 +1,30 @@
+The starter question bank
+=========================
+
+SPDX-License-Identifier: CC-BY-SA-4.0
+
+Copyright (c) 2026 Micah
+
+The four Markdown files in this folder — `autobiographical.md`,
+`autoethnographic.md`, `invention.md` and `learning.md`, holding 2,274
+questions — are licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International licence.
+
+    https://creativecommons.org/licenses/by-sa/4.0/
+    Full legal text: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+You are free to share and adapt them, for any purpose, including
+commercially, on two conditions:
+
+  BY   Attribution. Give appropriate credit, link to the licence, and say if
+       you changed anything.
+  SA   ShareAlike. If you remix or build on them, distribute your version
+       under this same licence.
+
+This is deliberately different from the licence on the code. The plugin is
+MIT (see ../LICENSE); the questions are writing, and ShareAlike keeps any
+bank derived from this one as open as this one is.
+
+Installing the plugin copies these files into your vault. Your ANSWERS are
+yours: nothing in this licence reaches them, and the plugin never sends them
+anywhere you have not configured.

@@ -158,6 +158,15 @@ Not in the community plugins browser yet.
 
 A `Templates/Sitting.md` with a `## Asked` heading is copied into a new daily note when the plugin has to make one. Anything under a later heading stays at the bottom, below every drawn question.
 
+## Licence
+
+Two licences, because there are two kinds of thing in here.
+
+- **The code is [MIT](LICENSE).** Do what you like with it.
+- **The question bank in [`starter/`](starter/) is [CC BY-SA 4.0](starter/LICENSE).** It is writing, not code: 2,274 questions. Share and adapt them, commercially or not, as long as you credit the source and license what you build under the same terms. ShareAlike keeps any bank derived from this one as open as this one is.
+
+**Your answers are yours.** Neither licence reaches anything you write. Nothing you write leaves your machine unless you point the model setting somewhere else — see [The model](#the-model).
+
 ## Development
 
 ```bash

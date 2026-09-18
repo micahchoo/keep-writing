@@ -3,7 +3,7 @@
   "name": "keep-writing",
   "version": "0.1.0",
   "minAppVersion": "1.8.0",
-  "description": "A vault that interviews you. Draws a question into your daily note, composes new ones from your own writing, and links every answer to what provoked it.",
+  "description": "Draws a question into your daily note, composes new ones from writing you have already done, and links every answer to what provoked it.",
   "author": "Micah",
   "isDesktopOnly": false
 }

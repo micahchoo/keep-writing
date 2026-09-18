@@ -20,6 +20,7 @@
 // This lived inside `markAnswered` until 2026-09-16, which is why asks.ts —
 // a callout parser — imported the Bank and the Target.
 
+import { normalizePath } from 'obsidian';
 import type { App, TFile } from 'obsidian';
 import { questionAt } from './bank';
 import { refNamed, wikilink } from './refs';
@@ -57,7 +58,7 @@ export async function runClosing(
  * can drift from the other.
  */
 function bookmarkHome(app: App, sitting: TFile): TFile | null {
-  return readTarget(app, sitting) ?? app.vault.getFileByPath(`${ME_BASENAME}.md`);
+  return readTarget(app, sitting) ?? app.vault.getFileByPath(normalizePath(`${ME_BASENAME}.md`));
 }
 
 /** The bookmark lands on the Sitting's Target, or on `me` when roaming. */

@@ -20,7 +20,7 @@
 // it decides nothing.
 
 import type { App, TFile } from 'obsidian';
-import { moment } from 'obsidian';
+import { moment, normalizePath } from 'obsidian';
 import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
 import { bankJar, drawMany, parseDue, pickOne } from './bank';
@@ -408,12 +408,16 @@ const DEFAULT_TEMPLATE = '## Asked\n';
  * is not a Sitting.
  */
 export async function todaysSitting(app: App, sittingsFolder: string): Promise<TFile> {
-  const path = `${sittingsFolder}/${moment().format('YYYY-MM-DD')}.md`;
+  // Every vault path the plugin builds goes through `normalizePath`: the
+  // folder is whatever the owner typed into settings, and it scrubs repeated
+  // or backward slashes, leading and trailing ones, and non-breaking spaces.
+  const folder = normalizePath(sittingsFolder);
+  const path = normalizePath(`${folder}/${moment().format('YYYY-MM-DD')}.md`);
   const existing = app.vault.getFileByPath(path);
   if (existing) return existing;
-  const template = app.vault.getFileByPath('Templates/Sitting.md');
+  const template = app.vault.getFileByPath(normalizePath('Templates/Sitting.md'));
   const body = template ? await app.vault.cachedRead(template) : DEFAULT_TEMPLATE;
-  if (!app.vault.getFolderByPath(sittingsFolder)) await app.vault.createFolder(sittingsFolder);
+  if (!app.vault.getFolderByPath(folder)) await app.vault.createFolder(folder);
   return app.vault.create(path, body);
 }
 

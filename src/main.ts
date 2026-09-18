@@ -40,8 +40,16 @@ const INSTALL = 'Install the starter question bank';
  * e.setSection(...))` reads straight out of obsidian.asar, checked 2026-09-17
  * against the installed 1.13. This is the one place the plugin reaches past
  * its types, and it is a menu: nothing the interview does depends on it.
+ *
+ * Because it is undocumented it may be absent, and calling it then throws
+ * inside an `editor-menu` handler — which would take out the WHOLE right-click
+ * menu, Obsidian's own items included, not just ours. So it is tested for, and
+ * the three commands go flat in their own section when it is missing.
  */
 type Submenuable = { setSubmenu(): Menu };
+
+/** Groups the commands when this build of Obsidian has no submenus. */
+const SECTION = 'keep-writing';
 
 export default class KeepWritingPlugin extends Plugin {
   override settings: KeepWritingSettings = { ...DEFAULT_SETTINGS };
@@ -121,20 +129,37 @@ export default class KeepWritingPlugin extends Plugin {
         const selected = editor.getSelection();
         const from = editor.getCursor('from').line;
         const at = editor.getCursor().line;
-        menu.addItem((item) => {
-          item.setTitle('keep-writing').setIcon('message-circle-question');
-          const sub = (item as unknown as Submenuable).setSubmenu();
-          sub.addItem((i) => i.setTitle(DRAW).setIcon('shuffle').onClick(() => void this.drawQuestion()));
+        const ask = (target: Menu, flat: boolean) => {
           if (selected.trim()) {
-            sub.addItem((i) =>
-              i
-                .setTitle(ASK_SELECTION)
-                .setIcon('message-circle-question')
-                .onClick(() => void this.askAboutSelection(view, selected, from)),
-            );
+            target.addItem((i) => {
+              i.setTitle(ASK_SELECTION).setIcon('message-circle-question');
+              if (flat) i.setSection(SECTION);
+              i.onClick(() => void this.askAboutSelection(view, selected, from));
+            });
           }
-          sub.addItem((i) => i.setTitle(MARK).setIcon('check').onClick(() => void this.markUnderCursor(view, at)));
+          target.addItem((i) => {
+            i.setTitle(MARK).setIcon('check');
+            if (flat) i.setSection(SECTION);
+            i.onClick(() => void this.markUnderCursor(view, at));
+          });
+        };
+
+        let flat = false;
+        menu.addItem((item) => {
+          const nest = (item as Partial<Submenuable>).setSubmenu;
+          if (typeof nest !== 'function') {
+            // No submenus in this build. This item becomes the draw itself and
+            // the rest follow it, so nothing is lost and nothing throws.
+            flat = true;
+            item.setTitle(DRAW).setIcon('shuffle').setSection(SECTION).onClick(() => void this.drawQuestion());
+            return;
+          }
+          item.setTitle(SECTION).setIcon('message-circle-question');
+          const sub = nest.call(item);
+          sub.addItem((i) => i.setTitle(DRAW).setIcon('shuffle').onClick(() => void this.drawQuestion()));
+          ask(sub, false);
         });
+        if (flat) ask(menu, true);
       }),
     );
     this.addSettingTab(new KeepWritingSettingTab(this.app, this));

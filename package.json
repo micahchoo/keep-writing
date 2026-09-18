@@ -1,7 +1,8 @@
 {
   "name": "keep-writing",
   "version": "0.1.0",
-  "description": "Obsidian plugin: the vault interviews its owner. Draws Asks from the Bank, marks answers done, links blocks by typed relation.",
+  "description": "Obsidian plugin: the vault interviews its owner. Draws a question into the daily note, composes new ones from what the owner has written, and links every answer to what provoked it.",
+  "license": "MIT",
   "main": "main.js",
   "private": true,
   "scripts": {

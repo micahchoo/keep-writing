@@ -9,6 +9,7 @@
 // It is chosen by the PATH now. The owner pointed at this paragraph, so ask
 // about it: `craft.md`. The draw handed it over, so do not: `invitation.md`.
 
+import { normalizePath } from 'obsidian';
 import type { App } from 'obsidian';
 
 const LENSES_FOLDER = 'Lenses';
@@ -25,7 +26,7 @@ export const INVITATION = 'invitation';
  * owner edits it.
  */
 export async function lensFor(app: App, name: string = CRAFT): Promise<string> {
-  const file = app.vault.getFileByPath(`${LENSES_FOLDER}/${name}.md`);
+  const file = app.vault.getFileByPath(normalizePath(`${LENSES_FOLDER}/${name}.md`));
   if (!file) return '';
   return bodyOf(await app.vault.cachedRead(file));
 }
