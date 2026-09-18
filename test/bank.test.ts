@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { BANK_SHARE, jarCounts, parseBankLine, parseDue, pickBalanced, pickFromJars } from '../src/bank';
+import { BANK_SHARE, jarCounts, parseBankLine, parseDue, pickOne, pickFromJars } from '../src/bank';
 import type { BankQuestion, Jars, WellPool } from '../src/bank';
 import type { Paragraph } from '../src/paragraphs';
 import type { Well } from '../src/target';
@@ -36,27 +36,12 @@ describe('parseBankLine', () => {
   });
 });
 
-describe('pickBalanced', () => {
-  // Until 2026-09-15 a register was picked uniformly, so a register holding
-  // one question was drawn as often as one holding fifty. That rewarded
-  // splitting a subject across more register names: the seven
-  // autoethnographic registers were 7% of the Bank and took 35% of its draws.
-  // The share now follows size (REGISTER_WEIGHT_EXPONENT = 1).
-  test('a register\'s share of the draw follows its size, not its name', () => {
-    const pool = [
-      ...Array.from({ length: 50 }, (_, i) => ({ id: `e${i}`, register: 'episode' })),
-      { id: 'v0', register: 'value' },
-    ];
-    const random = mulberry32(42);
-    let value = 0;
-    const n = 4000;
-    for (let i = 0; i < n; i++) if (pickBalanced(pool, random)!.register === 'value') value++;
-    // one question in fifty-one: 0.0196
-    expect(value / n).toBeGreaterThan(0.012);
-    expect(value / n).toBeLessThan(0.028);
-  });
-
-  test('at exponent 1 every question is equally likely, whatever its register', () => {
+describe('pickOne', () => {
+  // Registers were picked first and a question inside them second until
+  // 2026-09-15, so a register holding one question was drawn as often as one
+  // holding fifty: the seven autoethnographic registers were 7% of the Bank
+  // and took 35% of its draws. The draw reads no register at all now.
+  test('every question is equally likely, whatever its register', () => {
     const pool = [
       ...Array.from({ length: 30 }, (_, i) => ({ id: `a${i}`, register: 'big' })),
       ...Array.from({ length: 3 }, (_, i) => ({ id: `b${i}`, register: 'small' })),
@@ -65,7 +50,7 @@ describe('pickBalanced', () => {
     const seen = new Map<string, number>();
     const n = 33000;
     for (let i = 0; i < n; i++) {
-      const id = pickBalanced(pool, random)!.id;
+      const id = pickOne(pool, random)!.id;
       seen.set(id, (seen.get(id) ?? 0) + 1);
     }
     const counts = [...seen.values()];
@@ -75,20 +60,16 @@ describe('pickBalanced', () => {
     expect(Math.max(...counts)).toBeLessThan(1200);
   });
 
-  test('within a register every question is reachable', () => {
-    const pool = [
-      { id: 'a', register: 'r' },
-      { id: 'b', register: 'r' },
-      { id: 'c', register: 'r' },
-    ];
+  test('every question is reachable', () => {
+    const pool = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
     const random = mulberry32(7);
     const seen = new Set<string>();
-    for (let i = 0; i < 100; i++) seen.add(pickBalanced(pool, random)!.id);
+    for (let i = 0; i < 100; i++) seen.add(pickOne(pool, random)!.id);
     expect([...seen].sort()).toEqual(['a', 'b', 'c']);
   });
 
   test('empty pool draws nothing', () => {
-    expect(pickBalanced([])).toBeNull();
+    expect(pickOne([])).toBeNull();
   });
 });
 
@@ -138,8 +119,9 @@ describe('pickFromJars', () => {
   };
 
   test('the toss: under BANK_SHARE is the Bank jar, at or over it is the paragraph jar', () => {
-    // toss, register, question | toss, well, paragraph
-    const random = sequence([0.1, 0.0, 0.0, 0.9, 0.99, 0.0]);
+    // toss, question | toss, well, paragraph. The Bank pick was two rolls
+    // until 2026-09-17, when it picked a register first.
+    const random = sequence([0.1, 0.0, 0.9, 0.99, 0.0]);
     const first = pickFromJars(jars, random);
     expect(first?.source.kind).toBe('question');
     expect(first?.source.key).toBe('Bank/q.md#^b1');

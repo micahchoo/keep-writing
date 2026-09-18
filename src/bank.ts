@@ -160,48 +160,22 @@ export function parseDue(raw: string, today: Date): string | null {
 }
 
 /**
- * How much a register's SIZE decides its share of the draw.
+ * Pure: one of these, uniformly. Null when there are none.
  *
- *   0   every register equally often, whatever its size
- *   0.5 square-root damping: a big register wins, but far less than its size
- *   1   share proportional to size -- identical to drawing uniformly from
- *       every question, because (size/total) * (1/size) = 1/total
+ * Registers do NOT weight the draw. They did until 2026-09-15, when a register
+ * was picked first and a question inside it second: the seven autoethnographic
+ * registers held 7% of the Bank and took 35% of its draws, five times their
+ * weight, purely because they were seven names out of twenty. Balancing by
+ * register rewards splitting a subject into more names, which is an accident
+ * of the taxonomy rather than a statement about what should be asked.
  *
- * Set to 1 on 2026-09-15. At 0 the seven autoethnographic registers held 7%
- * of the Bank and took 35% of its draws, five times their weight, purely
- * because they were seven names out of twenty. Register balancing rewards
- * splitting a subject into more registers, which is an accident of the
- * taxonomy rather than a statement about what should be asked.
+ * The fix that day was a weight exponent set to 1 — which is arithmetically
+ * this function, reached through a group-by and a cumulative roll. It was
+ * deleted on 2026-09-17. A register is still what a question is tagged with,
+ * and the tag pane still counts them; it is simply not what the draw reads.
  */
-export const REGISTER_WEIGHT_EXPONENT = 1;
-
-/**
- * Pure: pick a register with probability proportional to its size raised to
- * REGISTER_WEIGHT_EXPONENT, then a question uniformly within it. Null when
- * nothing remains.
- */
-export function pickBalanced<T extends { register: string }>(sources: T[], random: () => number = Math.random): T | null {
-  const groups = new Map<string, T[]>();
-  for (const q of sources) {
-    const g = groups.get(q.register);
-    if (g) g.push(q);
-    else groups.set(q.register, [q]);
-  }
-  const registers = [...groups.keys()];
-  if (registers.length === 0) return null;
-  const weights = registers.map((r) => Math.pow((groups.get(r) as T[]).length, REGISTER_WEIGHT_EXPONENT));
-  const total = weights.reduce((a, b) => a + b, 0);
-  let roll = random() * total;
-  let picked = registers[registers.length - 1] as string;
-  for (let i = 0; i < registers.length; i++) {
-    roll -= weights[i] as number;
-    if (roll < 0) {
-      picked = registers[i] as string;
-      break;
-    }
-  }
-  const group = groups.get(picked) as T[];
-  return group[Math.floor(random() * group.length)] ?? null;
+export function pickOne<T>(items: T[], random: () => number = Math.random): T | null {
+  return items[Math.floor(random() * items.length)] ?? null;
 }
 
 /** Which part of the Bank a draw reads: the two jars, or one closing role. */
@@ -318,7 +292,7 @@ export function pickFromJars(jars: Jars, random: () => number = Math.random, tod
   if (!hasBank && !hasParagraphs) return null;
   const fromBank = hasBank && hasParagraphs ? random() < BANK_SHARE : hasBank;
   if (fromBank) {
-    const question = pickBalanced(jars.bank, random);
+    const question = pickOne(jars.bank, random);
     if (!question) return null;
     const drawn: Drawn = { source: question };
     const due = question.due ? parseDue(question.due, today) : null;
@@ -387,6 +361,6 @@ export async function draw(ctx: DrawContext, target: Target | null, source: Draw
   const jars = await fillJars(ctx, target);
   const counts = jarCounts(jars);
   if (source === 'target') return { drawn: pickFromJars(jars, random, ctx.today ?? new Date()), jars: counts };
-  const question = pickBalanced(jars.closings.filter((q) => q.role === source), random);
+  const question = pickOne(jars.closings.filter((q) => q.role === source), random);
   return { drawn: question ? { source: question } : null, jars: counts };
 }
