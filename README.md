@@ -18,7 +18,7 @@ keep-writing puts a question into your daily note in [Obsidian](https://obsidian
 
 ## Getting started
 
-On first run it offers to fill your question bank: 2,523 questions written for this, as four plain Markdown notes in `Bank/`. Say yes, or run **Install the starter question bank** later. Nothing is overwritten and nothing is sent anywhere.
+On first run it offers to fill your question bank: 2,274 questions written for this, as four plain Markdown notes in `Bank/`. Say yes, or run **Install the starter question bank** later. Nothing is overwritten and nothing is sent anywhere.
 
 1. Open today's daily note.
 2. Run **Draw a question** (ribbon icon, command palette, or right-click → keep-writing).
@@ -64,16 +64,16 @@ Two jars. Seven draws in ten come from the first.
 | **The bank** | Questions other people wrote — every list item with a block id in a note in `Bank/` whose frontmatter says `kind: bank` | As written |
 | **Your writing** | Every block with an id, in the folders you name in settings | The model composes a question about it |
 
-The starter bank is 2,523 questions across 22 registers, in four notes grouped by what the *answer* is:
+The starter bank is 2,274 questions across 22 registers, in four notes grouped by what the *answer* is:
 
 | Note | Questions | What it asks for |
 |---|---|---|
-| `autobiographical.md` | 1,100 | A life you already lived — one occasion, a thing that happened again and again, a stretch of years, a plain fact, what you take yourself to be, what you mean to do, what you hold worth it, why you think it happened, what you hold true, how it felt, what a change left behind |
+| `autobiographical.md` | 918 | A life you already lived — one occasion, a thing that happened again and again, a stretch of years, a plain fact, what you take yourself to be, what you mean to do, what you hold worth it, why you think it happened, what you hold true, how it felt, what a change left behind |
 | `autoethnographic.md` | 1,023 | The same life read as a culture, and an account of the telling — membership, positionality, relation, telling, embodiment, artifact, structure |
-| `learning.md` | 300 | What you understand, what your hands can do, and what you would have to go and find out |
-| `invention.md` | 100 | Not retrieval at all: a prompt, whose answer does not exist until you write it |
+| `learning.md` | 282 | What you understand, what your hands can do, and what you would have to go and find out |
+| `invention.md` | 51 | Not retrieval at all: a prompt, whose answer does not exist until you write it |
 
-None of them can be closed in a sentence, and none can be answered by a stranger. They were written for this plugin.
+None of them can be closed in a sentence, and none can be answered by a stranger — that last one is the whole test, and 249 candidates were cut against it by eight independent judges before any of this shipped.
 
 They arrive as notes, not as data inside the plugin, and that is load-bearing: a question is answered when a block links to it, and a question with no address in your vault could never be retired. Once written they are your notes. Edit them, delete them, add your own.
 
