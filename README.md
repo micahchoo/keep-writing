@@ -4,7 +4,7 @@ A vault that interviews you, so that you keep writing.
 
 keep-writing puts a question into your daily note in [Obsidian](https://obsidian.md), you answer it in your own words, and every answer is linked to whatever provoked it. Over time the vault becomes the well your writing projects draw from — and the questions start coming from what you have already written.
 
-> **Early, and not in the community store.** Install it manually (below). Questions composed from your own writing need a model endpoint; everything else works without one.
+> **Early, and not in the community store yet.** Install it from a [release](https://github.com/micahchoo/keep-writing/releases) (below). Needs **Obsidian 1.13 or newer**. Questions composed from your own writing need a model endpoint; everything else works without one.
 
 ## What it does
 
@@ -130,33 +130,43 @@ Three jobs, one call each, temperature 0, JSON out, one retry, then it gives up 
 
 The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]` — the job, how long it took and how it ended, never the request or your key.
 
-Your key is stored in plain text at `.obsidian/plugins/keep-writing/data.json`, like every Obsidian setting. Don't commit that file to a public repository.
+Your key is stored in plain text in `data.json`, beside the plugin in your vault's configuration folder, like every Obsidian setting. Don't commit that file to a public repository.
 
 `Lenses/craft.md` and `Lenses/invitation.md` are prose notes whose bodies are appended to the composition prompt verbatim — one per composer. Edit them to change how the model asks. It's the interviewer's technique as a page you control, not a string in the source.
 
 ## Installing
 
-Not in the community plugins browser yet. **Needs Obsidian 1.13 or newer** — the
-settings tab is declared rather than drawn, so Obsidian's own settings search
-can find it.
+Not in the community plugins browser yet, so it goes in by hand. **Needs Obsidian 1.13 or newer.**
 
-1. Clone or download this repo into `<your vault>/.obsidian/plugins/keep-writing`.
-2. `npm install && npm run build` — this produces `main.js`.
+1. From the [latest release](https://github.com/micahchoo/keep-writing/releases/latest), download `main.js`, `manifest.json` and `styles.css`.
+2. Put all three in `<your vault>/<config folder>/plugins/keep-writing/` — the config folder is `.obsidian` unless you renamed it.
 3. Obsidian → Settings → Community plugins → turn off Restricted mode.
 4. Enable **keep-writing**, and say yes when it offers to write the question bank.
 
+Or clone this repo into that folder and run `npm install && npm run build`, which produces the same `main.js`.
+
+**Every release is signed against the commit it was built from**, which matters here more than for most plugins: `main.js` carries all 2,274 questions, and nobody can diff those by eye. Check before you install:
+
+```bash
+gh attestation verify main.js --repo micahchoo/keep-writing
+```
+
 ## Settings
+
+Searchable from Obsidian's own settings search — type "bank folder" or "endpoint" anywhere in Settings and it finds this tab.
 
 | Setting | Default | |
 |---|---|---|
-| Sittings folder | `Sittings` | Where daily notes live |
-| Bank folder | `Bank` | Where question notes live |
+| Sittings folder | `Sittings` | Where daily notes live. A folder picker, so you cannot name one that isn't there |
+| Bank folder | `Bank` | Where question notes live. Also a picker |
 | Draw your own writing from | `Sittings` | One folder per line. Every block with an id in these can be drawn |
 | — | — | The starter bank is offered once; **Install the starter question bank** does it any time |
-| Enable model | on | Off makes it bank-only |
-| Base URL | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible endpoint |
+| Enable model | on | Off makes it bank-only, and greys out the three below |
+| Base URL | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible endpoint. Rejects what it cannot call, and says so |
 | Model | `bonsai-2-27b` | Model id sent to that endpoint |
 | API key | empty | Sent as a bearer token. A local server needs none |
+
+Empty a folder field and it falls back to its default rather than storing nothing and reaching nothing.
 
 A `Templates/Sitting.md` with a `## Asked` heading is copied into a new daily note when the plugin has to make one. Anything under a later heading stays at the bottom, below every drawn question.
 
@@ -166,6 +176,8 @@ Two licences, because there are two kinds of thing in here.
 
 - **The code is [MIT](LICENSE).** Do what you like with it.
 - **The question bank in [`starter/`](starter/) is [CC BY-SA 4.0](starter/LICENSE).** It is writing, not code: 2,274 questions. Share and adapt them, commercially or not, as long as you credit the source and license what you build under the same terms. ShareAlike keeps any bank derived from this one as open as this one is.
+
+[`NOTICE`](NOTICE) says which is which in one table. The bank is compiled into `main.js`, so a build carries both licences.
 
 **Your answers are yours.** Neither licence reaches anything you write. Nothing you write leaves your machine unless you point the model setting somewhere else — see [The model](#the-model).
 
@@ -181,3 +193,5 @@ npm run build   # typecheck, then bundle
 `test/fake-vault.ts` stands in for Obsidian's `App` — reads and the whole write surface — so the interview can be run and tested with no Obsidian and no DOM.
 
 Tests that need a live model are skipped unless `KW_LIVE=1` and a server answers on the configured address.
+
+Releases are not cut by hand. Pushing a bare semver tag (`0.2.0`, never `v0.2.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which checks the tag against `manifest.json` and `versions.json`, tests, builds, attests the assets and publishes them. A tag that disagrees with the manifest fails there rather than in somebody's vault.
