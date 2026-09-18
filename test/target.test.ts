@@ -1,49 +1,21 @@
 import { describe, expect, test } from 'bun:test';
-import { gatherers, normalizeTag } from '../src/target';
+import type { App, TFile } from 'obsidian';
+import { isFinishedPiece, isRevisitable } from '../src/target';
 
-// Gathering: how a Domain claims the Pieces about it. Pure; no vault needed.
-describe('gatherers', () => {
-  const domains = [
-    { name: 'Cities', gathers: ['cities', 'walking'] },
-    { name: 'Blender', gathers: ['#blender', '3d'] },
-    { name: 'Dutch', gathers: [] },
-  ];
-
-  test('a tag in the Domain\'s gathers list claims the Piece', () => {
-    expect(gatherers({ tags: ['essay', 'walking'], about: [] }, domains)).toEqual(['Cities']);
-  });
-  test('tags meet with or without the hash, any case', () => {
-    expect(gatherers({ tags: ['#Blender'], about: [] }, domains)).toEqual(['Blender']);
-    expect(gatherers({ tags: ['3D'], about: [] }, domains)).toEqual(['Blender']);
-  });
-  test('an about link claims the Piece even with no tag in common', () => {
-    expect(gatherers({ tags: ['poem'], about: ['Dutch'] }, domains)).toEqual(['Dutch']);
-  });
-  test('a Piece can belong to several Domains', () => {
-    expect(gatherers({ tags: ['cities', 'blender'], about: ['Dutch'] }, domains)).toEqual(['Cities', 'Blender', 'Dutch']);
-  });
-  test('no Domain: empty, so the self gathers it', () => {
-    expect(gatherers({ tags: ['poem'], about: [] }, domains)).toEqual([]);
-    expect(gatherers({ tags: [], about: [] }, [])).toEqual([]);
-  });
-  test('a Domain with an empty gathers list claims nothing by tag', () => {
-    expect(gatherers({ tags: ['dutch'], about: [] }, domains)).toEqual([]);
-  });
-});
-
-describe('normalizeTag', () => {
-  test('strips the hash and lowers', () => {
-    expect(normalizeTag('#Walking ')).toBe('walking');
-    expect(normalizeTag('walking')).toBe('walking');
-  });
-});
-
+// What a Piece's `status` means to the draw.
+//
+// Gathering lived here too — how a Domain claimed the Pieces about it by tag —
+// until 2026-09-17. It existed to file paragraphs under Wells, and Wells were
+// deleted with the draw skew they caused. `gathers:` stays in the Domain notes
+// as ordinary Obsidian tags that no code reads.
 describe('isRevisitable', () => {
-  const { isRevisitable, isFinishedPiece } = require('../src/target');
-  const app = (status: unknown) => ({
-    metadataCache: { getFileCache: () => ({ frontmatter: status === undefined ? {} : { status } }) },
-  });
-  const piece = { path: 'Pieces/2021-x.md', basename: '2021-x', extension: 'md' };
+  // A stub for two pure reads: both functions touch one frontmatter property
+  // and the note's path, and nothing else of `App`.
+  const app = (status: unknown) =>
+    ({
+      metadataCache: { getFileCache: () => ({ frontmatter: status === undefined ? {} : { status } }) },
+    }) as unknown as App;
+  const piece = { path: 'Pieces/2021-x.md', basename: '2021-x', extension: 'md' } as unknown as TFile;
   test('published and set-down are revisitable', () => {
     expect(isRevisitable(app('published'), piece)).toBe(true);
     expect(isRevisitable(app('set-down'), piece)).toBe(true);

@@ -1,17 +1,19 @@
 // The paragraph jar: every paragraph the owner wrote that the draw can put
-// in front of them, each filed under its Well(s). Three shelves:
+// in front of them. Two shelves, both of blocks that already carry an id:
 //
-// - finished Pieces (published, set-down): their blocks with ids, filed under
-//   the Domain(s) that gather the Piece, or the self;
-// - Sittings: their blocks with ids (answers are paragraphs too; an Ask
-//   callout has no id, so it is never here), filed under the self;
-// - the bodies of Domain and Learning notes: every paragraph, id or not,
-//   filed under that note. A paragraph without an id is drawable; it is
-//   given one (blocks.ts#ensureBlockId) only when drawn and accepted, so the
-//   Ask can cite it.
+// - finished Pieces (published, set-down);
+// - Sittings — answers are paragraphs too; an Ask callout has no id, so it is
+//   never here.
 //
 // A paragraph from this jar is handed to bonsai to compose the question (a
 // Revisit), with one line of framing: when and where it was written.
+//
+// There was a third shelf until 2026-09-17 — the bodies of Domain and Learning
+// notes, drawn id or not, given an id when accepted — and a filing of every
+// paragraph under the Well it came from. Both are gone with the Well. Those
+// notes are still reachable: the owner highlights a paragraph in one and asks
+// about it, which now works in ANY note. What is lost is the automatic side,
+// and after two weeks those bodies held zero words.
 //
 // Not every block with an id is a paragraph the owner wrote. The corpus
 // carries furniture that the import gave an id to: Hugo shortcodes, figure
@@ -19,16 +21,17 @@
 // module (furniture.ts) with its own canon entry and three consumers; the jar
 // is the one that takes the word floor with it.
 
-import type { App, CachedMetadata, TFile } from 'obsidian';
+import type { App, TFile } from 'obsidian';
 import { headingAbove, readsAsParagraph } from './furniture';
-import { blockTexts, refOf, stripBlockDecoration } from './refs';
+import { blockTexts, refOf } from './refs';
 import type { Ref } from './refs';
-import { ME_BASENAME, classify, gatheredBy, isSitting } from './target';
+import { classify, isRevisitable, isSitting } from './target';
 
 /** The register a paragraph counts as. */
 const REVISIT_REGISTER = 'revisit';
 
-export type Origin = 'piece' | 'sitting' | 'domain' | 'learning';
+/** `note` is any other note the owner writes in: only a Selection reaches one. */
+export type Origin = 'piece' | 'sitting' | 'note';
 
 export interface Paragraph {
   kind: 'paragraph';
@@ -41,8 +44,6 @@ export interface Paragraph {
   /** The paragraph, block id and list marker stripped. */
   text: string;
   origin: Origin;
-  /** Names of the Wells it belongs to; a Piece gathered by two Domains is filed under both. */
-  wells: string[];
   /** One line for bonsai: `in 2021, for Branch Magazine`; `in a Sitting on 2026-09-12`. */
   framing: string;
   /** Link text for the pane: the Piece's title, the Sitting's date, the note's name. */
@@ -88,9 +89,9 @@ export function framingOf(p: PieceFraming): string {
   return p.publisher ? `${where}, for ${p.publisher}` : where;
 }
 
-/** Pure: framing for a paragraph of a Domain or Learning note's body. */
-export function noteFraming(origin: 'domain' | 'learning', name: string): string {
-  return origin === 'domain' ? `in their note on ${name}` : `in what they wrote about wanting to learn ${name}`;
+/** Pure: framing for a paragraph of any other note the owner writes in. */
+export function noteFraming(name: string): string {
+  return `in their note on ${name}`;
 }
 
 /**
@@ -134,7 +135,6 @@ const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
  */
 export interface ParagraphFacts {
   origin: Origin;
-  wells: string[];
   framing: string;
   title: string;
   meta: string[];
@@ -142,7 +142,7 @@ export interface ParagraphFacts {
   status?: string;
 }
 
-function pieceFacts(app: App, piece: TFile, wells: string[]): ParagraphFacts {
+function pieceFacts(app: App, piece: TFile): ParagraphFacts {
   const fm = app.metadataCache.getFileCache(piece)?.frontmatter ?? {};
   const pieceDate = str(fm['date']);
   const status = str(fm['status']);
@@ -151,7 +151,6 @@ function pieceFacts(app: App, piece: TFile, wells: string[]): ParagraphFacts {
   const framing: PieceFraming = publisher ? { pieceDate, status, title, publisher } : { pieceDate, status, title };
   return {
     origin: 'piece',
-    wells,
     // An open Piece has no status, so it was not written "some time ago":
     // it is the thing being written. The jar never sees one; a selection can.
     framing: status ? framingOf(framing) : `in "${title}", the Piece they are writing`,
@@ -165,7 +164,6 @@ export function sittingFacts(sitting: TFile): ParagraphFacts {
   const { date, called } = sittingName(sitting.basename);
   return {
     origin: 'sitting',
-    wells: [ME_BASENAME],
     framing: sittingFraming(sitting.basename),
     // The pane shows what the owner named the day, and keeps the date beside it.
     title: called || `Sitting ${date}`,
@@ -173,35 +171,28 @@ export function sittingFacts(sitting: TFile): ParagraphFacts {
   };
 }
 
-export function noteFacts(note: TFile, origin: 'domain' | 'learning'): ParagraphFacts {
+export function noteFacts(note: TFile): ParagraphFacts {
   return {
-    origin,
-    wells: [note.basename],
-    framing: noteFraming(origin, note.basename),
+    origin: 'note',
+    framing: noteFraming(note.basename),
     title: note.basename,
-    meta: [origin === 'domain' ? 'their note' : 'wanting to learn'],
+    meta: ['their note'],
   };
 }
 
-/** The Wells that gather this Piece; the self when no Domain does. */
-function wellsOfPiece(app: App, piece: TFile): string[] {
-  const names: string[] = [];
-  for (const [well, pieces] of gatheredBy(app)) {
-    if (pieces.some((p) => p.path === piece.path)) names.push(well);
-  }
-  return names.length > 0 ? names : [ME_BASENAME];
-}
-
 /**
- * The facts of whatever kind of note this is. Null when the note is not one
- * the owner writes paragraphs in, so nothing can be drawn or picked from it.
+ * The facts of whatever note this is. Never null: the owner may point at a
+ * paragraph in ANY note and be asked about it.
+ *
+ * It returned null for anything that was not a Sitting, a Piece, a Domain or a
+ * Learning note until 2026-09-17, and a Selection refused with "Ask about the
+ * selection works in a Sitting, a Piece, a Domain or a Learning note." That
+ * was a fence around the owner's own vault, and nothing behind it needed one.
  */
-export function fileFacts(app: App, file: TFile, sittingsFolder: string): ParagraphFacts | null {
+export function fileFacts(app: App, file: TFile, sittingsFolder: string): ParagraphFacts {
   if (isSitting(file, sittingsFolder)) return sittingFacts(file);
-  const kind = classify(file);
-  if (kind === 'piece') return pieceFacts(app, file, wellsOfPiece(app, file));
-  if (kind === 'domain' || kind === 'learning') return noteFacts(file, kind);
-  return null;
+  if (classify(file) === 'piece') return pieceFacts(app, file);
+  return noteFacts(file);
 }
 
 /** One unit of a note the draw or a Selection may take: a block, with or without an id. */
@@ -248,54 +239,8 @@ async function blockParagraphs(app: App, file: TFile, facts: ParagraphFacts): Pr
 }
 
 /** The paragraphs of one finished Piece: its blocks with ids. */
-export async function pieceParagraphs(app: App, piece: TFile, wells: string[]): Promise<Paragraph[]> {
-  return blockParagraphs(app, piece, pieceFacts(app, piece, wells));
-}
-
-/** One unit of a note body that can carry an inline block id: a paragraph, or one list item. */
-interface BodyUnit {
-  start: number;
-  end: number;
-  id?: string;
-}
-
-/**
- * Pure: the units of a note body the draw may pick: paragraph sections, the
- * items of list sections, and blockquotes that already carry an id (the
- * plugin cannot give a blockquote an inline id, so one without is not
- * drawable). Headings, code, tables and the frontmatter are not the owner's
- * paragraphs.
- */
-export function bodyUnits(cache: CachedMetadata | null): BodyUnit[] {
-  const units: BodyUnit[] = [];
-  for (const s of cache?.sections ?? []) {
-    const { start, end } = s.position;
-    if (s.type === 'paragraph' || (s.type === 'blockquote' && s.id)) {
-      units.push(s.id ? { start: start.line, end: end.line, id: s.id } : { start: start.line, end: end.line });
-    } else if (s.type === 'list') {
-      for (const item of cache?.listItems ?? []) {
-        const p = item.position;
-        if (p.start.line < start.line || p.end.line > end.line) continue;
-        units.push(item.id ? { start: p.start.line, end: p.end.line, id: item.id } : { start: p.start.line, end: p.end.line });
-      }
-    }
-  }
-  return units;
-}
-
-/** The paragraphs of a Domain or Learning note's body, id or not, filed under that note. */
-async function bodyParagraphs(app: App, note: TFile, origin: 'domain' | 'learning'): Promise<Paragraph[]> {
-  const units = bodyUnits(app.metadataCache.getFileCache(note));
-  if (units.length === 0) return [];
-  const lines = (await app.vault.cachedRead(note)).split('\n');
-  const facts = noteFacts(note, origin);
-  const out: Paragraph[] = [];
-  for (const u of units) {
-    const text = stripBlockDecoration(lines.slice(u.start, u.end + 1).join('\n'));
-    if (!text) continue;
-    out.push(paragraphOf(note, facts, { id: u.id, line: u.start, text }));
-  }
-  return out;
+export async function pieceParagraphs(app: App, piece: TFile): Promise<Paragraph[]> {
+  return blockParagraphs(app, piece, pieceFacts(app, piece));
 }
 
 /**
@@ -308,8 +253,7 @@ async function bodyParagraphs(app: App, note: TFile, origin: 'domain' | 'learnin
  * the owner can be asked about the same words twice.
  *
  * The telling kept is the finished one (published over set-down), then the
- * shortest path, so the choice cannot move between runs. Every telling's
- * Wells are merged onto it: dropping a telling must not make a Well silent.
+ * shortest path, so the choice cannot move between runs.
  */
 export function oneTellingEach(paragraphs: Paragraph[]): Paragraph[] {
   const best = new Map<string, Paragraph>();
@@ -322,34 +266,24 @@ export function oneTellingEach(paragraphs: Paragraph[]): Paragraph[] {
       order.push(p.text);
       continue;
     }
-    const wells = [...new Set([...seen.wells, ...p.wells])];
     const winner =
       rank(p) < rank(seen) || (rank(p) === rank(seen) && p.file.path < seen.file.path) ? p : seen;
-    best.set(p.text, { ...winner, wells });
+    best.set(p.text, winner);
   }
   return order.map((t) => best.get(t) as Paragraph);
 }
 
 /**
- * The whole paragraph jar, before answered-ness: every shelf, every
- * paragraph, each filed under its Well(s). Furniture is strained out here,
- * and so is a second telling of the same words, in the one place all three
- * shelves pass through, so no caller can forget either.
+ * The whole paragraph jar, before answered-ness: both shelves, every
+ * paragraph. Furniture is strained out here, and so is a second telling of the
+ * same words, in the one place both shelves pass through, so no caller can
+ * forget either.
  */
 export async function paragraphJar(app: App, sittingsFolder: string): Promise<Paragraph[]> {
   const jar: Paragraph[] = [];
-  const wellsOf = new Map<string, string[]>();
-  for (const [well, pieces] of gatheredBy(app)) {
-    for (const piece of pieces) wellsOf.set(piece.path, [...(wellsOf.get(piece.path) ?? []), well]);
-  }
   for (const file of app.vault.getMarkdownFiles()) {
-    const wells = wellsOf.get(file.path);
-    if (wells) jar.push(...(await pieceParagraphs(app, file, wells)));
-    else if (isSitting(file, sittingsFolder)) jar.push(...(await blockParagraphs(app, file, sittingFacts(file))));
-    else {
-      const kind = classify(file);
-      if (kind === 'domain' || kind === 'learning') jar.push(...(await bodyParagraphs(app, file, kind)));
-    }
+    if (isSitting(file, sittingsFolder)) jar.push(...(await blockParagraphs(app, file, sittingFacts(file))));
+    else if (isRevisitable(app, file)) jar.push(...(await pieceParagraphs(app, file)));
   }
   const prose = jar.filter((p) =>
     readsAsParagraph(p.text, headingAbove(app.metadataCache.getFileCache(p.file), p.line)),

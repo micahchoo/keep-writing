@@ -1,12 +1,15 @@
 import { describe, expect, test } from 'bun:test';
 import { AnsweredIndex, fillJars, jarCounts } from '../src/bank';
 import type { DrawContext } from '../src/bank';
-import { allWells, readTarget } from '../src/target';
+import { readTarget } from '../src/target';
 import { fakeVault } from './fake-vault';
 
-// The two jars over one small vault: a plain bank, a Domain gathering a
-// finished Piece, a Learning note, a Sitting, an open Piece, and Sittings
-// that set `about`.
+// The two jars over one small vault: a plain bank, finished Pieces, Sittings,
+// an open Piece, and Sittings that set `about`.
+//
+// The paragraph jar was filed under Wells until 2026-09-17 — the self, each
+// Domain, each Learning note — and the draw picked a Well before a paragraph.
+// It is one flat list now, and `about` names one note rather than a group.
 
 const vault = fakeVault({
   'Bank/q.md': '---\nkind: bank\n---\n- what are you saving up for? #register/intention ^b1\n- what album? #register/belief ^b2\n',
@@ -32,62 +35,54 @@ const ctx = (skipped: string[] = []): DrawContext => ({
   skipped: new Set(skipped),
 });
 
-describe('Wells', () => {
-  test('the self, each Domain, each Learning note; a Piece, open or finished, is not one', () => {
-    expect(allWells(app).map((w) => `${w.kind}:${w.name}`)).toEqual(['me:me', 'domain:Cities', 'learning:Dutch']);
-  });
-  test('about names a Well or a finished Piece', () => {
-    expect(readTarget(app, file('Sittings/2026-09-14.md'))).toMatchObject({ kind: 'piece', name: '2021-koramangala' });
-    expect(readTarget(app, file('Sittings/2026-09-15.md'))).toMatchObject({ kind: 'domain', name: 'Cities' });
+describe('the Target', () => {
+  test('about names one note; absent, the draw roams', () => {
+    expect(readTarget(app, file('Sittings/2026-09-14.md'))?.basename).toBe('2021-koramangala');
+    expect(readTarget(app, file('Sittings/2026-09-15.md'))?.basename).toBe('Cities');
     expect(readTarget(app, file('Sittings/2026-09-12.md'))).toBeNull();
   });
 });
 
 describe('fillJars, roaming', () => {
-  test('the Bank jar is every role-less entry of every kind: bank note; the paragraph jar is filed under Wells', async () => {
+  test('the Bank jar is every role-less entry; the paragraph jar is one flat list', async () => {
     const jars = await fillJars(ctx(), null);
     expect(jars.bank.map((q) => q.key).sort()).toEqual(['Bank/q.md#^b1', 'Bank/q.md#^b2']);
-    const pools = Object.fromEntries(jars.wells.map((p) => [p.well.name, p.paragraphs.map((x) => x.key).sort()]));
-    expect(pools).toEqual({
-      me: ['Sittings/2026-09-12.md#^ans1', 'Sittings/2026-09-15.md#^ans2'],
-      Cities: ['Domains/Cities.md#L6', 'Pieces/2021-koramangala.md#^p-002'],
-      Dutch: ['Learning/Dutch.md#L4'],
-    });
-    expect(jarCounts(jars)).toEqual({ questions: 2, paragraphs: 5, wells: 3 });
+    expect(jars.paragraphs.map((p) => p.key).sort()).toEqual([
+      'Pieces/2021-koramangala.md#^p-002',
+      'Sittings/2026-09-12.md#^ans1',
+      'Sittings/2026-09-15.md#^ans2',
+    ]);
+    expect(jarCounts(jars)).toEqual({ questions: 2, paragraphs: 3 });
   });
 
   test('a paragraph is answered when any block carries an answers link to it', async () => {
     const jars = await fillJars(ctx(), null);
-    const keys = jars.wells.flatMap((p) => p.paragraphs.map((x) => x.key));
-    expect(keys).not.toContain('Pieces/2021-koramangala.md#^p-001');
+    expect(jars.paragraphs.map((p) => p.key)).not.toContain('Pieces/2021-koramangala.md#^p-001');
   });
 
-  test('skipped sources are out; a Well with nothing left is not a pool', async () => {
-    const jars = await fillJars(ctx(['Learning/Dutch.md#L4', 'Bank/q.md#^b1']), null);
+  test('skipped sources are out of both jars', async () => {
+    const jars = await fillJars(ctx(['Sittings/2026-09-12.md#^ans1', 'Bank/q.md#^b1']), null);
     expect(jars.bank.map((q) => q.key)).toEqual(['Bank/q.md#^b2']);
-    expect(jars.wells.map((p) => p.well.name)).toEqual(['me', 'Cities']);
+    expect(jars.paragraphs.map((p) => p.key)).not.toContain('Sittings/2026-09-12.md#^ans1');
   });
 });
 
 describe('fillJars with a Target', () => {
-  test('a Domain: no Bank; that Well only', async () => {
-    const jars = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-15.md')));
-    expect(jars.bank).toEqual([]);
-    expect(jars.wells.map((p) => p.well.name)).toEqual(['Cities']);
-    expect(jars.wells[0]?.paragraphs.map((x) => x.key).sort()).toEqual(['Domains/Cities.md#L6', 'Pieces/2021-koramangala.md#^p-002']);
-  });
-
-  test('a finished Piece: its own paragraphs, still filed under the Well that gathers it', async () => {
+  test('a finished Piece: no Bank, and only that Piece’s paragraphs', async () => {
     const jars = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-14.md')));
     expect(jars.bank).toEqual([]);
-    expect(jars.wells.map((p) => p.well.name)).toEqual(['Cities']);
-    expect(jars.wells[0]?.paragraphs.map((x) => x.key)).toEqual(['Pieces/2021-koramangala.md#^p-002']);
+    expect(jars.paragraphs.map((p) => p.key)).toEqual(['Pieces/2021-koramangala.md#^p-002']);
   });
 
-  test('an open Piece: nothing to draw', async () => {
-    const jars = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-16.md')));
+  // A note whose paragraphs the jar cannot reach empties it, and that is
+  // honest: the day was spent on one thing and there is nothing to draw from
+  // it. An open Piece is the same case.
+  test('a note the jar does not reach: nothing to draw', async () => {
+    const jars = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-15.md')));
     expect(jars.bank).toEqual([]);
-    expect(jars.wells).toEqual([]);
+    expect(jars.paragraphs).toEqual([]);
+    const open = await fillJars(ctx(), readTarget(app, file('Sittings/2026-09-16.md')));
+    expect(open.paragraphs).toEqual([]);
   });
 });
 

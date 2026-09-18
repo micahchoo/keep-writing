@@ -93,10 +93,11 @@ const bankOnly = () => ({
 
 const PARAGRAPH = 'I rig characters badly and the hips always break when the walk cycle turns a corner.';
 
+/** One drawable paragraph, in the only two shelves the jar has: a Piece. */
 const paragraphOnly = () => ({
   [TODAY]: EMPTY_SITTING,
-  'Domains/Blender.md': `---\ngathers: [blender]\n---\n\n${PARAGRAPH}\n`,
-  'Lenses/craft.md': '---\nkind: lens\nfor: domain\n---\n\nAsk for a time it went wrong.\n',
+  'Pieces/rigging.md': `---\ntitle: Rigging\nstatus: published\ndate: 2021-03-04\n---\n\n${PARAGRAPH} ^p-001\n`,
+  'Lenses/craft.md': '---\nkind: lens\n---\n\nAsk for a time it went wrong.\n',
 });
 
 const ANSWERED = 'The hips broke because I weighted the pelvis to the wrong bone entirely.';
@@ -137,7 +138,7 @@ describe('the draw', () => {
     const drawing = await interview.draw(v.file(TODAY));
     expect(drawing.drawn).toHaveLength(1);
     expect(drawing.drawn[0]?.source.kind).toBe('question');
-    expect(drawing.jars).toEqual({ questions: 1, paragraphs: 0, wells: 0 });
+    expect(drawing.jars).toEqual({ questions: 1, paragraphs: 0 });
     expect(drawing.target).toBeNull();
   });
 
@@ -158,12 +159,12 @@ describe('the draw', () => {
     expect((await interview.draw(v.file(TODAY), 8)).drawn).toHaveLength(1);
   });
 
-  test('a Target is read off the Sitting and narrows the jar', async () => {
+  test('a Target is read off the Sitting and narrows the jar to that note', async () => {
     const notes = paragraphOnly();
-    notes[TODAY] = '---\nabout: "[[Blender]]"\n---\n\n## Asked\n\n';
+    notes[TODAY] = '---\nabout: "[[Pieces/rigging]]"\n---\n\n## Asked\n\n';
     const { v, interview } = open(notes);
     const drawing = await interview.draw(v.file(TODAY));
-    expect(drawing.target).toBe('Blender');
+    expect(drawing.target).toBe('rigging');
     expect(drawing.jars.questions).toBe(0);
     expect(drawing.drawn[0]?.source.kind).toBe('paragraph');
   });
@@ -204,7 +205,7 @@ describe('the draw', () => {
 });
 
 describe('the Revisit', () => {
-  test('the paragraph goes to bonsai with its framing and its Well’s Lens', async () => {
+  test('the paragraph goes to bonsai with its framing and the Lens', async () => {
     const { model, seen } = recordingModel();
     const { v, interview } = open(paragraphOnly(), model);
     const paragraph = await drawnParagraph(interview, v.file(TODAY));
@@ -212,7 +213,7 @@ describe('the Revisit', () => {
 
     expect(seen.revisit).toHaveLength(1);
     expect(seen.revisit[0]?.paragraph).toBe(PARAGRAPH);
-    expect(seen.revisit[0]?.framing).toBe('in their note on Blender');
+    expect(seen.revisit[0]?.framing).toBe('in 2021, in "Rigging"');
     expect(seen.revisit[0]?.lens).toBe('Ask for a time it went wrong.');
     expect(offer).toEqual({ candidates: [], lens: 'craft' });
   });
@@ -226,7 +227,7 @@ describe('the Revisit', () => {
     expect(seen.revisit[0]?.framing).toBe('in a Sitting on 2026-09-14');
     // Without this the draw could hand back the question that made the block.
     expect(seen.revisit[0]?.asked).toEqual(['what broke in the rig?']);
-    // The self has no Lens; the Bank is never steered.
+    // No Lens note in this fixture, so nothing is appended.
     expect(seen.revisit[0]?.lens).toBe('');
   });
 
@@ -250,7 +251,7 @@ describe('the Revisit', () => {
     expect(offer).toEqual({ candidates: [], lens: 'craft' });
   });
 
-  test('accepting a Revisit embeds the paragraph and gives it a block id', async () => {
+  test('accepting a Revisit embeds the paragraph under the Ask', async () => {
     const { model } = recordingModel({ revisit: [{ question: 'which corner broke it first?' }] });
     const { v, interview } = open(paragraphOnly(), model);
     const sitting = v.file(TODAY);
@@ -258,11 +259,29 @@ describe('the Revisit', () => {
     await interview.acceptRevisit(sitting, paragraph, { question: 'which corner broke it first?' });
 
     const written = v.text(TODAY);
-    const id = /\^([a-z0-9]{6})/.exec(v.text('Domains/Blender.md'))?.[1];
-    expect(id).toBeDefined();
     expect(written).toContain('> [!ask] which corner broke it first?');
-    expect(written).toContain(`> from [[Domains/Blender#^${id}]]`);
-    expect(written).toContain(`> ![[Domains/Blender#^${id}]]`);
+    expect(written).toContain('> from [[Pieces/rigging#^p-001]]');
+    expect(written).toContain('> ![[Pieces/rigging#^p-001]]');
+  });
+
+  // The jar only reaches blocks that already carry an id. A paragraph without
+  // one is reached by pointing at it, and gets its id when the Ask is written.
+  test('a pointed-at paragraph with no id is given one so the Ask can cite it', async () => {
+    const { v, interview } = open({
+      [TODAY]: EMPTY_SITTING,
+      'Anywhere/notebook.md': `---\n---\n\n${PARAGRAPH}\n`,
+    });
+    const sitting = v.file(TODAY);
+    const picked = interview.selection({
+      file: v.file('Anywhere/notebook.md'),
+      selected: PARAGRAPH,
+      line: 3,
+    }) as Paragraph;
+    await interview.acceptRevisit(sitting, picked, { question: 'which corner broke it first?' });
+
+    const id = /\^([a-z0-9]{6})/.exec(v.text('Anywhere/notebook.md'))?.[1];
+    expect(id).toBeDefined();
+    expect(v.text(TODAY)).toContain(`> from [[Anywhere/notebook#^${id}]]`);
   });
 
   test('a due marker on the candidate becomes a due line on the Ask', async () => {

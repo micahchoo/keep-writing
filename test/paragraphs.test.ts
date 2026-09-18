@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test';
 import {
-  bodyUnits,
   framingOf,
   noteFraming,
   oneTellingEach,
@@ -29,9 +28,8 @@ describe('framing', () => {
   test('a Piece with no title at all falls back to when alone', () => {
     expect(framingOf({ pieceDate: '2019-01-01', status: 'published', title: '' })).toBe('in 2019');
   });
-  test('a Domain or Learning body, and a Sitting', () => {
-    expect(noteFraming('domain', 'Blender')).toBe('in their note on Blender');
-    expect(noteFraming('learning', 'Dutch')).toBe('in what they wrote about wanting to learn Dutch');
+  test('any other note, and a Sitting', () => {
+    expect(noteFraming('Blender')).toBe('in their note on Blender');
     expect(sittingFraming('2026-09-12')).toBe('in a Sitting on 2026-09-12');
   });
 
@@ -53,46 +51,6 @@ describe('framing', () => {
   });
 });
 
-describe('bodyUnits', () => {
-  const { app, file } = fakeVault({
-    'Domains/Blender.md': [
-      '---',
-      'kind: domain',
-      '---',
-      '',
-      '## Notes',
-      '',
-      'I rig characters badly.',
-      'Every shoulder folds like paper.',
-      '',
-      '- the first rig ^r1',
-      '- the second rig',
-      '',
-      '> a quote with no id',
-      '',
-      '> a quote with an id',
-      '^q1',
-      '',
-      '```',
-      'code',
-      '```',
-      '',
-      'One more paragraph. ^p9',
-    ].join('\n'),
-  });
-
-  test('paragraphs and list items, id or not; a blockquote only with an id; no heading, code or frontmatter', () => {
-    expect(bodyUnits(app.metadataCache.getFileCache(file('Domains/Blender.md')))).toEqual([
-      { start: 6, end: 7 },
-      { start: 9, end: 9, id: 'r1' },
-      { start: 10, end: 10 },
-      { start: 14, end: 15, id: 'q1' },
-      { start: 21, end: 21, id: 'p9' },
-    ]);
-  });
-});
-
-// Every sample below is copied out of Pieces/, not invented.
 describe('oneTellingEach', () => {
   const para = (path: string, text: string, status: string, wells: string[]) =>
     ({
@@ -110,11 +68,6 @@ describe('oneTellingEach', () => {
     const out = oneTellingEach([para(MIRROR, TEXT, 'set-down', ['me']), para(PUB, TEXT, 'published', ['Cities'])]);
     expect(out.length).toBe(1);
     expect(out[0]!.file.path).toBe(PUB);
-  });
-
-  test('no Well goes silent: the Wells of every telling are merged onto the one kept', () => {
-    const out = oneTellingEach([para(PUB, TEXT, 'published', ['Cities']), para(MIRROR, TEXT, 'set-down', ['Archives'])]);
-    expect(out[0]!.wells.sort()).toEqual(['Archives', 'Cities']);
   });
 
   test('order does not decide the winner, so the draw cannot shift between runs', () => {
@@ -172,30 +125,25 @@ describe('paragraphJar', () => {
     'Bank/q.md': '---\nkind: bank\n---\n- a question? #register/value ^b1\n',
   });
 
-  test('files every shelf under its Well; open Pieces, pages and me.md stay out; furniture never enters', async () => {
+  // Two shelves, both of blocks that already carry an id: finished Pieces and
+  // Sittings. A third held the bodies of Domain and Learning notes, drawable
+  // with or without an id, until 2026-09-17. Those notes are still reachable
+  // by pointing at a paragraph in one; they are no longer drawn.
+  test('both shelves; open Pieces, pages, me.md and every other note stay out; furniture never enters', async () => {
     const jar = await paragraphJar(vault.app, 'Sittings');
-    const byKey = Object.fromEntries(jar.map((p) => [p.key, p]));
-    expect(Object.keys(byKey).sort()).toEqual([
-      'Domains/Cities.md#L8',
-      'Domains/Cities.md#^w1',
-      'Learning/Dutch.md#L4',
+    expect(jar.map((p) => p.key).sort()).toEqual([
       'Pieces/2019-loose.md#^p-001',
       'Pieces/2021-koramangala.md#^p-001',
       'Pieces/2021-koramangala.md#^p-002',
       'Sittings/2026-09-12.md#^ans1',
       'Sittings/Suffering a Repitition.md#^ans9',
     ]);
-    expect(byKey['Pieces/2021-koramangala.md#^p-001']?.wells).toEqual(['Cities']);
-    expect(byKey['Pieces/2019-loose.md#^p-001']?.wells).toEqual(['me']);
-    expect(byKey['Sittings/2026-09-12.md#^ans1']?.wells).toEqual(['me']);
-    expect(byKey['Domains/Cities.md#^w1']?.wells).toEqual(['Cities']);
-    expect(byKey['Learning/Dutch.md#L4']?.wells).toEqual(['Dutch']);
   });
 
   test('the three species of furniture are strained out, each by its own rule', async () => {
     const piece = vault.file('Pieces/2021-koramangala.md');
     // The shelf holds every block with an id, furniture included...
-    const shelf = (await pieceParagraphs(vault.app, piece, ['Cities'])).map((p) => p.key);
+    const shelf = (await pieceParagraphs(vault.app, piece)).map((p) => p.key);
     expect(shelf.sort()).toEqual([
       'Pieces/2021-koramangala.md#^p-001',
       'Pieces/2021-koramangala.md#^p-002',
@@ -237,18 +185,6 @@ describe('paragraphJar', () => {
     const p = jar.find((x) => x.key === 'Sittings/Suffering a Repitition.md#^ans9')!;
     expect(p.framing).toBe('in a Sitting they called "Suffering a Repitition"');
     expect(p.title).toBe('Suffering a Repitition');
-    expect(p.wells).toEqual(['me']);
   });
 
-  test('a Domain body paragraph without an id is drawable: note-level ref, line kept for the id it gets on accept', async () => {
-    const jar = await paragraphJar(vault.app, 'Sittings');
-    const p = jar.find((x) => x.key === 'Domains/Cities.md#L8')!;
-    expect(p.text).toBe('Every city I lived in for a week has a poem I never finished writing down.');
-    expect(p.ref).toEqual({ path: 'Domains/Cities' });
-    expect(p.line).toBe(8);
-    expect(p.framing).toBe('in their note on Cities');
-    const withId = jar.find((x) => x.key === 'Domains/Cities.md#^w1')!;
-    expect(withId.ref).toEqual({ path: 'Domains/Cities', blockId: 'w1' });
-    expect(withId.text).toBe('I walk to think, and the city gives back a different thought each morning.');
-  });
 });

@@ -45,7 +45,7 @@ export async function runClosing(
 /** The bookmark lands on the Sitting's Target, or on `me` when roaming. */
 async function writeBookmark(app: App, sitting: TFile, answer: Ref): Promise<void> {
   const target = readTarget(app, sitting);
-  const home = target?.file ?? app.vault.getFileByPath(`${ME_BASENAME}.md`);
+  const home = target ?? app.vault.getFileByPath(`${ME_BASENAME}.md`);
   if (!home) return;
   await app.fileManager.processFrontMatter(home, (fm: Record<string, unknown>) => {
     fm['next'] = wikilink(answer);

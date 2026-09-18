@@ -53,7 +53,6 @@ describe('a selection in a Sitting', () => {
     expect(p.ref.blockId).toBeUndefined();
     expect(p.line).toBe(11);
     expect(p.origin).toBe('sitting');
-    expect(p.wells).toEqual(['me']);
     expect(p.framing).toBe('in a Sitting on 2026-09-13');
     expect(p.title).toBe('Sitting 2026-09-13');
   });
@@ -91,10 +90,9 @@ describe('what a selection refuses', () => {
 });
 
 describe('a selection elsewhere', () => {
-  test('a published Piece brings its framing, its title and the Domain that gathers it', () => {
+  test('a published Piece brings its framing and its title', () => {
     const p = pick('Pieces/2021-cities.md', 'The buffaloes went past the auto stand.', 8);
     expect(p.origin).toBe('piece');
-    expect(p.wells).toEqual(['Blender']);
     expect(p.framing).toBe('in 2021, in "Feeling Through the Cities", for Branch Magazine');
     expect(p.title).toBe('Feeling Through the Cities');
     expect(p.ref.blockId).toBe('p-004');
@@ -104,11 +102,19 @@ describe('a selection elsewhere', () => {
     expect(pick('Pieces/open.md', 'A paragraph with no id yet.', 4).framing).toBe('in "The one I am writing", the Piece they are writing');
   });
 
-  test('a Domain body is filed under that Domain, so the craft Lens frames the question', () => {
+  // Any note at all. There were four allowed folders until 2026-09-17, which
+  // was a fence around the owner's own vault.
+  test('any other note is framed by its name, whatever folder it sits in', () => {
     const p = pick('Domains/Blender.md', 'I rig characters badly.', 4);
-    expect(p.origin).toBe('domain');
-    expect(p.wells).toEqual(['Blender']);
+    expect(p.origin).toBe('note');
     expect(p.framing).toBe('in their note on Blender');
+  });
+
+  // Even a Bank note. Nothing behind the old fence needed one, and refusing
+  // here only ever meant the owner could not ask about words they had
+  // deliberately pointed at.
+  test('even a Bank note: what the owner points at, they meant', () => {
+    expect(pick('Bank/craft.md', 'what did you make?', 0).origin).toBe('note');
   });
 });
 
@@ -119,10 +125,6 @@ describe('what is not a selection to ask about', () => {
 
   test('more than the model can hold one question about', () => {
     expect(() => pick('Sittings/2026-09-13.md', 'x'.repeat(MAX_SELECTION + 1), 11)).toThrow(NotSelectable);
-  });
-
-  test('a note the owner does not write paragraphs in', () => {
-    expect(() => pick('Bank/craft.md', 'what did you make?', 0)).toThrow(NotSelectable);
   });
 
   test('a line that is not inside a paragraph', () => {

@@ -1,32 +1,27 @@
-// The Lens: a note in `Lenses/`, prose, that tells bonsai where to look when
-// composing from a paragraph of a given Well. Its body is appended to the
-// composition prompt verbatim. `Lenses/craft.md` for Domains,
-// `Lenses/learning.md` for Learning notes; the self has no Lens.
+// The Lens: a note in `Lenses/`, prose, appended to the composition prompt
+// verbatim. It tells bonsai where to look. The interviewer's technique is a
+// page the owner can edit, which is the whole point of it being a note.
+//
+// It was chosen by the Well a paragraph came from until 2026-09-17 — craft for
+// a Domain, learning for a Learning note, none for the self. There is one now,
+// because the folder a paragraph sits in has nothing to do with how it should
+// be asked about. When the second composer lands (the invitation, aimed at the
+// owner's present rather than at the old text), the Lens is chosen by the PATH
+// instead: one page for the interviewer, one for the invitation.
 
 import type { App } from 'obsidian';
-import type { Well } from './target';
 
 const LENSES_FOLDER = 'Lenses';
 
-const LENS_OF: Record<Well['kind'], string | null> = {
-  me: null,
-  domain: 'craft',
-  learning: 'learning',
-};
-
-/** The name of the Lens a Well reads through (`craft`, `learning`), or null for the self. */
-export function lensName(well: Well): string | null {
-  return LENS_OF[well.kind];
-}
+/** The Lens the interviewer reads through. */
+export const CRAFT = 'craft';
 
 /**
- * The body of the Well's Lens, after the frontmatter, trimmed. Empty for the
- * self, or when the Lens note is missing or has no prose. Read fresh each
- * time: it is one small file, and the owner edits it.
+ * The body of the Lens, after the frontmatter, trimmed. Empty when the note is
+ * missing or has no prose. Read fresh each time: it is one small file, and the
+ * owner edits it.
  */
-export async function lensFor(app: App, well: Well): Promise<string> {
-  const name = lensName(well);
-  if (!name) return '';
+export async function lensFor(app: App, name: string = CRAFT): Promise<string> {
   const file = app.vault.getFileByPath(`${LENSES_FOLDER}/${name}.md`);
   if (!file) return '';
   return bodyOf(await app.vault.cachedRead(file));

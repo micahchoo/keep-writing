@@ -27,7 +27,7 @@ import { drawMany, parseDue } from './bank';
 import type { AnsweredIndex, Drawn, JarCounts } from './bank';
 import { ensureBlockId } from './blocks';
 import { runClosing } from './closing';
-import { lensFor, lensName } from './lens';
+import { CRAFT, lensFor } from './lens';
 import type { Model, RevisitCandidate } from './model';
 import type { Paragraph } from './paragraphs';
 import { refusalLine } from './refusal';
@@ -35,8 +35,7 @@ import { keyOfRef, parseRef } from './refs';
 import type { Ref } from './refs';
 import { selectionParagraph } from './selection';
 import type { KeepWritingSettings } from './settings';
-import { SELF, ME_BASENAME, allWells, isSitting, readTarget } from './target';
-import type { Well } from './target';
+import { ME_BASENAME, isSitting, readTarget } from './target';
 
 /** What the Interview reads the vault and the model through. The plugin is one. */
 export interface InterviewHost {
@@ -124,7 +123,7 @@ export class Interview {
   async draw(sitting: TFile, count: number = DRAW_COUNT): Promise<Drawing> {
     const target = readTarget(this.app, sitting);
     const { drawn, jars } = await drawMany(await this.context(sitting), target, count);
-    return { drawn, jars, target: target?.name ?? null };
+    return { drawn, jars, target: target?.basename ?? null };
   }
 
   /** What the Draw reads the vault through, with this Sitting's Asks already placed. */
@@ -175,10 +174,9 @@ export class Interview {
    * is empty, and the caller shows the fallback.
    */
   async revisitOffer(paragraph: Paragraph): Promise<RevisitOffer> {
-    const well = this.wellOf(paragraph);
     const { model } = this.host;
-    const lens = await lensFor(this.app, well);
-    const name = lens ? lensName(well) : null;
+    const lens = await lensFor(this.app);
+    const name = lens ? CRAFT : null;
     if (!model.available) return { candidates: [], lens: name };
     const asked = await this.askedAbout(paragraph);
     return { candidates: await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens), lens: name };
@@ -203,11 +201,6 @@ export class Interview {
       const ref = parseRef(src);
       return !!ref && keyOfRef(this.app, ref, paragraph.file.path) === paragraph.key;
     });
-  }
-
-  /** The Well a paragraph is filed under, for its Lens. The self when the name is not a Well. */
-  wellOf(paragraph: Paragraph): Well {
-    return allWells(this.app).find((w) => w.name === paragraph.wells[0]) ?? SELF;
   }
 
   /**
@@ -298,7 +291,7 @@ export class Interview {
     const fresh = asks.find((a) => a.sourceRef === ask.sourceRef && a.question === ask.question) ?? ask;
     const answer = answerText(content, fresh);
     if (!answer) return [];
-    const target = readTarget(this.app, file)?.name ?? ME_BASENAME;
+    const target = readTarget(this.app, file)?.basename ?? ME_BASENAME;
     // Every other question this Sitting has already put. composeFollowUps
     // adds the one being answered itself.
     const alsoAsked = asks.map((a) => a.question).filter((q) => q !== ask.question);
@@ -341,6 +334,5 @@ export async function todaysSitting(app: App, sittingsFolder: string): Promise<T
 export function jarsLine(jars: JarCounts): string {
   const q = `${jars.questions} question${jars.questions === 1 ? '' : 's'}`;
   const p = `${jars.paragraphs} paragraph${jars.paragraphs === 1 ? '' : 's'}`;
-  const w = `${jars.wells} well${jars.wells === 1 ? '' : 's'}`;
-  return `roaming · ${q} · ${p} across ${w}`;
+  return `roaming · ${q} · ${p}`;
 }

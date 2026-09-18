@@ -2,9 +2,8 @@
 // sources are still unanswered, and the Draw.
 //
 // Two jars. The Bank jar holds questions other people wrote, asked as they
-// are. The paragraph jar (paragraphs.ts) holds paragraphs the owner wrote,
-// filed under Wells. The draw pulls from one jar or the other, seven draws
-// in ten from the Bank.
+// are. The paragraph jar (paragraphs.ts) holds paragraphs the owner wrote.
+// The draw pulls from one jar or the other, seven draws in ten from the Bank.
 
 import type { App, TFile } from 'obsidian';
 import { answeredKeys } from './links';
@@ -12,8 +11,6 @@ import { refOf, resolveRef, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
 import { paragraphJar } from './paragraphs';
 import type { Paragraph } from './paragraphs';
-import { allWells, isRevisitable } from './target';
-import type { Target, Well } from './target';
 
 /**
  * Share of draws that come from the Bank. Set to 0.7 on 2026-09-13: at an
@@ -175,8 +172,6 @@ export function pickOne<T>(items: T[], random: () => number = Math.random): T | 
 export interface Drawn {
   /** `source.kind` tells a paragraph from a question. */
   source: Source;
-  /** The Well a paragraph was drawn through; its Lens frames the Revisit. Absent for questions. */
-  well?: Well;
   /** Absolute due date, when a bank question carries one. */
   due?: string;
 }
@@ -194,49 +189,40 @@ export interface DrawContext {
   today?: Date;
 }
 
-/** One Well's share of the paragraph jar. */
-export interface WellPool {
-  well: Well;
-  paragraphs: Paragraph[];
-}
-
 /**
  * The two jars of CONTEXT.md, filtered to what is still drawable: unanswered,
  * not skipped. This is what the Draw reads. A Closing is not a jar and is not
  * here.
+ *
+ * The paragraph jar was a list of Wells, each holding its own paragraphs,
+ * until 2026-09-17. It is one flat list now. See `pickFromJars` for what that
+ * cost and what it fixed.
  */
 export interface Jars {
   /** Role-less questions. Empty when a Target is set: a Target narrows to paragraphs. */
   bank: BankQuestion[];
-  /** Only Wells that still hold a drawable paragraph. */
-  wells: WellPool[];
+  paragraphs: Paragraph[];
 }
 
 export interface JarCounts {
   questions: number;
-  /** Distinct paragraphs: one gathered by two Domains counts once. */
   paragraphs: number;
-  wells: number;
 }
 
-/** Pure: what the pane's header reports. */
+/** Pure: what the owner is told a draw is choosing among. */
 export function jarCounts(jars: Jars): JarCounts {
-  const keys = new Set<string>();
-  for (const pool of jars.wells) for (const p of pool.paragraphs) keys.add(p.key);
-  return { questions: jars.bank.length, paragraphs: keys.size, wells: jars.wells.length };
+  return { questions: jars.bank.length, paragraphs: jars.paragraphs.length };
 }
 
 /**
- * Fill the two jars for a Sitting. Roaming (no Target): the whole Bank jar,
- * and the paragraph jar filed under every Well. With a Target: no Bank; the
- * paragraph jar holds that Well's paragraphs only, or, for a finished Piece,
- * its own paragraphs (still filed under the Wells that gather it, for the
- * Lens).
+ * Fill the two jars for a Sitting. Roaming (no Target): the whole Bank jar and
+ * every drawable paragraph. With a Target: no Bank, and only the paragraphs of
+ * the one note it names.
  */
-export async function fillJars(ctx: DrawContext, target: Target | null): Promise<Jars> {
+export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<Jars> {
   const drawable = (key: string) => !ctx.index.has(key) && !ctx.skipped.has(key);
 
-  // A Target empties the ordinary jar: the day is spent on one Well's
+  // A Target empties the ordinary jar: the day is spent on one note's
   // paragraphs. A role-tagged entry is never in it either — a closing move is
   // written into the Sitting by the template, so drawing one would place it
   // twice.
@@ -248,30 +234,29 @@ export async function fillJars(ctx: DrawContext, target: Target | null): Promise
   let paragraphs = (await paragraphJar(ctx.app, ctx.sittingsFolder)).filter(
     (p) => drawable(p.key) && p.file.path !== today,
   );
-  if (target?.kind === 'piece') {
-    paragraphs = isRevisitable(ctx.app, target.file) ? paragraphs.filter((p) => p.file.path === target.file.path) : [];
-  }
-  const wells = target && target.kind !== 'piece' ? [target] : allWells(ctx.app);
-  const pools: WellPool[] = [];
-  for (const well of wells) {
-    const own = paragraphs.filter((p) => p.wells.includes(well.name));
-    if (own.length) pools.push({ well, paragraphs: own });
-  }
-  return { bank, wells: pools };
+  if (target) paragraphs = paragraphs.filter((p) => p.file.path === target.path);
+  return { bank, paragraphs };
 }
 
 /**
  * Pure: the Draw. Flip a coin between the jars; if one is empty, use the
- * other. From the Bank jar: balance across registers, then uniform. From the
- * paragraph jar: a Well uniformly among those with a drawable paragraph, then
- * a paragraph uniformly within it. Null when both jars are empty.
+ * other. Then one uniformly from whichever jar the coin chose. Null when both
+ * jars are empty.
+ *
+ * The paragraph side picked a Well uniformly and THEN a paragraph inside it
+ * until 2026-09-17, to make an untouched Well surface. Measured that day over
+ * the real corpus: the self held 36.5% of the jar and took 12.5% of the picks,
+ * while "Speculation and Futures" held 1.5% and took the same 12.5% — eight
+ * times its weight. That is the register-weighting defect of two days earlier,
+ * one level up, and the same fix: a share decided by how many GROUPS exist is
+ * not a share at all. Coverage is a real goal and this was the wrong
+ * instrument for it; a filter that retires itself would be the right one.
  */
 export function pickFromJars(jars: Jars, random: () => number = Math.random, today: Date = new Date()): Drawn | null {
   const hasBank = jars.bank.length > 0;
-  const hasParagraphs = jars.wells.length > 0;
+  const hasParagraphs = jars.paragraphs.length > 0;
   if (!hasBank && !hasParagraphs) return null;
-  const fromBank = hasBank && hasParagraphs ? random() < BANK_SHARE : hasBank;
-  if (fromBank) {
+  if (hasBank && (!hasParagraphs || random() < BANK_SHARE)) {
     const question = pickOne(jars.bank, random);
     if (!question) return null;
     const drawn: Drawn = { source: question };
@@ -279,9 +264,8 @@ export function pickFromJars(jars: Jars, random: () => number = Math.random, tod
     if (due) drawn.due = due;
     return drawn;
   }
-  const pool = jars.wells[Math.floor(random() * jars.wells.length)] as WellPool;
-  const paragraph = pool.paragraphs[Math.floor(random() * pool.paragraphs.length)] as Paragraph;
-  return { source: paragraph, well: pool.well };
+  const paragraph = pickOne(jars.paragraphs, random);
+  return paragraph ? { source: paragraph } : null;
 }
 
 /** What a draw of several hands back: the picks, best-effort, and the counts. */
@@ -297,8 +281,7 @@ function removePicked(jars: Jars, drawn: Drawn): void {
     jars.bank = jars.bank.filter((q) => q.key !== key);
     return;
   }
-  for (const pool of jars.wells) pool.paragraphs = pool.paragraphs.filter((p) => p.key !== key);
-  jars.wells = jars.wells.filter((pool) => pool.paragraphs.length > 0);
+  jars.paragraphs = jars.paragraphs.filter((p) => p.key !== key);
 }
 
 /**
@@ -310,7 +293,7 @@ function removePicked(jars: Jars, drawn: Drawn): void {
  * handed over exactly one source until 2026-09-17, so refusing it needed a
  * `skipped` set that had to live as long as the interview did.
  */
-export async function drawMany(ctx: DrawContext, target: Target | null, count: number): Promise<Drawing> {
+export async function drawMany(ctx: DrawContext, target: TFile | null, count: number): Promise<Drawing> {
   const random = ctx.random ?? Math.random;
   const today = ctx.today ?? new Date();
   const jars = await fillJars(ctx, target);

@@ -1,11 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { bodyOf, lensFor, lensName } from '../src/lens';
-import { SELF } from '../src/target';
-import type { Well } from '../src/target';
+import { CRAFT, bodyOf, lensFor } from '../src/lens';
 import { fakeVault } from './fake-vault';
-
-const domain: Well = { kind: 'domain', name: 'Cities', file: null };
-const learning: Well = { kind: 'learning', name: 'Dutch', file: null };
 
 describe('bodyOf', () => {
   test('drops the frontmatter and trims', () => {
@@ -23,19 +18,19 @@ describe('bodyOf', () => {
 
 describe('lensFor', () => {
   const vault = fakeVault({
-    'Lenses/craft.md': '---\nkind: lens\nfor: domain\n---\n\nLook for what happened, in order.\n',
+    'Lenses/craft.md': '---\nkind: lens\n---\n\nLook for what happened, in order.\n',
   });
 
-  test('a Domain reads the craft Lens; its name is craft', async () => {
-    expect(lensName(domain)).toBe('craft');
-    expect(await lensFor(vault.app, domain)).toBe('Look for what happened, in order.');
+  // One Lens, whatever folder the paragraph came from. It was chosen by the
+  // Well until 2026-09-17 — craft for a Domain, learning for a Learning note,
+  // none for the self — which made how a paragraph is asked about a property
+  // of where it is filed.
+  test('reads the craft page by default', async () => {
+    expect(CRAFT).toBe('craft');
+    expect(await lensFor(vault.app)).toBe('Look for what happened, in order.');
   });
-  test('a Learning note reads the learning Lens; missing file is empty', async () => {
-    expect(lensName(learning)).toBe('learning');
-    expect(await lensFor(vault.app, learning)).toBe('');
-  });
-  test('the self has no Lens', async () => {
-    expect(lensName(SELF)).toBeNull();
-    expect(await lensFor(vault.app, SELF)).toBe('');
+
+  test('a Lens note that is not there is empty, never a throw', async () => {
+    expect(await lensFor(vault.app, 'nothing-here')).toBe('');
   });
 });

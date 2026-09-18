@@ -1,12 +1,17 @@
 // "Ask about the selection": the owner points at their own words and the
 // interview takes them as the source.
 //
-// The paragraph jar can only reach blocks that already carry an id, so most
-// of what the owner writes in a Sitting is out of its reach (only the first
-// paragraph of an answer is given an id). This is the hand-worked way in: any
-// run of text, in any note the owner writes paragraphs in, id or not. The
-// block gets its id when the Ask is accepted, which is the same moment the
-// jar's own id-less paragraphs get theirs.
+// The paragraph jar only reaches blocks that already carry an id, in a Sitting
+// or a finished Piece. This is the hand-worked way in, and it reaches further
+// than the jar ever did: any run of text, in ANY note, id or not. The block
+// gets its id when the Ask is accepted.
+//
+// It refused everything outside four folders until 2026-09-17 — "Ask about the
+// selection works in a Sitting, a Piece, a Domain or a Learning note" — which
+// was a fence around the owner's own vault. Nothing behind it needed one, and
+// with Domain and Learning notes no longer known to the code, the fence would
+// have shut the owner out of the two folders the plugin had just told them to
+// write in.
 //
 // The jar's furniture test (furniture.ts#readsAsParagraph) does not run
 // here. Its word floor is the draw's standard, for choosing among a thousand
@@ -56,9 +61,6 @@ export function selectionParagraph(
     throw new NotSelectable(`That selection is ${text.length} characters. Select fewer than ${MAX_SELECTION}.`);
   }
   const facts = fileFacts(app, file, sittingsFolder);
-  if (!facts) {
-    throw new NotSelectable('Ask about the selection works in a Sitting, a Piece, a Domain or a Learning note.');
-  }
   const block = paragraphAt(app.metadataCache.getFileCache(file), line);
   if (!block) throw new NotSelectable('Select inside a paragraph or a list item.');
   // The text is the SELECTION; the ref, the key and the line are the whole
