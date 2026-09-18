@@ -27,6 +27,11 @@ const context = await esbuild.context({
     '@lezer/lr',
   ],
   format: 'cjs',
+  // The starter Bank is bundled as text. An Obsidian plugin release ships
+  // main.js, manifest.json and styles.css and nothing else, so a data file
+  // beside them would never reach anyone who installs from the community
+  // store. See src/starter-bank.ts.
+  loader: { '.md': 'text' },
   target: 'es2022',
   logLevel: 'info',
   sourcemap: production ? false : 'inline',

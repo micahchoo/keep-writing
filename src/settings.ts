@@ -29,6 +29,12 @@ export interface KeepWritingSettings {
    * only this vault has.
    */
   writingFolders: string[];
+  /**
+   * Whether the starter Bank has been offered. Set by EITHER answer, so the
+   * offer is made once and never again; the command stays in the palette for
+   * anyone who said no and changed their mind.
+   */
+  starterOffered: boolean;
 }
 
 export const DEFAULT_SETTINGS: KeepWritingSettings = {
@@ -39,6 +45,7 @@ export const DEFAULT_SETTINGS: KeepWritingSettings = {
   sittingsFolder: 'Sittings',
   bankFolder: 'Bank',
   writingFolders: ['Sittings'],
+  starterOffered: false,
 };
 
 export interface SettingsHost extends Plugin {

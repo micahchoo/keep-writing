@@ -11,7 +11,7 @@
 // A modal holds its own offer for as long as it is open and then goes away, so
 // none of those three problems exists here.
 
-import { SuggestModal } from 'obsidian';
+import { Modal, Setting, SuggestModal } from 'obsidian';
 import type { App } from 'obsidian';
 
 /** One row: what it says, what it is worth, and what picking it means. */
@@ -60,6 +60,49 @@ export class ChoiceModal<T> extends SuggestModal<Choice<T>> {
 
   onChooseSuggestion(choice: Choice<T>): void {
     this.picked(choice.value);
+  }
+}
+
+/**
+ * An offer with a paragraph of copy and two buttons. The only thing in the
+ * plugin that asks before writing, because it is the only thing that writes
+ * more than one note at a time and does it into a vault that is not this
+ * one's owner's.
+ *
+ * Closing it any other way — Escape, the X — is the "no" and runs nothing.
+ */
+export class OfferModal extends Modal {
+  private confirmed = false;
+
+  constructor(
+    app: App,
+    private copy: { title: string; body: string[]; confirm: string; dismiss: string },
+    private onConfirm: () => void,
+    private onDismiss: () => void,
+  ) {
+    super(app);
+  }
+
+  override onOpen(): void {
+    this.titleEl.setText(this.copy.title);
+    for (const line of this.copy.body) this.contentEl.createEl('p', { text: line });
+    new Setting(this.contentEl)
+      .addButton((b) =>
+        b
+          .setButtonText(this.copy.confirm)
+          .setCta()
+          .onClick(() => {
+            this.confirmed = true;
+            this.close();
+            this.onConfirm();
+          }),
+      )
+      .addButton((b) => b.setButtonText(this.copy.dismiss).onClick(() => this.close()));
+  }
+
+  override onClose(): void {
+    this.contentEl.empty();
+    if (!this.confirmed) this.onDismiss();
   }
 }
 

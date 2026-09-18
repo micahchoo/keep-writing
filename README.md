@@ -4,7 +4,7 @@ A vault that interviews you, so that you keep writing.
 
 keep-writing puts a question into your daily note in [Obsidian](https://obsidian.md), you answer it in your own words, and every answer is linked to whatever provoked it. Over time the vault becomes the well your writing projects draw from — and the questions start coming from what you have already written.
 
-> **Early, and not in the community store.** Install it manually (below). It ships with no question bank yet, so you bring your own or write one; a starter bank is the next thing planned. The follow-up questions need a local model, and everything else works without one.
+> **Early, and not in the community store.** Install it manually (below). Questions composed from your own writing need a model endpoint; everything else works without one.
 
 ## What it does
 
@@ -17,6 +17,8 @@ keep-writing puts a question into your daily note in [Obsidian](https://obsidian
 - **Never writes your prose.** See [What it will not do](#what-it-will-not-do).
 
 ## Getting started
+
+On first run it offers to fill your question bank: 1,023 questions written for this, as one plain Markdown note in `Bank/`. Say yes, or run **Install the starter question bank** later. Nothing is overwritten and nothing is sent anywhere.
 
 1. Open today's daily note.
 2. Run **Draw a question** (ribbon icon, command palette, or right-click → keep-writing).
@@ -48,6 +50,7 @@ All three are on the editor's right-click menu, under **keep-writing**.
 
 | Command | What happens |
 |---|---|
+| **Install the starter question bank** | Writes the shipped question notes into your bank folder. Skips any note already there, so it is safe to run twice. |
 | **Draw a question** | Three sources to choose from, led by where you said to pick up. A bank question becomes an Ask at once; a paragraph of yours goes to the model first, and its questions are the second chooser. |
 | **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers follow-up questions. Safe to run again on an answer already linked — it writes nothing and composes afresh. |
 | **Ask about the selection** | Highlight any run of text, in **any** note, and be asked about it. The Ask lands in today's note. |
@@ -60,6 +63,10 @@ Two jars. Seven draws in ten come from the first.
 |---|---|---|
 | **The bank** | Questions other people wrote — every list item with a block id in a note in `Bank/` whose frontmatter says `kind: bank` | As written |
 | **Your writing** | Every block with an id, in the folders you name in settings | The model composes a question about it |
+
+The starter bank is 1,023 questions across seven registers — membership, positionality, relation, telling, embodiment, artifact, structure. They ask you to read a culture through your own life and to account for the telling, and none of them can be closed in a sentence. They were written for this plugin.
+
+They arrive as notes, not as data inside the plugin, and that is load-bearing: a question is answered when a block links to it, and a question with no address in your vault could never be retired. Once written they are your notes. Edit them, delete them, add your own.
 
 A bank note is ordinary Markdown. One question per list item, a `#register/…` tag saying what kind of answer it calls for, and a block id so the Ask can cite it:
 
@@ -125,7 +132,7 @@ Not in the community plugins browser yet.
 1. Clone or download this repo into `<your vault>/.obsidian/plugins/keep-writing`.
 2. `npm install && npm run build` — this produces `main.js`.
 3. Obsidian → Settings → Community plugins → turn off Restricted mode.
-4. Enable **keep-writing**.
+4. Enable **keep-writing**, and say yes when it offers to write the question bank.
 
 ## Settings
 
@@ -134,6 +141,7 @@ Not in the community plugins browser yet.
 | Sittings folder | `Sittings` | Where daily notes live |
 | Bank folder | `Bank` | Where question notes live |
 | Draw your own writing from | `Sittings` | One folder per line. Every block with an id in these can be drawn |
+| — | — | The starter bank is offered once; **Install the starter question bank** does it any time |
 | Enable model | on | Off makes it bank-only |
 | Base URL | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible endpoint |
 | Model | `bonsai-2-27b` | Model id sent to that endpoint |

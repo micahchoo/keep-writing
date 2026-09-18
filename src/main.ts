@@ -17,11 +17,13 @@ import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
 import type { Reach } from './interview';
 import { createModel } from './model';
 import type { Model, RevisitCandidate } from './model';
-import { choose } from './modals';
+import { installBank, installedLine, questionCount } from './install';
+import { OfferModal, choose } from './modals';
 import type { Choice } from './modals';
 import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
 import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
+import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
 import { isSitting } from './target';
 
@@ -30,6 +32,7 @@ import { isSitting } from './target';
 const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
 const MARK = 'Mark this answer done, and follow up';
+const INSTALL = 'Install the starter question bank';
 
 /**
  * `MenuItem.setSubmenu` is absent from the published typings and present in
@@ -85,6 +88,8 @@ export default class KeepWritingPlugin extends Plugin {
       );
     });
 
+    this.app.workspace.onLayoutReady(() => this.offerStarterBank());
+
     this.addRibbonIcon('message-circle-question', 'Draw a question', () => void this.drawQuestion());
 
     this.addCommand({ id: 'draw-question', name: DRAW, callback: () => void this.drawQuestion() });
@@ -95,6 +100,7 @@ export default class KeepWritingPlugin extends Plugin {
         if (view instanceof MarkdownView) void this.markUnderCursor(view, editor.getCursor().line);
       },
     });
+    this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => void this.installStarterBank() });
     this.addCommand({
       id: 'ask-about-selection',
       name: ASK_SELECTION,
@@ -132,6 +138,60 @@ export default class KeepWritingPlugin extends Plugin {
       }),
     );
     this.addSettingTab(new KeepWritingSettingTab(this.app, this));
+  }
+
+  // -------------------------------------------------------------------------
+  // The starter Bank
+
+  /**
+   * With nothing in the Bank folder, the plugin can draw nothing, so it says
+   * so once and offers to fill it. It ASKS: this writes notes into somebody
+   * else's vault, and how many, and where, is the copy's whole job.
+   *
+   * The gate is the folder's contents and not `bankNotes`, which reads
+   * `kind: bank` out of the metadata cache — at first run the cache may still
+   * be indexing, and a half-built cache would make a full Bank look empty.
+   * Either answer records that the offer was made, so it is made once; the
+   * command stays in the palette for anyone who changes their mind.
+   */
+  private offerStarterBank(): void {
+    if (this.settings.starterOffered) return;
+    const folder = this.app.vault.getFolderByPath(this.settings.bankFolder);
+    if (folder && folder.children.length > 0) return;
+    const answered = () => {
+      this.settings.starterOffered = true;
+      void this.saveSettings();
+    };
+    new OfferModal(
+      this.app,
+      {
+        title: 'Fill the question bank?',
+        body: [
+          `keep-writing draws from questions kept as ordinary notes. Your ${this.settings.bankFolder} folder is empty, so there is nothing to draw.`,
+          `This writes ${STARTER_BANK.length === 1 ? 'one note' : `${STARTER_BANK.length} notes`} holding ${questionCount(STARTER_BANK).toLocaleString()} questions into ${this.settings.bankFolder}. They are plain Markdown, one question per line: edit them, delete them, add your own. Nothing is sent anywhere and no existing note is touched.`,
+          'You can do this later from the command palette instead.',
+        ],
+        confirm: 'Write the notes',
+        dismiss: 'Not now',
+      },
+      () => {
+        answered();
+        void this.installStarterBank();
+      },
+      answered,
+    ).open();
+  }
+
+  /** Write the shipped question notes, skipping any that are already there. */
+  private async installStarterBank(): Promise<void> {
+    const { bankFolder } = this.settings;
+    try {
+      const result = await installBank(this.app, bankFolder, STARTER_BANK);
+      this.index.invalidate();
+      new Notice(installedLine(result, bankFolder));
+    } catch (e) {
+      new Notice(`Could not write the question bank: ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
 
   // -------------------------------------------------------------------------

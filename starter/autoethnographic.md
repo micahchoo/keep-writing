@@ -1,0 +1,1059 @@
+---
+channel: autoethnographic
+title: "autoethnographic"
+kind: bank
+source: written
+---
+
+Questions for the ethno and the graphy. The rest of the Bank asks the owner to
+retrieve a life; these ask them to read a culture through it, and to account
+for the telling. Every entry assumes the answer is a piece of writing, not a
+sentence: none can be closed in a line. Seven registers are used here that the
+rest of the Bank does not carry — membership, positionality, relation,
+telling, embodiment, artifact, structure — because the register set had no
+name for anything outside the self.
+
+## Membership
+
+- what did your family do that you assumed every family did? #register/membership ^ae-001
+- what word did you use at home for years before you learned it was not the common word? #register/membership ^ae-002
+- what did you have to stop doing in order to pass as someone from somewhere else? #register/membership ^ae-003
+- what rule did everyone around you follow that no one ever stated? #register/membership ^ae-004
+- who taught you what counted as clean, and what did they count as dirty? #register/membership ^ae-005
+- what did you learn to be embarrassed about before you understood why? #register/membership ^ae-006
+- what does your family treat as a luxury that other people treat as ordinary? #register/membership ^ae-007
+- what are you fluent in that nobody has ever asked you to explain? #register/membership ^ae-008
+- when did you first learn that the way you ate was a way of eating? #register/membership ^ae-009
+- what do you keep the shape of but not the belief of? #register/membership ^ae-010
+- what did the adults around you argue about that you only understood much later? #register/membership ^ae-011
+- what do you know how to do that you have never seen written down? #register/membership ^ae-012
+- what did your first job teach you about which people are made to wait? #register/membership ^ae-013
+- what were you taught to call people not like you, and when did you stop? #register/membership ^ae-014
+- which of your habits would give you away in a room of strangers? #register/membership ^ae-015
+- what did belonging cost you the first time you managed it? #register/membership ^ae-016
+- what does your accent do to a room before you finish the sentence? #register/membership ^ae-017
+- what did you inherit that nobody meant to give you? #register/membership ^ae-018
+- what did you think was your personality until you met more of your relatives? #register/membership ^ae-019
+- who in your family is the one who remembers, and what happens when they stop? #register/membership ^ae-020
+- what silence did your household keep, and who was it protecting? #register/membership ^ae-021
+- what did leaving your region teach you about how it gets described elsewhere? #register/membership ^ae-022
+- what does a language you barely speak still do to you? #register/membership ^ae-023
+- what do you perform at home that you would never perform at work? #register/membership ^ae-024
+- what did you believe about money before you understood your family's position? #register/membership ^ae-025
+- what does your family call a story that everyone knows is not quite true? #register/membership ^ae-026
+- what did you learn to want because wanting it was how you belonged? #register/membership ^ae-199
+- what do you defend to outsiders and criticise from the inside? #register/membership ^ae-200
+- what did you stop being able to hear once you learned the standard version? #register/membership ^ae-201
+- when did your ordinary turn out to be somebody else's exception? #register/membership ^ae-202
+- what does your family protect by refusing to name it? #register/membership ^ae-203
+- what did you have to translate about yourself to be understood, and what died in the translation? #register/membership ^ae-204
+- what custom do you still keep the motions of after the belief has gone? #register/membership ^ae-205
+- when did fitting in start costing you more than standing out would have? #register/membership ^ae-206
+- what does your household teach that it would deny teaching? #register/membership ^ae-207
+- what did you inherit as an obligation that was given to you as love? #register/membership ^ae-208
+- what do your people forgive in their own and condemn in others? #register/membership ^ae-209
+- what does a joke in your family do to whoever does not get it? #register/membership ^ae-210
+- what did you keep from a place that your relatives there have already dropped? #register/membership ^ae-211
+- when did a name of yours stop being yours and become a category? #register/membership ^ae-212
+- what did belonging ask you to stop noticing? #register/membership ^ae-213
+- what do you know how to do that marks exactly where you are from? #register/membership ^ae-214
+- what did the welcome in your house oblige, underneath the welcome? #register/membership ^ae-215
+- when did you realise the standard you were measured against was someone's dialect? #register/membership ^ae-216
+- what did your family call practical that was really fear? #register/membership ^ae-217
+- what does your group lose the moment it can describe itself? #register/membership ^ae-218
+- what did your family eat that you learned not to mention at school? #register/membership ^ae-339
+- what does your household do with leftovers, and what does that say about it? #register/membership ^ae-340
+- who eats first in your family, and who decided that? #register/membership ^ae-341
+- what dish can you not make the way it was made for you? #register/membership ^ae-342
+- what did you learn about hunger from how food was rationed at home? #register/membership ^ae-343
+- what do you cook when you want to be somewhere else? #register/membership ^ae-344
+- what food did you refuse as a child that you now defend to strangers? #register/membership ^ae-345
+- what does your family serve guests that it never serves itself? #register/membership ^ae-346
+- which language do you count in, and which do you argue in? #register/membership ^ae-347
+- what did you lose when you became fluent in the language of school? #register/membership ^ae-348
+- what do you say in one language because it cannot be said in the other? #register/membership ^ae-349
+- when did somebody correct your pronunciation, and what did the correction tell you? #register/membership ^ae-350
+- what word do you avoid because of how you say it? #register/membership ^ae-351
+- what did you stop calling your grandparents once you left home? #register/membership ^ae-352
+- which of your languages do you dream in, and which do you apologise in? #register/membership ^ae-353
+- what joke only works in the language you use least? #register/membership ^ae-354
+- which observance do you keep for somebody else's sake? #register/membership ^ae-355
+- what did you stop believing before you stopped attending? #register/membership ^ae-356
+- what does your family do at a death that you could not explain to an outsider? #register/membership ^ae-357
+- what ritual did you invent because the inherited one no longer fit? #register/membership ^ae-358
+- what do you do on a date in the calendar that nobody outside your house marks? #register/membership ^ae-359
+- when did a ceremony start feeling like a transaction? #register/membership ^ae-360
+- what prayer or formula do you still know by heart and no longer mean? #register/membership ^ae-361
+- what did fasting or feasting teach you about the year? #register/membership ^ae-362
+- what does your surname tell a stranger before you do? #register/membership ^ae-363
+- who in your family were you named for, and what did that name expect? #register/membership ^ae-364
+- which relative are you compared to, and do you accept the comparison? #register/membership ^ae-365
+- what does your family call cousins, and what does that word include? #register/membership ^ae-366
+- who in your family is not spoken of, and since when? #register/membership ^ae-367
+- what did adoption, remarriage or absence do to how your family counts itself? #register/membership ^ae-368
+- what title do you use for somebody who is not related to you? #register/membership ^ae-369
+- when did you first hear your family described by somebody outside it? #register/membership ^ae-370
+- what did your family own that announced something about it? #register/membership ^ae-371
+- what did you learn to be careful about spending in front of others? #register/membership ^ae-372
+- what did you assume everyone had until you visited somebody else's house? #register/membership ^ae-373
+- what work did your parents do that you described differently to different people? #register/membership ^ae-374
+- what did your family treat as showing off? #register/membership ^ae-375
+- when did you first understand where your family sat in somebody's ranking? #register/membership ^ae-376
+- what did you not know the price of until you had to pay it yourself? #register/membership ^ae-377
+- what does your house sound like on an ordinary evening, and what does that sound cost? #register/membership ^ae-378
+- what did you carry from one house to the next, every time? #register/membership ^ae-379
+- what does the place you are from get wrong about itself? #register/membership ^ae-380
+- what do people assume about where you are from that is nearly true? #register/membership ^ae-381
+- when did you become foreign somewhere you had lived for years? #register/membership ^ae-382
+- what did you have to learn about a city that everyone born there already knew? #register/membership ^ae-383
+- what do you miss that you would not go back for? #register/membership ^ae-384
+- what did your family say about the place they left? #register/membership ^ae-385
+- what does home mean to you when you are asked at a border? #register/membership ^ae-386
+- what were the girls in your family expected to notice? #register/membership ^ae-387
+- what were the boys in your family forbidden to admit? #register/membership ^ae-388
+- who does the unseen work at a gathering in your family? #register/membership ^ae-389
+- what did you learn about marriage from watching one closely? #register/membership ^ae-390
+- what freedom did somebody in your family have that another did not, and why? #register/membership ^ae-391
+- when did you first refuse a role that was assigned to you at home? #register/membership ^ae-392
+- what does your family expect of a daughter that it does not ask of a son, or the reverse? #register/membership ^ae-393
+- who taught you what a man or a woman was supposed to look like? #register/membership ^ae-394
+- who does your community consider its own, and where is the edge? #register/membership ^ae-395
+- what does your group say about the group next to it? #register/membership ^ae-396
+- when did you defend a hierarchy you did not believe in? #register/membership ^ae-397
+- what did you learn about purity from what was kept separate at home? #register/membership ^ae-398
+- whose touch was treated differently in the houses you grew up in? #register/membership ^ae-399
+- what did your family do to protect its standing? #register/membership ^ae-400
+- when did belonging to your group cost somebody else something? #register/membership ^ae-401
+- what did you learn about caste, class or clan from who came to the door? #register/membership ^ae-402
+- what do you wear that would be read differently in another room? #register/membership ^ae-403
+- what did you have to take off to be taken seriously? #register/membership ^ae-404
+- what does your hair mean to people who do not know you? #register/membership ^ae-405
+- when did you dress to disappear? #register/membership ^ae-406
+- what did somebody in your family wear every day without ever choosing it? #register/membership ^ae-407
+- what did a uniform at school teach you about sameness? #register/membership ^ae-408
+- what do you own that you keep for a version of yourself you no longer are? #register/membership ^ae-409
+- what does your face get read as, and by whom? #register/membership ^ae-410
+- what does your family lend without calling it lending? #register/membership ^ae-411
+- what were you told never to accept from anyone? #register/membership ^ae-412
+- what debt in your family is never mentioned and never forgotten? #register/membership ^ae-413
+- when did money become a way of saying something else at home? #register/membership ^ae-414
+- what did you send home, or fail to send home? #register/membership ^ae-415
+- what did your family sacrifice for you that you did not ask for? #register/membership ^ae-416
+- who in your family pays for everybody, and what does that buy them? #register/membership ^ae-417
+- what did you learn about generosity from somebody who had very little? #register/membership ^ae-418
+- what is your family proud of that you find difficult? #register/membership ^ae-419
+- what would your family deny that everybody in it knows? #register/membership ^ae-420
+- what did you learn to keep from the neighbours? #register/membership ^ae-421
+- when did shame arrive before you understood what it was about? #register/membership ^ae-422
+- what did somebody in your family do that the family has renarrated? #register/membership ^ae-423
+- what does your household laugh about that is not funny? #register/membership ^ae-424
+- what gossip taught you the rules faster than any instruction? #register/membership ^ae-425
+- what would happen if you told the truth at a family gathering? #register/membership ^ae-426
+- how were you punished, and what did it teach you to hide? #register/membership ^ae-427
+- what were you praised for that shaped what you became? #register/membership ^ae-428
+- what did the adults expect you to overhear? #register/membership ^ae-429
+- what did you learn to do before you were old enough to refuse? #register/membership ^ae-430
+- what were you given responsibility for too early? #register/membership ^ae-431
+- which adult treated you as a person first, and what changed? #register/membership ^ae-432
+- what did you learn about time from your family's mornings? #register/membership ^ae-433
+- what game did you play that was practice for something? #register/membership ^ae-434
+- what did leaving your family teach you about it? #register/membership ^ae-435
+- what do you become again the moment you walk back in? #register/membership ^ae-436
+- what did you have to unlearn to live alone? #register/membership ^ae-437
+- what does your family think you do for a living? #register/membership ^ae-438
+- when did you last speak the way you spoke as a child, and to whom? #register/membership ^ae-439
+- what will end when the oldest person in your family dies? #register/membership ^ae-440
+- what would your family not recognise about your life now? #register/membership ^ae-441
+- what do you keep from them, and what does keeping it cost? #register/membership ^ae-442
+- what did your family do during a public event that everybody else did differently? #register/membership ^ae-1013
+- what does your community do with a member who leaves? #register/membership ^ae-1014
+- when did you realise your childhood was unusual? #register/membership ^ae-1015
+- what did you assume was universal until somebody laughed? #register/membership ^ae-1016
+- what do you still do because it would upset somebody if you stopped? #register/membership ^ae-1017
+- what does your family consider an emergency? #register/membership ^ae-1018
+
+## Positionality
+
+- what did you assume about a place before you arrived, that the place then corrected? #register/positionality ^ae-027
+- what can you not see from where you stand, and who had to tell you? #register/positionality ^ae-028
+- when did you set out to improve something for people you had only just met? #register/positionality ^ae-029
+- what question did you ask that revealed you did not know where you were? #register/positionality ^ae-030
+- what have you been given credit for that someone else made possible? #register/positionality ^ae-031
+- who let you into a room you had no business being in, and why did they? #register/positionality ^ae-032
+- what do you get to treat as a choice that others have to treat as a condition? #register/positionality ^ae-033
+- what did you call research that the people inside it would have called being watched? #register/positionality ^ae-034
+- when were you the only one in the room like you, and what did you do with it? #register/positionality ^ae-035
+- when were you the majority in a room and did not notice until afterwards? #register/positionality ^ae-036
+- what have you never had to think about that organises somebody else's whole day? #register/positionality ^ae-037
+- what did you learn about your own position from the way someone was polite to you? #register/positionality ^ae-038
+- whose approval do you write for, and what does that approval cost the work? #register/positionality ^ae-039
+- what do you know only because somebody was paid to tell you? #register/positionality ^ae-040
+- what do you understand differently now that you have been on the other side of it? #register/positionality ^ae-041
+- what advantage of yours stays invisible until it fails? #register/positionality ^ae-042
+- what would you have to give up for your own analysis to be true? #register/positionality ^ae-043
+- when did you speak for someone who was entirely able to speak for themselves? #register/positionality ^ae-044
+- what did you mistake for rigour that was actually access? #register/positionality ^ae-045
+- what makes you a credible witness here, and what disqualifies you? #register/positionality ^ae-046
+- what have you been protected from that you write about anyway? #register/positionality ^ae-047
+- what did a gatekeeper see in you that you could not see in yourself? #register/positionality ^ae-048
+- what do you owe the institution that trained you to see this way? #register/positionality ^ae-049
+- when was your discomfort the most useful thing you had? #register/positionality ^ae-050
+- what did you get wrong for years because nobody contradicted you? #register/positionality ^ae-051
+- how much of your expertise is just having been there longer? #register/positionality ^ae-052
+- what did you promise the people you were studying, and did you keep it? #register/positionality ^ae-053
+- when did a participant correct your framing, and what did you do with the correction? #register/positionality ^ae-054
+- what did you design for people who had not asked for it? #register/positionality ^ae-055
+- what did you learn in a room that you could not have learned from the literature? #register/positionality ^ae-056
+- what did you put in a portfolio that misrepresents how the work actually went? #register/positionality ^ae-184
+- what did you learn about a place from being unable to read its signs? #register/positionality ^ae-185
+- what did a grant application make you pretend to be? #register/positionality ^ae-186
+- when were you welcomed somewhere and used by it at the same time? #register/positionality ^ae-219
+- what did you learn only because somebody decided you were safe to tell? #register/positionality ^ae-220
+- when did your curiosity about people become extraction from them? #register/positionality ^ae-221
+- what changed about a place because you were standing in it? #register/positionality ^ae-222
+- when did listening become your way of not acting? #register/positionality ^ae-223
+- what did you gain from a situation that was a loss for everyone else in it? #register/positionality ^ae-224
+- when did your expertise stop being knowledge and start being permission? #register/positionality ^ae-225
+- what do you get thanked for that costs you nothing? #register/positionality ^ae-226
+- what did you learn about yourself from who was willing to argue with you? #register/positionality ^ae-227
+- when did understanding a system make you complicit in it? #register/positionality ^ae-228
+- what does your credential let you skip that others have to walk? #register/positionality ^ae-229
+- when did your empathy stand in for giving something up? #register/positionality ^ae-230
+- what did a room assume about you before you had spoken? #register/positionality ^ae-231
+- when did documenting a harm make you part of it? #register/positionality ^ae-232
+- what did you have access to that you mistook for having earned? #register/positionality ^ae-233
+- when did your solidarity turn into spectating? #register/positionality ^ae-234
+- what does being the one who writes it down do to you? #register/positionality ^ae-235
+- when did your discomfort matter more to a room than somebody else's danger? #register/positionality ^ae-236
+- what does your good intention keep you from seeing? #register/positionality ^ae-237
+- when were you the exception that allowed a rule to stand? #register/positionality ^ae-238
+- when did your notebook change what people said around you? #register/positionality ^ae-443
+- what did you record that you had no right to record? #register/positionality ^ae-444
+- when did you decide somebody's life was a subject? #register/positionality ^ae-445
+- what did you call fieldwork that somebody else called their Tuesday? #register/positionality ^ae-446
+- what did you notice only because it was strange to you and ordinary to them? #register/positionality ^ae-447
+- when did you leave a place you had been studying, and what did leaving cost nobody but you? #register/positionality ^ae-448
+- what did you generalise from too few people? #register/positionality ^ae-449
+- what did somebody tell you because you were leaving? #register/positionality ^ae-450
+- what does your degree let you assert without evidence? #register/positionality ^ae-451
+- who paid for your training, and what did that purchase? #register/positionality ^ae-452
+- what did an institution want from your work that you gave it? #register/positionality ^ae-453
+- when did an affiliation open a door that your argument could not? #register/positionality ^ae-454
+- what does your job title do in a room before you speak? #register/positionality ^ae-455
+- what research did you not do because it would not be funded? #register/positionality ^ae-456
+- when did you write for a committee rather than a reader? #register/positionality ^ae-457
+- what did peer approval make you soften? #register/positionality ^ae-458
+- what door has never been closed to you? #register/positionality ^ae-459
+- what did you get because you knew who to ask? #register/positionality ^ae-460
+- when did somebody vouch for you, and what were they risking? #register/positionality ^ae-461
+- what queue have you never had to join? #register/positionality ^ae-462
+- when did you find out a process was different for you? #register/positionality ^ae-463
+- what form have you never had to fill in? #register/positionality ^ae-464
+- who let you skip a step, and why did they? #register/positionality ^ae-465
+- what access did you treat as normal until somebody described it to you? #register/positionality ^ae-466
+- when did you summarise somebody in a sentence they would reject? #register/positionality ^ae-467
+- what did you explain to an audience that the subject could have explained better? #register/positionality ^ae-468
+- when were you invited to speak about people who were not invited? #register/positionality ^ae-469
+- whose analysis did you repeat without attribution? #register/positionality ^ae-470
+- when did you speak as a representative of something you only partly are? #register/positionality ^ae-471
+- what did you claim to understand from the outside? #register/positionality ^ae-472
+- when did your framing survive because nobody present could dispute it? #register/positionality ^ae-473
+- what did you decide was typical? #register/positionality ^ae-474
+- what did you build on land or work that was not yours? #register/positionality ^ae-475
+- what does your comfort here require elsewhere? #register/positionality ^ae-476
+- when did a crisis improve your position? #register/positionality ^ae-477
+- what did you inherit from an arrangement you would now condemn? #register/positionality ^ae-478
+- what have you never had to pay the full price of? #register/positionality ^ae-479
+- when did somebody's loss become your material? #register/positionality ^ae-480
+- what is cheap for you because it is expensive for somebody else? #register/positionality ^ae-481
+- what did you keep after a project ended that the participants did not? #register/positionality ^ae-482
+- when did you help in a way that made you feel better and changed nothing? #register/positionality ^ae-483
+- what did you offer that was not wanted? #register/positionality ^ae-484
+- when did you mistake your relief for somebody's gratitude? #register/positionality ^ae-485
+- what did you fix that was not broken in the way you thought? #register/positionality ^ae-486
+- when did you arrive with a solution and leave with a better question? #register/positionality ^ae-487
+- what did you promise that you could not deliver? #register/positionality ^ae-488
+- when did you stop helping, and what did you tell yourself? #register/positionality ^ae-489
+- what did charity teach you about power? #register/positionality ^ae-490
+- what are you certain of that you have never tested? #register/positionality ^ae-491
+- when did being listened to stop being evidence that you were right? #register/positionality ^ae-492
+- what do you know that you learned from one unusual case? #register/positionality ^ae-493
+- when did your confidence exceed your evidence, and who noticed? #register/positionality ^ae-494
+- what have you been asked about outside your competence, and did you answer? #register/positionality ^ae-495
+- when did your first impression turn out to be the whole of your analysis? #register/positionality ^ae-496
+- what have you repeated so often that you no longer check it? #register/positionality ^ae-497
+- when were you held up as proof that a system works? #register/positionality ^ae-499
+- what did being the exception cost the people who were not? #register/positionality ^ae-500
+- when did somebody use your presence to end a conversation? #register/positionality ^ae-501
+- what did you have to be to be allowed in? #register/positionality ^ae-502
+- when did you enjoy being unusual? #register/positionality ^ae-503
+- what did you stop saying once you were included? #register/positionality ^ae-504
+- when did you become the person who explains your group to others? #register/positionality ^ae-505
+- what does your success make it harder to argue? #register/positionality ^ae-506
+- who refused to be part of your work, and what did their refusal teach you? #register/positionality ^ae-507
+- when did you take silence for agreement? #register/positionality ^ae-508
+- what did you publish that somebody had only said aloud? #register/positionality ^ae-509
+- when did you ask permission after the fact? #register/positionality ^ae-510
+- what would informed consent have changed about a piece of yours? #register/positionality ^ae-511
+- when did somebody perform for your attention? #register/positionality ^ae-512
+- what did you ask for that could not safely be refused? #register/positionality ^ae-513
+- what did you do with material somebody later wanted withdrawn? #register/positionality ^ae-514
+- what could you walk away from that others had to live in? #register/positionality ^ae-515
+- when did your risk end at the airport? #register/positionality ^ae-516
+- what did honesty cost you compared with what it would cost them? #register/positionality ^ae-517
+- when did you write something that endangered nobody but its subject? #register/positionality ^ae-518
+- what protects you that does not protect the people you write about? #register/positionality ^ae-519
+- when did you call something brave that was only safe for you? #register/positionality ^ae-520
+- whose anonymity did you assume you could grant? #register/positionality ^ae-521
+- what happens to them after your piece is published? #register/positionality ^ae-522
+- what do you look at that looks back? #register/positionality ^ae-523
+- when did you photograph somebody who did not want it? #register/positionality ^ae-524
+- what did you find picturesque that somebody else calls home? #register/positionality ^ae-525
+- when did you aestheticise a difficulty? #register/positionality ^ae-526
+- what did you describe as timeless that was simply poor? #register/positionality ^ae-527
+- when did your attention become surveillance? #register/positionality ^ae-528
+- what did you notice about a place that its people are tired of hearing? #register/positionality ^ae-529
+- what did you make beautiful that should have stayed ugly? #register/positionality ^ae-530
+- what part of your position have you never examined? #register/positionality ^ae-531
+- what would you have to admit for your work to be honest? #register/positionality ^ae-532
+- when did somebody name your position before you did? #register/positionality ^ae-533
+- what do you defend hardest, and what does that defence protect? #register/positionality ^ae-534
+- what did you learn about yourself from being refused? #register/positionality ^ae-535
+- when were you wrong in a way that took years to surface? #register/positionality ^ae-536
+- what do you owe the people who corrected you? #register/positionality ^ae-537
+- what would change in your writing if you named where you stand each time? #register/positionality ^ae-538
+- when did you become the person in the room with the least at stake? #register/positionality ^ae-1019
+- what did you learn about a place from being unable to leave it? #register/positionality ^ae-1020
+- what does your ease in an institution tell you about who built it? #register/positionality ^ae-1021
+- when did you mistake being comfortable for being welcome? #register/positionality ^ae-1022
+- what would you have seen if you had stayed longer? #register/positionality ^ae-1023
+- what do you know about a community that only its outsiders say aloud? #register/positionality ^ae-1024
+
+## Relation
+
+- whose permission would you need to tell the story you most want to tell? #register/relation ^ae-057
+- who appears in your work without knowing they appear in it? #register/relation ^ae-058
+- what did somebody tell you in confidence that has shaped everything you have written since? #register/relation ^ae-059
+- who would be hurt by the most honest version of a story you know? #register/relation ^ae-060
+- what do you owe someone whose life became material for yours? #register/relation ^ae-061
+- whose version of an event have you never asked for? #register/relation ^ae-062
+- who taught you something they would not want attributed to them? #register/relation ^ae-063
+- what did you leave out to protect someone, and what did the omission cost the piece? #register/relation ^ae-064
+- who reads what you write, and how does knowing that change the writing? #register/relation ^ae-065
+- who has told a story about you that you would tell completely differently? #register/relation ^ae-066
+- what did you promise never to write about, and do you still hold to it? #register/relation ^ae-067
+- who would recognise themselves in your work and object to the likeness? #register/relation ^ae-068
+- what did you take from a conversation that was not offered to you? #register/relation ^ae-069
+- whose labour keeps running the thing you are given credit for? #register/relation ^ae-070
+- who was in the room whose name you never learned? #register/relation ^ae-071
+- what would change in your account if the person it describes read it first? #register/relation ^ae-072
+- who do you write around rather than about? #register/relation ^ae-073
+- what has somebody forgiven you for that you have never written down? #register/relation ^ae-074
+- whose death made one of your stories unfinishable, or finally possible? #register/relation ^ae-075
+- who did you stop speaking to, and what happened to the story you shared? #register/relation ^ae-076
+- what did you learn from someone you later could not defend? #register/relation ^ae-077
+- what do you know about a family member that they have never said aloud? #register/relation ^ae-078
+- who gave you the sentence you have been repeating ever since? #register/relation ^ae-079
+- what ended because of something you made? #register/relation ^ae-080
+- who did the unnoticed work in a group you were part of? #register/relation ^ae-081
+- what happens to a collective's story after the collective ends? #register/relation ^ae-082
+- what did you learn about care from being cared for badly? #register/relation ^ae-083
+- who did you facilitate a room for, and who did the room actually serve? #register/relation ^ae-187
+- who taught you a craft without ever calling it teaching? #register/relation ^ae-188
+- when did keeping someone's confidence become keeping their silence for them? #register/relation ^ae-239
+- when did telling your story require telling somebody else's? #register/relation ^ae-240
+- what do you protect by never asking? #register/relation ^ae-241
+- when did caring for someone become deciding for them? #register/relation ^ae-242
+- what did an apology change, and what did it fail to touch? #register/relation ^ae-243
+- when did a shared history stop being shared? #register/relation ^ae-244
+- what would you lose by writing honestly about whoever raised you? #register/relation ^ae-245
+- when did gratitude become a debt? #register/relation ^ae-246
+- what does your family agree not to know? #register/relation ^ae-247
+- when did being needed become being trapped? #register/relation ^ae-248
+- what did you learn about somebody after it was too late to ask them? #register/relation ^ae-249
+- what does distance preserve between you and someone that closeness destroyed? #register/relation ^ae-250
+- when did forgiving somebody start to erase what they did? #register/relation ^ae-251
+- what have you told one person that would change everything if told to another? #register/relation ^ae-252
+- what do you owe somebody you only watched? #register/relation ^ae-254
+- when did a promise outlive the person you made it to? #register/relation ^ae-255
+- what do you keep doing for somebody who no longer needs it? #register/relation ^ae-256
+- who holds a version of you that you can no longer correct? #register/relation ^ae-257
+- when did you become the one who remembers for everybody else? #register/relation ^ae-258
+- who would you have to ask before publishing the truest thing you know? #register/relation ^ae-539
+- what did somebody agree to that they did not understand? #register/relation ^ae-540
+- when did you change a name and keep everything else? #register/relation ^ae-541
+- what would the person in your story say you got wrong? #register/relation ^ae-542
+- whose objection would you accept, and whose would you overrule? #register/relation ^ae-543
+- what did you write about somebody while they were still alive? #register/relation ^ae-544
+- when did you wait for a death to publish? #register/relation ^ae-545
+- what have you written that you would not read aloud to its subject? #register/relation ^ae-546
+- what were you told never to repeat, and how has it shaped what you write? #register/relation ^ae-547
+- when did keeping a secret make you complicit? #register/relation ^ae-548
+- what does your silence about somebody protect, exactly? #register/relation ^ae-549
+- when did you discover you were the only one who did not know? #register/relation ^ae-550
+- what did you find out that you were not meant to? #register/relation ^ae-551
+- who trusts you with something they should not have to carry alone? #register/relation ^ae-552
+- what would you have to betray to be understood? #register/relation ^ae-553
+- when did a confidence expire? #register/relation ^ae-554
+- what would you have to say about your mother that you have never said? #register/relation ^ae-555
+- what did your father do that you have spent years explaining? #register/relation ^ae-556
+- what does a sibling remember from the same house that you do not? #register/relation ^ae-557
+- when did you become an adult to your parents, and what ended? #register/relation ^ae-558
+- what did you forgive a parent for before you understood it? #register/relation ^ae-559
+- what will you not be able to write until somebody dies? #register/relation ^ae-560
+- what did your parents not know they were teaching you? #register/relation ^ae-561
+- who in your family do you write toward without addressing? #register/relation ^ae-562
+- what did you not ask while there was time? #register/relation ^ae-563
+- whose voice do you still argue with? #register/relation ^ae-564
+- what did somebody take with them that nobody wrote down? #register/relation ^ae-565
+- what would you say now to somebody who cannot hear it? #register/relation ^ae-566
+- what did a death make possible in your work? #register/relation ^ae-567
+- what do you keep doing because they would have? #register/relation ^ae-568
+- when did grief change what you could write about? #register/relation ^ae-569
+- who died before you could tell them what they had done for you? #register/relation ^ae-570
+- what ended a friendship that neither of you has ever described out loud? #register/relation ^ae-571
+- who knew a version of you that no longer exists? #register/relation ^ae-572
+- what did you say once that somebody has never forgiven? #register/relation ^ae-573
+- who did you drop, and what was the real reason? #register/relation ^ae-574
+- what do you owe somebody you outgrew? #register/relation ^ae-575
+- when did a friendship survive a disagreement, and how? #register/relation ^ae-576
+- who has watched you change and stayed? #register/relation ^ae-577
+- what would an old friend recognise in your work that a new one would miss? #register/relation ^ae-578
+- whose idea are you still using? #register/relation ^ae-579
+- when did you take credit that was shared? #register/relation ^ae-580
+- who did the work that made your name possible? #register/relation ^ae-581
+- what did a collaboration teach you about your own limits? #register/relation ^ae-582
+- when did you disagree and go along anyway? #register/relation ^ae-583
+- what happened to a project when the person holding it left? #register/relation ^ae-584
+- who taught you the thing you are best at? #register/relation ^ae-585
+- what did you learn from being edited? #register/relation ^ae-586
+- who saw something in you before there was evidence? #register/relation ^ae-587
+- what did a teacher say that you have never stopped hearing? #register/relation ^ae-588
+- who did you fail as a teacher? #register/relation ^ae-589
+- what did a student teach you about your own blind spot? #register/relation ^ae-590
+- when did you repeat somebody else's harm to somebody younger? #register/relation ^ae-591
+- what did you copy from a mentor that you should not have? #register/relation ^ae-592
+- what would you tell somebody starting where you started? #register/relation ^ae-594
+- who did you hurt in a way they may not know about? #register/relation ^ae-595
+- what apology have you never made? #register/relation ^ae-596
+- when did you realise you had been the difficult one? #register/relation ^ae-597
+- what did you do that you have narrated as something else? #register/relation ^ae-598
+- who paid for your growth? #register/relation ^ae-599
+- when did you use somebody and call it something kinder? #register/relation ^ae-600
+- what would the person you wronged say about you? #register/relation ^ae-601
+- what have you made amends for only in writing? #register/relation ^ae-602
+- who did you look after, and what did it take from you? #register/relation ^ae-603
+- who looked after you when it was inconvenient for them? #register/relation ^ae-604
+- what does care look like in your family, and what does it refuse to look like? #register/relation ^ae-605
+- when did caring for somebody stop being a choice? #register/relation ^ae-606
+- who needs you more than you need them? #register/relation ^ae-607
+- what did you learn about love from a body that needed washing? #register/relation ^ae-608
+- when did you fail to notice somebody needed help? #register/relation ^ae-609
+- what does it cost you to accept care? #register/relation ^ae-610
+- who gave you something once and never knew what it meant? #register/relation ^ae-611
+- what did a stranger say that changed a decision? #register/relation ^ae-612
+- who lives near you whose name you have never learned? #register/relation ^ae-613
+- what do you know about a neighbour that you should not? #register/relation ^ae-614
+- when did a stranger see you accurately? #register/relation ^ae-615
+- who has power over your day that you never meet? #register/relation ^ae-616
+- what did an unrepeatable encounter leave you with? #register/relation ^ae-617
+- who would tell a story about you that you have never heard? #register/relation ^ae-618
+- who do you imagine reading this, and what do they let you avoid? #register/relation ^ae-619
+- when did you write to be liked? #register/relation ^ae-620
+- what would you write differently if nobody you knew could read it? #register/relation ^ae-621
+- who have you never written for? #register/relation ^ae-622
+- what does your work ask of a reader who is not you? #register/relation ^ae-623
+- when did a reader understand something you had not intended? #register/relation ^ae-624
+- who reads you most generously, and does that help? #register/relation ^ae-625
+- what would you write if the audience were one person? #register/relation ^ae-626
+- who has never read a word you have written, and does that matter? #register/relation ^ae-1025
+- what did you learn about somebody by disagreeing with them? #register/relation ^ae-1026
+- when did you stay silent to keep a relationship? #register/relation ^ae-1027
+- who would be surprised to appear in your work at all? #register/relation ^ae-1028
+- what did a group decide that you have never publicly opposed? #register/relation ^ae-1029
+- who is the person you write to when you write well? #register/relation ^ae-1030
+
+## Telling
+
+- what changed in the event once you had written it down? #register/telling ^ae-084
+- which of your memories is now only the version you published? #register/telling ^ae-085
+- what did you make neater than it was, and why did neatness win? #register/telling ^ae-086
+- what have you told so often that you no longer know whether you were there? #register/telling ^ae-087
+- what would this story look like if you were not the one narrating it? #register/telling ^ae-088
+- what did you leave out because it would not fit the shape you had already chosen? #register/telling ^ae-089
+- what have you never been able to find a form for? #register/telling ^ae-090
+- which of your own sentences do you distrust now? #register/telling ^ae-091
+- what did a deadline decide about a piece that you would never have decided? #register/telling ^ae-092
+- what did you understand only while writing it, and never before? #register/telling ^ae-093
+- what have you written that you would not be able to write now? #register/telling ^ae-094
+- where did you reach for a metaphor to avoid making an admission? #register/telling ^ae-095
+- what did an editor cut that you still believe was the point? #register/telling ^ae-096
+- what did you present as a conclusion when you had only stopped working? #register/telling ^ae-097
+- what would you have to unlearn to write this honestly? #register/telling ^ae-098
+- what have you published that you now think was far too early? #register/telling ^ae-099
+- which draft was truer than the version that went out? #register/telling ^ae-100
+- what did you write in order to convince yourself, and did it work? #register/telling ^ae-101
+- what happened inside you to the piece you abandoned? #register/telling ^ae-102
+- what have you only ever managed to say in a footnote? #register/telling ^ae-103
+- what does your first paragraph usually protect you from? #register/telling ^ae-104
+- what would be lost if you stopped writing in the first person? #register/telling ^ae-105
+- what did you record that you have never once listened back to? #register/telling ^ae-106
+- what do you keep starting and never finishing, and what stops you each time? #register/telling ^ae-107
+- whose style are you still writing in? #register/telling ^ae-108
+- what does your writing do that you do not do? #register/telling ^ae-109
+- what did you annotate so heavily that the notes became the work? #register/telling ^ae-110
+- what belongs in an archive that nobody would think to deposit? #register/telling ^ae-111
+- what would be lost if your notes were read without you there to explain them? #register/telling ^ae-112
+- what have you described as findings that were really just your own change of mind? #register/telling ^ae-113
+- what did a case study leave out that was the whole difficulty? #register/telling ^ae-189
+- what did you present as a method that was improvised at the time? #register/telling ^ae-190
+- what future did you imagine that turned out to describe the present? #register/telling ^ae-191
+- what did you annotate in someone else's work that told you more about yourself? #register/telling ^ae-192
+- when did your honesty on the page become a performance of honesty? #register/telling ^ae-259
+- what does one form let you say that no other form would? #register/telling ^ae-260
+- when did revising a story start correcting your memory of it? #register/telling ^ae-261
+- when is your detail evidence, and when is it decoration? #register/telling ^ae-263
+- what did you understand about an event only after finding the wrong word for it? #register/telling ^ae-264
+- what has publishing something done to your ability to remember it? #register/telling ^ae-265
+- when did a story stop being yours to change? #register/telling ^ae-266
+- what did an ending impose on something that had none? #register/telling ^ae-267
+- when did your clarity become a kind of lie? #register/telling ^ae-268
+- what survives in a piece of yours after every fact in it has been corrected? #register/telling ^ae-269
+- what do readers take from your work that you never put there? #register/telling ^ae-271
+- when did a draft of yours know more than you did? #register/telling ^ae-272
+- what does silence do in your paragraphs that words cannot? #register/telling ^ae-273
+- when did writing about a place become claiming it? #register/telling ^ae-274
+- what did a title decide before the piece was written? #register/telling ^ae-275
+- what does rereading your old work tell you about who you were writing for? #register/telling ^ae-276
+- when does your footnote confess what the main text will not? #register/telling ^ae-277
+- what would you have to stop being able to do in order to write this? #register/telling ^ae-278
+- what did you write as an essay that should have been a poem? #register/telling ^ae-627
+- what did prose make you explain that an image would have carried? #register/telling ^ae-628
+- when did the shape of a piece decide its argument? #register/telling ^ae-629
+- what can you only say in fragments? #register/telling ^ae-630
+- what would you have to abandon to write a single long thing? #register/telling ^ae-631
+- when did a form you borrowed stop fitting? #register/telling ^ae-632
+- what genre do you distrust, and what does it do better than yours? #register/telling ^ae-633
+- what would this be if it had no paragraphs? #register/telling ^ae-634
+- what did you write down at the time that contradicts what you remember? #register/telling ^ae-635
+- what have you invented so consistently that it functions as memory? #register/telling ^ae-636
+- when did a photograph correct you? #register/telling ^ae-637
+- what do you remember in somebody else's words? #register/telling ^ae-638
+- what happened that you have no evidence for? #register/telling ^ae-639
+- when did you discover you had the date wrong, and what else was wrong? #register/telling ^ae-640
+- what did you reconstruct and present as recalled? #register/telling ^ae-642
+- what have you cut that keeps returning? #register/telling ^ae-643
+- when did revision make a piece safer and worse? #register/telling ^ae-644
+- what do you always take out in the second draft? #register/telling ^ae-645
+- when did an edit change what you believed? #register/telling ^ae-646
+- when did you polish something past its point? #register/telling ^ae-648
+- what did you keep only because it was hard to write? #register/telling ^ae-649
+- what does your revising protect? #register/telling ^ae-650
+- what changed once it was public? #register/telling ^ae-651
+- when did a piece stop being yours and become a position you had to defend? #register/telling ^ae-652
+- what did publication do to a relationship? #register/telling ^ae-653
+- when did you regret a sentence after it was fixed? #register/telling ^ae-654
+- what did strangers do with something private? #register/telling ^ae-655
+- what happened to your account when somebody quoted it back? #register/telling ^ae-656
+- when did you write for the platform rather than the subject? #register/telling ^ae-657
+- what did a byline cost you? #register/telling ^ae-658
+- what is missing from your best piece? #register/telling ^ae-659
+- what did you leave out for length that you now think was the point? #register/telling ^ae-660
+- when did an omission become a lie? #register/telling ^ae-661
+- what would the footnote say if it were honest? #register/telling ^ae-662
+- what did you refuse to explain, and why? #register/telling ^ae-663
+- when did you hide a person inside a category? #register/telling ^ae-664
+- what have you never written about at all? #register/telling ^ae-665
+- what does the gap in your work map onto? #register/telling ^ae-666
+- whose words have you carried without crediting? #register/telling ^ae-667
+- when did a quotation do your arguing for you? #register/telling ^ae-668
+- what did somebody say that you cannot use? #register/telling ^ae-669
+- when did you trim a quote until it agreed with you? #register/telling ^ae-670
+- whose phrasing is in your head as if it were yours? #register/telling ^ae-671
+- what did you paraphrase because the original was inconvenient? #register/telling ^ae-672
+- when did you quote to protect yourself? #register/telling ^ae-673
+- what would it change to name your sources fully? #register/telling ^ae-674
+- what does your first line usually do for you? #register/telling ^ae-675
+- when did a title promise something the piece did not deliver? #register/telling ^ae-676
+- what ending did you impose because you had to stop? #register/telling ^ae-677
+- when did you know the beginning only after finishing? #register/telling ^ae-678
+- what would change if you deleted your first paragraph? #register/telling ^ae-679
+- what do your endings tend to resolve that life did not? #register/telling ^ae-680
+- when did you start in the wrong place on purpose? #register/telling ^ae-681
+- whose sentences do you hear when you write? #register/telling ^ae-683
+- what habit of yours would a reader recognise anywhere? #register/telling ^ae-684
+- when did your style stop serving the subject? #register/telling ^ae-685
+- what do you do to sound more certain than you are? #register/telling ^ae-686
+- what would you sound like without irony? #register/telling ^ae-687
+- when did you imitate somebody and only later notice? #register/telling ^ae-688
+- what is the most honest sentence you have written, and what did it cost? #register/telling ^ae-689
+- what are you unable to write without performing? #register/telling ^ae-690
+- where do you write, and what does that place permit? #register/telling ^ae-691
+- what time of day tells the truth? #register/telling ^ae-692
+- when did a deadline write a piece for you? #register/telling ^ae-693
+- what do you do instead of writing, and what is it for? #register/telling ^ae-694
+- what does an unfinished piece do to you while it waits? #register/telling ^ae-695
+- when did note-taking become avoidance? #register/telling ^ae-696
+- what have you been researching to postpone? #register/telling ^ae-697
+- what does your notebook contain that your work never will? #register/telling ^ae-698
+- what did you write ten years ago that embarrasses you, and why exactly? #register/telling ^ae-699
+- what have you been circling since you started? #register/telling ^ae-700
+- what did you get right too early to be believed? #register/telling ^ae-701
+- what would a stranger say your subject is? #register/telling ^ae-703
+- what would you keep if you could keep one piece? #register/telling ^ae-704
+- what did you abandon that somebody else should finish? #register/telling ^ae-705
+- what does your body of work argue that you have never argued? #register/telling ^ae-706
+- what did you make representative that was singular? #register/telling ^ae-708
+- when did you write about suffering you had not shared? #register/telling ^ae-709
+- what did your metaphor do to a real person? #register/telling ^ae-710
+- when did you use somebody's dialect for texture? #register/telling ^ae-711
+- what did you flatten to make a point? #register/telling ^ae-712
+- when did accuracy and kindness pull apart, and which won? #register/telling ^ae-713
+- what would it mean to write this with them rather than about them? #register/telling ^ae-714
+- what did you leave unresolved because resolving it would have been dishonest? #register/telling ^ae-1031
+- when did a piece of yours change somebody's mind, and how do you know? #register/telling ^ae-1032
+- what would it take to write about this without protecting yourself? #register/telling ^ae-1033
+- what are you still not ready to write, and what would readiness look like? #register/telling ^ae-1034
+- when did the writing arrive before the understanding? #register/telling ^ae-1035
+
+## Embodiment
+
+- what does your body know about a place that you could not argue for? #register/embodiment ^ae-114
+- what physical habit did you take from someone and never give back? #register/embodiment ^ae-115
+- what tiredness have you never been able to describe accurately? #register/embodiment ^ae-116
+- when has your body refused something before you had a reason for refusing? #register/embodiment ^ae-117
+- what does fear feel like in you specifically, not in general? #register/embodiment ^ae-118
+- what work has your body done that no document of yours records? #register/embodiment ^ae-119
+- what did an illness teach you that health could not have? #register/embodiment ^ae-120
+- what pain have you stopped mentioning because people stopped responding? #register/embodiment ^ae-121
+- what do your hands know how to do that you could not explain to a beginner? #register/embodiment ^ae-122
+- where do you carry a place you have left? #register/embodiment ^ae-123
+- what sound still makes you turn around? #register/embodiment ^ae-124
+- what smell puts you somewhere exact, and where does it put you? #register/embodiment ^ae-125
+- what were you eating at a moment you remember for entirely other reasons? #register/embodiment ^ae-126
+- what does comfort physically feel like to you, precisely? #register/embodiment ^ae-127
+- what has your body been asked to prove? #register/embodiment ^ae-128
+- what have you learned to endure that you never chose to learn? #register/embodiment ^ae-129
+- how do you sit when you are being careful? #register/embodiment ^ae-130
+- which part of your day does your body decide? #register/embodiment ^ae-131
+- what did you look like to the people you were there to study? #register/embodiment ^ae-132
+- what does your body do when you are lying? #register/embodiment ^ae-133
+- what have you heard at an hour when nobody else was awake to hear it? #register/embodiment ^ae-134
+- what does the journey to a place do to what you notice on arrival? #register/embodiment ^ae-193
+- when did a habit of your body become a belief? #register/embodiment ^ae-279
+- what does your exhaustion make clear that rest obscures? #register/embodiment ^ae-280
+- when did a place stop being outside you? #register/embodiment ^ae-281
+- what does hunger teach you that being full cannot? #register/embodiment ^ae-282
+- when did a skill leave your head and start living in your hands? #register/embodiment ^ae-283
+- what does your body do in a room that contradicts what you say there? #register/embodiment ^ae-284
+- when is your discomfort information rather than noise? #register/embodiment ^ae-285
+- what did illness reveal about what you had been calling yourself? #register/embodiment ^ae-286
+- when did a gesture of yours turn out to be inherited? #register/embodiment ^ae-287
+- what does your body remember that refuses to become a sentence? #register/embodiment ^ae-288
+- when did pain stop being an event for you and become a condition? #register/embodiment ^ae-289
+- what does the way you walk say about where you learned to walk? #register/embodiment ^ae-290
+- when is your stillness a refusal? #register/embodiment ^ae-291
+- what does a scar of yours know that its story leaves out? #register/embodiment ^ae-292
+- when did your tiredness become a political fact? #register/embodiment ^ae-293
+- what does your voice do when nobody is listening to it? #register/embodiment ^ae-294
+- when did your body stop being private? #register/embodiment ^ae-295
+- what does touch confirm for you that speech cannot? #register/embodiment ^ae-296
+- what does your body do with what your mind refuses? #register/embodiment ^ae-297
+- when did you start being read before you were heard? #register/embodiment ^ae-298
+- what does your body do when you have not slept, that you notice in nobody else? #register/embodiment ^ae-715
+- when did tiredness become the baseline rather than the exception? #register/embodiment ^ae-716
+- what do you do at 4am when you cannot sleep? #register/embodiment ^ae-717
+- what did you give up first when you were exhausted? #register/embodiment ^ae-718
+- what does rest feel like when you have forgotten how? #register/embodiment ^ae-719
+- when did you last wake up without an alarm, and what was different? #register/embodiment ^ae-720
+- what have you done badly for years because you were tired? #register/embodiment ^ae-721
+- what does your body ask for that you keep refusing? #register/embodiment ^ae-722
+- what do you eat when nobody is watching? #register/embodiment ^ae-723
+- what did you learn about your body from being told to change it? #register/embodiment ^ae-724
+- when did eating stop being simple for you? #register/embodiment ^ae-725
+- what does your appetite do when you are frightened? #register/embodiment ^ae-726
+- what do you taste that reminds you of being small? #register/embodiment ^ae-727
+- what did you eat to belong somewhere? #register/embodiment ^ae-728
+- when did a meal repair something? #register/embodiment ^ae-729
+- what does your body refuse to digest, and when did that begin? #register/embodiment ^ae-730
+- what pain have you renamed so that you can live with it? #register/embodiment ^ae-731
+- what did your body do that made you take it seriously at last? #register/embodiment ^ae-732
+- when did a doctor not believe you? #register/embodiment ^ae-733
+- what did you learn about time from being ill? #register/embodiment ^ae-734
+- what does your body do that you no longer report? #register/embodiment ^ae-735
+- when did a diagnosis change your past? #register/embodiment ^ae-736
+- what can you no longer do, and what did you build around the absence? #register/embodiment ^ae-737
+- what does chronic mean in your body specifically? #register/embodiment ^ae-738
+- what did you learn about your body from being desired? #register/embodiment ^ae-739
+- when did closeness stop being simple? #register/embodiment ^ae-740
+- what did you not know how to ask for? #register/embodiment ^ae-741
+- what does being touched carelessly do to you? #register/embodiment ^ae-742
+- when did your body know before you did? #register/embodiment ^ae-743
+- what did shame do to your early experience of pleasure? #register/embodiment ^ae-744
+- what does intimacy require of you that you resist? #register/embodiment ^ae-745
+- when did you feel most inside your body? #register/embodiment ^ae-746
+- what does your face do now that it did not do before? #register/embodiment ^ae-747
+- when did you first get treated as older? #register/embodiment ^ae-748
+- what did your body stop forgiving? #register/embodiment ^ae-749
+- what do you do slower now, and what did that slowness reveal? #register/embodiment ^ae-750
+- when did you notice your parents' body in yours? #register/embodiment ^ae-751
+- what did you take for granted at twenty? #register/embodiment ^ae-752
+- what does the mirror tell you that you argue with? #register/embodiment ^ae-754
+- what can your hands do without you? #register/embodiment ^ae-755
+- how do you walk when you are being followed? #register/embodiment ^ae-756
+- what physical thing did you learn too late to learn well? #register/embodiment ^ae-757
+- what does your body do when you enter a room you distrust? #register/embodiment ^ae-758
+- when did you last run, and why? #register/embodiment ^ae-759
+- what movement did you inherit from watching somebody? #register/embodiment ^ae-760
+- what does driving, cycling or walking a familiar route let you stop thinking about? #register/embodiment ^ae-761
+- what do you do with your hands when you are lying? #register/embodiment ^ae-762
+- what happens to your voice on the phone with your family? #register/embodiment ^ae-763
+- when did you make your voice smaller? #register/embodiment ^ae-764
+- what do you sound like when you are certain? #register/embodiment ^ae-765
+- what accent comes back when you are angry or drunk? #register/embodiment ^ae-766
+- when did somebody imitate your voice, and what did they catch? #register/embodiment ^ae-767
+- what can you not say out loud but can write? #register/embodiment ^ae-768
+- what does your laugh do that you dislike? #register/embodiment ^ae-769
+- when did your voice fail you? #register/embodiment ^ae-770
+- what smell would take you straight back, and to what? #register/embodiment ^ae-771
+- what sound did your childhood house make? #register/embodiment ^ae-772
+- what do you hear now that you never heard before? #register/embodiment ^ae-773
+- what texture do you avoid touching? #register/embodiment ^ae-774
+- what light tells you what season it is? #register/embodiment ^ae-775
+- what did a place taste like? #register/embodiment ^ae-776
+- what does silence sound like where you live? #register/embodiment ^ae-777
+- what sensation tells you that you are safe? #register/embodiment ^ae-778
+- what happens in your body when you are being watched? #register/embodiment ^ae-779
+- what do people notice about you first, and what does it cost? #register/embodiment ^ae-780
+- when did your body become public property? #register/embodiment ^ae-781
+- what do you do with your face when you are not performing? #register/embodiment ^ae-782
+- what did you change about your appearance for other people? #register/embodiment ^ae-783
+- when did somebody look at you and see a category? #register/embodiment ^ae-784
+- what does it feel like to be misread physically? #register/embodiment ^ae-785
+- what do you look like when you are concentrating? #register/embodiment ^ae-786
+- what has work done to your body? #register/embodiment ^ae-787
+- what does your body know about a job you no longer do? #register/embodiment ^ae-788
+- when did you work through something you should have stopped for? #register/embodiment ^ae-789
+- what physical skill did your parents have that you do not? #register/embodiment ^ae-790
+- what does your body do at the end of a working day? #register/embodiment ^ae-791
+- when did your body become a cost centre? #register/embodiment ^ae-792
+- what injury did you earn? #register/embodiment ^ae-793
+- what does your work require you to pretend your body is? #register/embodiment ^ae-794
+- what does your body do in an emergency, before you decide? #register/embodiment ^ae-795
+- when did you freeze, and what did you tell yourself afterwards? #register/embodiment ^ae-796
+- what makes your chest tighten that you cannot explain? #register/embodiment ^ae-797
+- what does your body remember about a place that you had forgotten? #register/embodiment ^ae-798
+- when did fear become a physical habit? #register/embodiment ^ae-799
+- what do you do to make fear bearable? #register/embodiment ^ae-800
+- what did your body learn in a house, that it still performs? #register/embodiment ^ae-801
+- when did you feel safe in your body, and where were you? #register/embodiment ^ae-802
+- what does your body do in your childhood house that it does nowhere else? #register/embodiment ^ae-1037
+- when did you last feel physically capable, and of what? #register/embodiment ^ae-1038
+- what does grief do in your body specifically? #register/embodiment ^ae-1039
+- what have you trained your body out of? #register/embodiment ^ae-1040
+- when did your body tell you a place was wrong? #register/embodiment ^ae-1041
+- what does waiting do to you physically? #register/embodiment ^ae-1042
+
+## Artifact
+
+- what do you keep that has neither use nor beauty? #register/artifact ^ae-135
+- what document proves something about you that you would rather not have proved? #register/artifact ^ae-136
+- what object in your house would a stranger read completely wrong? #register/artifact ^ae-137
+- what did you throw away that you now need? #register/artifact ^ae-138
+- what is the oldest thing you own that still works? #register/artifact ^ae-139
+- what did you keep from a job you hated? #register/artifact ^ae-140
+- what photograph are you certain you took but do not appear in? #register/artifact ^ae-141
+- what did you inherit and never once use? #register/artifact ^ae-142
+- what receipt, ticket or form tells a story you have never told? #register/artifact ^ae-143
+- what did somebody's handwriting tell you about them? #register/artifact ^ae-144
+- what is in the drawer you do not open? #register/artifact ^ae-145
+- what did you save from a place that no longer exists? #register/artifact ^ae-146
+- what file have you carried through every computer you have owned? #register/artifact ^ae-147
+- what did you make that outlived the reason you made it? #register/artifact ^ae-148
+- what object marks the boundary between two periods of your life? #register/artifact ^ae-149
+- what did you borrow and never return, and what does keeping it mean? #register/artifact ^ae-150
+- what would an archivist misfile from among your belongings? #register/artifact ^ae-151
+- what have you kept a copy of because you did not trust the original to survive? #register/artifact ^ae-152
+- what do you own whose value only you know? #register/artifact ^ae-153
+- what did a gift reveal about how somebody saw you? #register/artifact ^ae-154
+- what tool do you still use badly, and refuse to replace? #register/artifact ^ae-155
+- what prototype outlived the project it was built for? #register/artifact ^ae-194
+- what did you keep of a tool after the thing it made was abandoned? #register/artifact ^ae-195
+- when did a possession of yours become evidence? #register/artifact ^ae-299
+- what have you kept so long that keeping it became a refusal to finish? #register/artifact ^ae-300
+- what did a photograph decide about a moment you were inside? #register/artifact ^ae-301
+- when did a tool start shaping your hand? #register/artifact ^ae-302
+- what does a house you left keep of you? #register/artifact ^ae-303
+- when did a document become more true than the thing it recorded? #register/artifact ^ae-304
+- what did a broken thing of yours become once you stopped mending it? #register/artifact ^ae-305
+- when did an heirloom become a burden? #register/artifact ^ae-306
+- what does an object in your house know about a relationship that its people deny? #register/artifact ^ae-307
+- when did your collection stop being a collection? #register/artifact ^ae-308
+- what does a receipt of yours preserve that your memory has already edited? #register/artifact ^ae-309
+- when did a copy become the original for you? #register/artifact ^ae-310
+- what does the arrangement of your room argue for? #register/artifact ^ae-311
+- when did something of yours stop being used and start being kept? #register/artifact ^ae-312
+- what does a worn place on something you own testify to? #register/artifact ^ae-313
+- what did you keep of a place you were not from? #register/artifact ^ae-314
+- when did a gift become a claim on you? #register/artifact ^ae-315
+- what does your oldest file say about a self you have stopped being? #register/artifact ^ae-316
+- what would your belongings say about you that you would dispute? #register/artifact ^ae-317
+- when did a map you were handed turn out to be a decision somebody made? #register/artifact ^ae-318
+- what document has decided something about your life? #register/artifact ^ae-803
+- what did a form fail to have a box for? #register/artifact ^ae-804
+- what does your passport or ID say that you would not say? #register/artifact ^ae-805
+- what certificate do you keep that proves nothing you care about? #register/artifact ^ae-806
+- what did you sign without reading, and what did it cost? #register/artifact ^ae-807
+- what record of you exists that you have never seen? #register/artifact ^ae-808
+- what did an official letter do to a week of your life? #register/artifact ^ae-809
+- what would a bureaucrat conclude from your file? #register/artifact ^ae-810
+- what photograph do you avoid looking at? #register/artifact ^ae-811
+- who took the photographs in your family, and what does that mean for the record? #register/artifact ^ae-812
+- what is happening outside the frame of a picture you know well? #register/artifact ^ae-813
+- what did you look like before you knew you were being photographed? #register/artifact ^ae-814
+- what photograph of you do other people love and you do not? #register/artifact ^ae-815
+- what is the last photograph of somebody who has died? #register/artifact ^ae-816
+- what do you photograph compulsively, and why? #register/artifact ^ae-817
+- what image of a place replaced the place for you? #register/artifact ^ae-818
+- what garment did you keep long after it fit? #register/artifact ^ae-819
+- what did you wear to something that changed you? #register/artifact ^ae-820
+- what do you wear when you need to be believed? #register/artifact ^ae-821
+- whose clothes have you worn? #register/artifact ^ae-822
+- what did a piece of clothing survive? #register/artifact ^ae-823
+- what do you own that you have never worn and cannot give away? #register/artifact ^ae-824
+- what does your most-worn thing say about your days? #register/artifact ^ae-825
+- what did you dress in to leave? #register/artifact ^ae-826
+- what tool have you used so long that it has changed shape? #register/artifact ^ae-827
+- what did you learn to fix, and what does fixing it feel like? #register/artifact ^ae-828
+- what machine do you talk to? #register/artifact ^ae-829
+- what instrument did you abandon, and does it still stand somewhere? #register/artifact ^ae-830
+- what do you own that only works if you know its trick? #register/artifact ^ae-831
+- what tool taught you patience? #register/artifact ^ae-832
+- what did you buy to become somebody you did not become? #register/artifact ^ae-833
+- what would you replace last? #register/artifact ^ae-834
+- what book has your handwriting in it? #register/artifact ^ae-835
+- what did you underline at nineteen that you would not underline now? #register/artifact ^ae-836
+- what have you never finished reading, and why does it stay on the shelf? #register/artifact ^ae-837
+- whose book do you still have? #register/artifact ^ae-838
+- what did you write in a margin that was more honest than anything you published? #register/artifact ^ae-839
+- what did you throw out that you can still see the cover of? #register/artifact ^ae-840
+- what do your bookshelves argue? #register/artifact ^ae-841
+- what did you read at exactly the wrong time? #register/artifact ^ae-842
+- what room do you still walk through in dreams? #register/artifact ^ae-843
+- what is the oldest piece of furniture you sit on? #register/artifact ^ae-844
+- what does the layout of your home make impossible? #register/artifact ^ae-845
+- what did you do to a room to make it yours? #register/artifact ^ae-846
+- what corner do you avoid? #register/artifact ^ae-847
+- what did a landlord forbid you from changing? #register/artifact ^ae-848
+- what does your kitchen reveal about how you actually live? #register/artifact ^ae-849
+- what would you take if you had ten minutes? #register/artifact ^ae-850
+- what file have you refused to delete? #register/artifact ^ae-851
+- what is in the folder you have not opened in years? #register/artifact ^ae-852
+- what did a dead account preserve? #register/artifact ^ae-853
+- whose messages do you keep? #register/artifact ^ae-854
+- what did you lose when a drive failed? #register/artifact ^ae-855
+- what does your search history know about a hard month? #register/artifact ^ae-856
+- what did you back up and never look at? #register/artifact ^ae-857
+- what would somebody find on your machine that would misrepresent you? #register/artifact ^ae-858
+- what note or coin have you kept? #register/artifact ^ae-859
+- what did you save for, and how long did it take? #register/artifact ^ae-860
+- what receipt would prove something you have denied? #register/artifact ^ae-861
+- what does the object you spent the most on say about that period? #register/artifact ^ae-862
+- what did you sell that you should have kept? #register/artifact ^ae-863
+- what is worth money that you will never sell? #register/artifact ^ae-864
+- what did somebody pay for on your behalf? #register/artifact ^ae-865
+- what did you inherit that turned out to be worthless and mattered anyway? #register/artifact ^ae-866
+- what gift did you keep out of obligation? #register/artifact ^ae-867
+- what did you give that was really a message? #register/artifact ^ae-868
+- what did somebody make for you? #register/artifact ^ae-869
+- what present revealed how little they knew you? #register/artifact ^ae-870
+- what did you regift, and to whom? #register/artifact ^ae-871
+- what was given to you at a moment you could not receive it? #register/artifact ^ae-872
+- what did you never thank somebody for properly? #register/artifact ^ae-873
+- what is in the box you moved house with and never opened? #register/artifact ^ae-875
+- what key do you still have to a door you cannot open? #register/artifact ^ae-876
+- what does your locked drawer hold? #register/artifact ^ae-877
+- what did you bury or hide? #register/artifact ^ae-878
+- what threshold do you remember crossing? #register/artifact ^ae-879
+- what does your front door do to you on the way in? #register/artifact ^ae-880
+- what did you leave behind deliberately? #register/artifact ^ae-881
+- what container has outlived what it was for? #register/artifact ^ae-882
+- what building that shaped you is gone? #register/artifact ^ae-883
+- what was demolished, and what stands there now? #register/artifact ^ae-884
+- what does a construction site near you erase? #register/artifact ^ae-885
+- what did you watch being built? #register/artifact ^ae-886
+- what place have you returned to and found smaller? #register/artifact ^ae-887
+- what ruin do you visit? #register/artifact ^ae-889
+- what did a building teach you about who it was for? #register/artifact ^ae-890
+- what object would prove you were somewhere? #register/artifact ^ae-1043
+- what did you keep from a person rather than of them? #register/artifact ^ae-1044
+- what is the most-repaired thing you own? #register/artifact ^ae-1045
+- what did a list you wrote once reveal about that period? #register/artifact ^ae-1046
+- what would you put in a box for somebody who never met you? #register/artifact ^ae-1047
+- what does your handwriting look like now compared with then? #register/artifact ^ae-1048
+
+## Structure
+
+- what did waiting teach you about who is made to wait? #register/structure ^ae-156
+- what did a form ask you that you could not answer truthfully? #register/structure ^ae-157
+- what rule were you able to break because of who you are? #register/structure ^ae-158
+- what did a queue teach you about the place you were standing in? #register/structure ^ae-159
+- whose work makes your ordinary day possible, and when did you last see them? #register/structure ^ae-160
+- what did you once call efficiency that you now recognise as somebody's unpaid time? #register/structure ^ae-161
+- what did school teach you about your own class position? #register/structure ^ae-162
+- what did you learn about a system from the moment it failed you? #register/structure ^ae-163
+- what have you been told is a personal failing that you now think is structural? #register/structure ^ae-165
+- what did you have to prove that others were simply assumed to have? #register/structure ^ae-166
+- what did a landlord, a bank or a clerk teach you about your position? #register/structure ^ae-167
+- what do you pay for that your parents got for nothing, or the reverse? #register/structure ^ae-168
+- what work do you do that has no name in your job title? #register/structure ^ae-169
+- what did a disaster reveal about who was already unprotected? #register/structure ^ae-170
+- what did you take for tradition that turned out to be enforcement? #register/structure ^ae-171
+- who was moved so that you could be comfortable here? #register/structure ^ae-172
+- what did a technology promise you that it delivered to somebody else? #register/structure ^ae-173
+- what did you learn about truth from watching how it gets manufactured? #register/structure ^ae-174
+- what infrastructure do you notice only when it breaks? #register/structure ^ae-175
+- what did the cheapest option in your life cost somebody else? #register/structure ^ae-176
+- what did crossing a border easily teach you about borders? #register/structure ^ae-177
+- what does your city do at an hour when most of it is asleep? #register/structure ^ae-178
+- what is maintained around you by people you have never thanked? #register/structure ^ae-179
+- what did you learn about merit from watching who got selected? #register/structure ^ae-180
+- what did a classroom teach you about who is allowed to be confused? #register/structure ^ae-181
+- what did you have to translate for yourself that others received in their own language? #register/structure ^ae-182
+- what did you call a shortage that was actually a distribution? #register/structure ^ae-183
+- what did open contribution teach you about who has time to contribute? #register/structure ^ae-196
+- what did a tool assume about its user that you had to work around? #register/structure ^ae-197
+- what did a platform's default setting decide on your behalf? #register/structure ^ae-198
+- when did a rule stop protecting you and start sorting you? #register/structure ^ae-319
+- what did a queue teach you about whose time counts? #register/structure ^ae-320
+- when did a service become a filter you had to pass? #register/structure ^ae-321
+- what does your wage make invisible? #register/structure ^ae-322
+- when did maintenance become the only thing holding something up? #register/structure ^ae-323
+- what did a shortage do to the people it never reached? #register/structure ^ae-324
+- when did a standard become a barrier for you? #register/structure ^ae-325
+- what did infrastructure decide before you got to choose? #register/structure ^ae-326
+- when did your convenience become somebody else's labour? #register/structure ^ae-327
+- what did a border teach you by not stopping you? #register/structure ^ae-328
+- when did a measurement become a judgement about you? #register/structure ^ae-329
+- when did progress where you live require somebody's displacement? #register/structure ^ae-331
+- what does a default setting assume about a life like yours? #register/structure ^ae-332
+- when did an institution's memory become its excuse? #register/structure ^ae-333
+- what did a uniform do to you, or to how you were seen? #register/structure ^ae-334
+- when did access arrive together with being watched? #register/structure ^ae-335
+- when did help arrive in a shape you could not use? #register/structure ^ae-337
+- what gets counted where you live, and what does the counting do? #register/structure ^ae-338
+- what does your work produce that nobody sees? #register/structure ^ae-891
+- who is paid least where you work, and what do they do? #register/structure ^ae-892
+- what did you do for free that somebody else was paid for? #register/structure ^ae-893
+- when did you find out what a colleague earned? #register/structure ^ae-894
+- what does your industry call flexibility, and who pays for it? #register/structure ^ae-895
+- what work did your family do that has since been automated? #register/structure ^ae-896
+- when were you told to be grateful for a job? #register/structure ^ae-897
+- what does overtime hide about how a place is staffed? #register/structure ^ae-898
+- who cleans the building you work in, and when? #register/structure ^ae-899
+- what did unemployment teach you about time? #register/structure ^ae-900
+- what did you learn about caste or class from who was allowed to sit down? #register/structure ^ae-901
+- when did somebody's surname change how they were treated in front of you? #register/structure ^ae-902
+- what work is treated as beneath people where you live, and who does it? #register/structure ^ae-903
+- when did you benefit from a hierarchy you would describe as unjust? #register/structure ^ae-904
+- what does your family's position let you not know? #register/structure ^ae-905
+- when did you first hear a slur used casually? #register/structure ^ae-906
+- what does merit explain away where you are? #register/structure ^ae-907
+- who was in your school and who was not? #register/structure ^ae-908
+- whose time is treated as interruptible in your household? #register/structure ^ae-909
+- what did you learn about safety from how you were told to travel? #register/structure ^ae-910
+- when did a room change because a woman entered or left it? #register/structure ^ae-911
+- what does your workplace expect of care that it does not pay for? #register/structure ^ae-912
+- what freedom did you gain or lose at puberty? #register/structure ^ae-913
+- when did somebody speak over you in a way that had a pattern? #register/structure ^ae-914
+- what does your language assume about gender before you say anything? #register/structure ^ae-916
+- what did you have to prove that should have been obvious? #register/structure ^ae-917
+- what document did you not have, and what did its absence cost? #register/structure ^ae-918
+- when did a system lose your file? #register/structure ^ae-919
+- what did a helpline teach you about how a service really works? #register/structure ^ae-920
+- when did you need a person on the inside? #register/structure ^ae-921
+- what queue exists because somebody decided your time is cheap? #register/structure ^ae-922
+- what did you give up on claiming? #register/structure ^ae-923
+- when did a rule get applied to you that is not applied to everyone? #register/structure ^ae-924
+- what stops working where you live, and how often? #register/structure ^ae-925
+- who fixes the thing you depend on? #register/structure ^ae-926
+- what did a power cut, a water shortage or a strike reveal? #register/structure ^ae-927
+- what infrastructure arrived in your area, and who lobbied for it? #register/structure ^ae-928
+- when did you last think about where your water comes from? #register/structure ^ae-930
+- what breaks first in your neighbourhood? #register/structure ^ae-931
+- what do you pay a private company for that used to be public? #register/structure ^ae-932
+- what did school sort you into? #register/structure ^ae-933
+- when did an exam decide something disproportionate? #register/structure ^ae-934
+- what did you learn at home that school treated as ignorance? #register/structure ^ae-935
+- who dropped out of your class, and what happened to them? #register/structure ^ae-936
+- what did private tuition buy in your context? #register/structure ^ae-937
+- when did a teacher's low expectation become a fact? #register/structure ^ae-938
+- what language were you taught in, and what did that cost? #register/structure ^ae-939
+- what did you learn about confidence from who was called on? #register/structure ^ae-940
+- what did you not treat because of cost or time? #register/structure ^ae-941
+- who in your family has never seen a specialist? #register/structure ^ae-942
+- when did you have to advocate for somebody in a hospital? #register/structure ^ae-943
+- what does your health insurance decide about your choices? #register/structure ^ae-944
+- what did a queue at a clinic teach you? #register/structure ^ae-945
+- when did you discover a treatment existed that nobody had mentioned? #register/structure ^ae-946
+- what illness runs in your family and goes unspoken? #register/structure ^ae-947
+- who cares for the ill where you are from? #register/structure ^ae-948
+- what did rent decide about your twenties? #register/structure ^ae-949
+- who was living where you live now? #register/structure ^ae-950
+- what did a landlord have the power to do? #register/structure ^ae-951
+- when did you move because you had to? #register/structure ^ae-952
+- what did your family own, and how did they come to own it? #register/structure ^ae-953
+- what does your street price out? #register/structure ^ae-954
+- when did a neighbourhood change around somebody you know? #register/structure ^ae-955
+- when did you see the law applied differently to two people? #register/structure ^ae-957
+- what have you been afraid to report? #register/structure ^ae-958
+- when were you stopped, or never stopped? #register/structure ^ae-959
+- what does the presence of police do to your body? #register/structure ^ae-960
+- what did you learn about the courts from a case you followed? #register/structure ^ae-961
+- who in your life has been inside a system of punishment? #register/structure ^ae-962
+- what is technically illegal where you live that everybody does? #register/structure ^ae-963
+- what does your passport let you do? #register/structure ^ae-965
+- who in your family moved, and what did they have to prove? #register/structure ^ae-966
+- what did a visa process demand of somebody you know? #register/structure ^ae-967
+- when did a border treat you as a risk? #register/structure ^ae-968
+- what work is done in your city by people who cannot settle there? #register/structure ^ae-969
+- when did nationality decide somebody's options in front of you? #register/structure ^ae-971
+- what does an algorithm assume about you? #register/structure ^ae-973
+- what were you shown that you did not ask for? #register/structure ^ae-974
+- when did a platform change and take something with it? #register/structure ^ae-975
+- what does a service know about you that a friend does not? #register/structure ^ae-976
+- what did you agree to in order to be reachable? #register/structure ^ae-977
+- what does being counted get you, and what does it cost? #register/structure ^ae-979
+- what became unaffordable in your lifetime? #register/structure ^ae-981
+- what does a cheap thing near you depend on? #register/structure ^ae-982
+- when did a price rise change a habit? #register/structure ^ae-983
+- what do you buy that you know is made badly for somebody? #register/structure ^ae-984
+- what did a subsidy or its removal do? #register/structure ^ae-985
+- when did scarcity turn out to be distribution? #register/structure ^ae-986
+- what is free where you live, and who pays for it? #register/structure ^ae-987
+- what did inflation do to a plan of yours? #register/structure ^ae-988
+- what has the weather changed about your year? #register/structure ^ae-989
+- what did a flood, drought or heat reveal about who was already exposed? #register/structure ^ae-990
+- what grew where you live that no longer does? #register/structure ^ae-991
+- who lost land near you, and to what? #register/structure ^ae-992
+- when did a place you knew become unlivable in some month? #register/structure ^ae-994
+- what does development mean where you are from? #register/structure ^ae-995
+- what did an NGO promise near you? #register/structure ^ae-997
+- when did a project end and leave what behind? #register/structure ^ae-998
+- what does a funder require that distorts the work? #register/structure ^ae-999
+- what did an institution measure that changed what it did? #register/structure ^ae-1002
+- who owns the data collected about your community? #register/structure ^ae-1004
+- how is your region described by people who do not live in it? #register/structure ^ae-1005
+- what story about your place gets told, and who benefits? #register/structure ^ae-1006
+- when did you see something reported that you had witnessed? #register/structure ^ae-1007
+- who is quoted as an expert about people like you? #register/structure ^ae-1009
+- what does the archive of your place leave out? #register/structure ^ae-1010
+- when did you correct somebody's picture of where you are from? #register/structure ^ae-1011
+- what does your city look like in other people's films? #register/structure ^ae-1012
+- what did you have to become employable for, and what did that cost? #register/structure ^ae-1049
+- when did a public good become a product in your lifetime? #register/structure ^ae-1050
+- what did a census, survey or form make you choose about yourself? #register/structure ^ae-1051
+- what does your city's map leave off? #register/structure ^ae-1052
+- when did a safety net catch somebody you know, or fail to? #register/structure ^ae-1053
+- what does your work depend on that is not paid for anywhere? #register/structure ^ae-1054
+
