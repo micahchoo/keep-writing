@@ -330,10 +330,51 @@ export function pickFromJars(jars: Jars, random: () => number = Math.random, tod
   return { source: paragraph, well: pool.well };
 }
 
-/** What a draw hands back: the pick, and the jar counts the pane reports. */
+/** What a draw hands back: the pick, and the jar counts the owner is told. */
 export interface Draw {
   drawn: Drawn | null;
   jars: JarCounts;
+}
+
+/** What a draw of several hands back: the picks, best-effort, and the counts. */
+export interface Drawing {
+  drawn: Drawn[];
+  jars: JarCounts;
+}
+
+/** Take a picked source out of the jars, so the next pick cannot repeat it. */
+function removePicked(jars: Jars, drawn: Drawn): void {
+  const { key } = drawn.source;
+  if (drawn.source.kind === 'question') {
+    jars.bank = jars.bank.filter((q) => q.key !== key);
+    return;
+  }
+  for (const pool of jars.wells) pool.paragraphs = pool.paragraphs.filter((p) => p.key !== key);
+  jars.wells = jars.wells.filter((pool) => pool.paragraphs.length > 0);
+}
+
+/**
+ * Draw up to `count` sources at once, each an independent flip between the
+ * jars, with what is picked taken out so nothing repeats. Fewer than `count`
+ * when the jars run out, which is honest: that is all there is.
+ *
+ * Several at once is what lets the owner refuse by pressing Escape. The draw
+ * handed over exactly one source until 2026-09-17, so refusing it needed a
+ * `skipped` set that had to live as long as the interview did.
+ */
+export async function drawMany(ctx: DrawContext, target: Target | null, count: number): Promise<Drawing> {
+  const random = ctx.random ?? Math.random;
+  const today = ctx.today ?? new Date();
+  const jars = await fillJars(ctx, target);
+  const counts = jarCounts(jars);
+  const drawn: Drawn[] = [];
+  for (let i = 0; i < count; i++) {
+    const pick = pickFromJars(jars, random, today);
+    if (!pick) break;
+    drawn.push(pick);
+    removePicked(jars, pick);
+  }
+  return { drawn, jars: counts };
 }
 
 /**

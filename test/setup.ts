@@ -7,7 +7,10 @@ mock.module('obsidian', () => ({
   Notice: class {
     constructor(public message: string) {}
   },
-  ItemView: class {},
+  Modal: class {},
+  SuggestModal: class {
+    setPlaceholder(): void {}
+  },
   FuzzySuggestModal: class {},
   Plugin: class {},
   PluginSettingTab: class {},

@@ -1,9 +1,15 @@
-// bonsai-27b client. Three jobs: compose a Follow-up, compose a Revisit
-// (the same job, with the Well's Lens appended), propose a Relation.
+// bonsai-27b client. Two jobs: compose a Follow-up, and compose a Revisit
+// (the same job, with the Well's Lens appended).
+//
+// There was a third until 2026-09-17 — proposeRelation, which read a fresh
+// answer against five lexically-near blocks and named a relation between
+// them. It produced one link in the vault's life, and it ran on every answer.
+// The owner writes a lateral relation by hand now (link-command.ts), which is
+// how the only one that exists was written.
 //
 // Contract (CONTEXT.md, "Bonsai judges, code arbitrates"): one job per call,
-// small payload, temperature 0, JSON out, every quote checked in code as an
-// exact substring, one retry with the rejection attached, then drop.
+// small payload, temperature 0, JSON out, every candidate measured in code
+// against the Asked set, one retry with the rejection attached, then drop.
 // Abstain is always a legal answer.
 //
 // No import from "obsidian". The caller injects a fetch-like function so the
@@ -15,7 +21,7 @@ export type Fetcher = (
 ) => Promise<{ status: number; text: string }>;
 
 export interface CallLog {
-  job: 'follow-up' | 'revisit' | 'relation';
+  job: 'follow-up' | 'revisit';
   attempt: number;
   ms: number;
   outcome: 'ok' | 'abstain' | 'invalid' | 'error';
@@ -30,23 +36,8 @@ export interface BonsaiConfig {
   onLog?: (entry: CallLog) => void;
 }
 
-export type Relation = 'echoes' | 'contradicts' | 'follows';
-const RELATIONS: readonly Relation[] = ['echoes', 'contradicts', 'follows'];
-
-export interface Candidate {
-  ref: string;
-  text: string;
-}
-
-export interface Proposal {
-  ref: string;
-  relation: Relation;
-  quote: string;
-}
-
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_TOKENS = 256;
-const MIN_QUOTE_WORDS = 3;
 
 // Phrases that refer to the conversation itself. A follow-up must read as a
 // fresh question, not as a reply.
@@ -147,27 +138,6 @@ function isAbstain(obj: unknown): boolean {
   return typeof obj === 'object' && obj !== null && (obj as { abstain?: unknown }).abstain === true;
 }
 
-const QUOTE_MARKS = /["'\u201c\u201d\u2018\u2019]/;
-
-/**
- * Find `quote` in `text` and return the text's own verbatim span, or null.
- * Exact match first. Failing that, any quotation mark in the model's quote
- * may stand for any quotation mark in the text: bonsai swaps a phrase's inner
- * double quotes for single quotes when it writes JSON (measured 2026-09-13)
- * and repeats the swap on retry. Nothing else is normalized: case, spacing
- * and dropped words still fail.
- */
-export function locateQuote(quote: string, text: string): string | null {
-  if (text.includes(quote)) return quote;
-  if (!QUOTE_MARKS.test(quote)) return null;
-  const pattern = quote
-    .split('')
-    .map((c) => (QUOTE_MARKS.test(c) ? QUOTE_MARKS.source : c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
-    .join('');
-  const m = new RegExp(pattern).exec(text);
-  return m ? m[0] : null;
-}
-
 function wordCount(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -197,10 +167,9 @@ async function runJob<T>(
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     // The retry is a real exchange: the model's rejected turn, then the
-    // reason. Measured 2026-09-13: at temperature 0 bonsai repeated a
-    // quote-mark swap under both this shape and a correction appended to the
-    // user message; locateQuote now absorbs that case. Whether the retry
-    // recovers a case change or a dropped word is untested live.
+    // reason. Measured 2026-09-13 at temperature 0, bonsai repeats a rejected
+    // answer under this shape as readily as under a correction appended to the
+    // user message, so the retry is one attempt and never more.
     const messages: Message[] = [
       { role: 'system', content: system },
       { role: 'user', content: user },
@@ -491,64 +460,4 @@ export async function composeRevisit(
   const system = lens.trim() ? `${FOLLOW_UP_SYSTEM}\n\n${lens.trim()}` : FOLLOW_UP_SYSTEM;
   const user = `Something they wrote ${framing}:\n\n${paragraph}`;
   return valueOrNull(await runJob(cfg, 'revisit', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
-}
-
-// ---------------------------------------------------------------------------
-// Relation
-
-const RELATION_SYSTEM = `You compare a fresh answer against a few earlier blocks the same person wrote. Pick at most ONE block and name the relation between the answer and that block.
-
-Reply with a JSON object and nothing else. Two shapes are allowed:
-{"ref": "...", "relation": "...", "quote": "..."}
-{"abstain": true}
-
-Relations:
-- echoes: the block says the same thing as the answer again in different words.
-- contradicts: the block and the answer both claim the present and cannot both be true.
-- follows: the answer continues or builds on the block.
-
-Rules:
-- "ref" is copied from the block's ref line.
-- "quote" is a phrase copied from that block's text, at least 3 words, character for character: same letters, same case, same punctuation. It must show the relation.
-- Only pick a block when the relation is clear. If nothing fits, or the overlap is only shared words, reply {"abstain": true}. Abstain is the correct answer when in doubt.`;
-
-export function checkProposal(obj: unknown, candidates: Candidate[]): Verdict<Proposal> {
-  if (typeof obj !== 'object' || obj === null) return { kind: 'invalid', reason: 'output is not an object' };
-  const { ref, relation, quote } = obj as { ref?: unknown; relation?: unknown; quote?: unknown };
-  if (typeof ref !== 'string') return { kind: 'invalid', reason: 'missing "ref"' };
-  if (typeof relation !== 'string') return { kind: 'invalid', reason: 'missing "relation"' };
-  if (typeof quote !== 'string' || quote.trim() === '') return { kind: 'invalid', reason: 'missing "quote"' };
-
-  const refTrimmed = ref.trim();
-  const candidate = candidates.find((c) => c.ref === refTrimmed);
-  if (!candidate) {
-    return { kind: 'invalid', reason: `ref "${refTrimmed}" is not one of the candidate refs` };
-  }
-  const rel = relation.trim().toLowerCase();
-  if (!(RELATIONS as readonly string[]).includes(rel)) {
-    return { kind: 'invalid', reason: `relation "${relation}" is not one of ${RELATIONS.join(', ')}` };
-  }
-  const quoteTrimmed = locateQuote(quote.trim(), candidate.text);
-  if (quoteTrimmed === null) {
-    return { kind: 'invalid', reason: `quote "${quote.trim()}" is not an exact substring of block ${refTrimmed} (case-sensitive)` };
-  }
-  if (wordCount(quoteTrimmed) < MIN_QUOTE_WORDS) {
-    return { kind: 'invalid', reason: `quote has fewer than ${MIN_QUOTE_WORDS} words` };
-  }
-  return { kind: 'ok', value: { ref: refTrimmed, relation: rel as Relation, quote: quoteTrimmed } };
-}
-
-/**
- * Given a fresh answer and up to 5 candidate blocks, pick at most one
- * candidate and a relation, with a quote from that candidate's text that shows
- * the relation. Returns null on abstain, transport error, or invalid output
- * after the retry.
- */
-export async function proposeRelation(cfg: BonsaiConfig, answer: string, candidates: Candidate[]): Promise<Proposal | null> {
-  const pool = candidates.slice(0, 5);
-  if (pool.length === 0) return null;
-
-  const blocks = pool.map((c, i) => `Block ${i + 1}\nref: ${c.ref}\ntext: ${c.text}`).join('\n\n');
-  const user = `Answer:\n${answer}\n\nBlocks:\n${blocks}`;
-  return valueOrNull(await runJob(cfg, 'relation', RELATION_SYSTEM, user, (obj) => checkProposal(obj, pool)));
 }

@@ -1,18 +1,18 @@
-// The model seam. Everything that needs bonsai (Follow-ups, Revisits,
-// Proposals) goes through a `Model`. Wired to src/bonsai.ts; when the model is
+// The model seam. Everything that needs bonsai (Follow-ups, Revisits) goes
+// through a `Model`. Wired to src/bonsai.ts; when the model is
 // switched off in settings the seam reports "not available" and returns
 // nothing, so every caller degrades to the bank-only behaviour.
 //
-// Only jobs bonsai does live here. Finding the candidate blocks is code's own
-// work (lexical.ts), and it sat on this seam as a re-export until 2026-09-16 —
-// a pass-through that made callers think the model was choosing.
+// Only jobs bonsai does live here. A third one, proposeRelation, was taken out
+// on 2026-09-17: it read every answer against five lexically-near blocks and
+// had produced one link in the vault's life.
 
 import { requestUrl } from 'obsidian';
-import { composeFollowUps, composeRevisit, proposeRelation } from './bonsai';
-import type { BonsaiConfig, CallLog, Candidate, Proposal, Relation, RevisitCandidate } from './bonsai';
+import { composeFollowUps, composeRevisit } from './bonsai';
+import type { BonsaiConfig, CallLog, RevisitCandidate } from './bonsai';
 import type { KeepWritingSettings } from './settings';
 
-export type { CallLog, Candidate, Proposal, Relation, RevisitCandidate };
+export type { CallLog, RevisitCandidate };
 
 export interface Model {
   /** False when the model is switched off in settings. */
@@ -23,8 +23,6 @@ export interface Model {
   composeFollowUps(question: string, answer: string, asked: string[], target: string): Promise<string[]>;
   /** Up to three questions about a paragraph the owner wrote before, through the Well's Lens; empty when none. `asked` is what was already asked from that block. */
   composeRevisit(paragraph: string, framing: string, asked: string[], lens: string): Promise<RevisitCandidate[]>;
-  /** Judge whether the answer relates to one of these blocks. Null is a legal abstain. */
-  proposeRelation(answer: string, candidates: Candidate[]): Promise<Proposal | null>;
 }
 
 /** Obsidian's requestUrl, in the fetch-like shape bonsai.ts expects. */
@@ -40,7 +38,6 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
       reason: 'model switched off in settings',
       composeFollowUps: async () => [],
       composeRevisit: async () => [],
-      proposeRelation: async () => null,
     };
   }
   const cfg: BonsaiConfig = { baseUrl: settings.baseUrl, model: settings.model, fetcher };
@@ -50,6 +47,5 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
     reason: '',
     composeFollowUps: (question, answer, asked, target) => composeFollowUps(cfg, question, answer, asked, target),
     composeRevisit: (paragraph, framing, asked, lens) => composeRevisit(cfg, paragraph, framing, asked, lens),
-    proposeRelation: (answer, candidates) => proposeRelation(cfg, answer, candidates),
   };
 }

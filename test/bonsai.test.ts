@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { checkFollowUps, checkProposal, checkRevisit, composeFollowUps, composeRevisit, extractJson, isParrot, locateQuote, splitDue } from '../src/bonsai';
-import type { Candidate } from '../src/bonsai';
+import { checkFollowUps, checkRevisit, composeFollowUps, composeRevisit, extractJson, isParrot, splitDue } from '../src/bonsai';
 import type { CallLog } from '../src/bonsai';
 import type { BonsaiConfig } from '../src/bonsai';
 
@@ -234,98 +233,6 @@ describe('extractJson', () => {
   });
 });
 
-describe('locateQuote', () => {
-  const TEXT = 'I weighted the pelvis bone wrong in every rig I made that year.';
-
-  test('an exact substring is itself', () => {
-    expect(locateQuote('the pelvis bone', TEXT)).toBe('the pelvis bone');
-  });
-  test('words that are not there are null', () => {
-    expect(locateQuote('the femur', TEXT)).toBeNull();
-  });
-  test('a case change still fails: nothing but quote marks is normalized', () => {
-    expect(locateQuote('The Pelvis Bone', TEXT)).toBeNull();
-  });
-
-  // Measured 2026-09-13: bonsai swaps a phrase's inner double quotes for
-  // single ones when it writes JSON, and repeats the swap under the retry.
-  const SPOKEN = 'he called it "the hips" for years afterwards';
-
-  test('a swapped quote mark matches, and what comes back is the TEXT’s own characters', () => {
-    expect(locateQuote("he called it 'the hips'", SPOKEN)).toBe('he called it "the hips"');
-  });
-  test('regex metacharacters inside a swapped quote are escaped, not interpreted', () => {
-    const text = 'the invoice said "it cost $5 (roughly)" and nobody checked';
-    expect(locateQuote("the invoice said 'it cost $5 (roughly)'", text)).toBe('the invoice said "it cost $5 (roughly)"');
-    expect(locateQuote("the invoice said 'it cost .. (roughly)'", text)).toBeNull();
-  });
-});
-
-describe('checkProposal', () => {
-  const CANDIDATES: Candidate[] = [
-    { ref: 'Pieces/cities#^p-004', text: 'The pelvis bone was weighted wrong in every rig I made that year.' },
-    { ref: 'Sittings/2026-09-14#^y1', text: 'I only ever called it "the hips" because the rig sheet did.' },
-  ];
-
-  test('a ref, a relation and a quote that check out', () => {
-    expect(checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'weighted wrong in every rig' }, CANDIDATES))
-      .toEqual({ kind: 'ok', value: { ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'weighted wrong in every rig' } });
-  });
-
-  test('the relation is trimmed and lower-cased', () => {
-    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: '  Follows ', quote: 'weighted wrong in every rig' }, CANDIDATES);
-    expect(v).toMatchObject({ kind: 'ok', value: { relation: 'follows' } });
-  });
-
-  test('a ref the model invented is refused', () => {
-    const v = checkProposal({ ref: 'Pieces/never-written#^p-001', relation: 'echoes', quote: 'weighted wrong in every rig' }, CANDIDATES);
-    expect(v).toMatchObject({ kind: 'invalid' });
-    expect((v as { reason: string }).reason).toContain('not one of the candidate refs');
-  });
-
-  // `demonstrates` is a real relation in links.ts and NOT one bonsai may name:
-  // a Skill cites performance, which is the owner's claim to make, not a model's.
-  test('a relation outside the three is refused, even one the Link table knows', () => {
-    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'demonstrates', quote: 'weighted wrong in every rig' }, CANDIDATES);
-    expect(v).toMatchObject({ kind: 'invalid' });
-    expect((v as { reason: string }).reason).toContain('is not one of echoes, contradicts, follows');
-  });
-
-  test('a quote that is not in the block is refused', () => {
-    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'the femur was fine' }, CANDIDATES);
-    expect(v).toMatchObject({ kind: 'invalid' });
-    expect((v as { reason: string }).reason).toContain('is not an exact substring');
-  });
-
-  test('a quote under three words is refused: two words show no relation', () => {
-    const v = checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: 'The pelvis' }, CANDIDATES);
-    expect(v).toMatchObject({ kind: 'invalid' });
-    expect((v as { reason: string }).reason).toContain('fewer than 3 words');
-  });
-
-  test('a missing field is named', () => {
-    expect(checkProposal({}, CANDIDATES)).toEqual({ kind: 'invalid', reason: 'missing "ref"' });
-    expect(checkProposal({ ref: 'Pieces/cities#^p-004' }, CANDIDATES)).toEqual({ kind: 'invalid', reason: 'missing "relation"' });
-    expect(checkProposal({ ref: 'Pieces/cities#^p-004', relation: 'echoes', quote: '  ' }, CANDIDATES))
-      .toEqual({ kind: 'invalid', reason: 'missing "quote"' });
-  });
-
-  test('output that is not an object at all', () => {
-    expect(checkProposal(null, CANDIDATES)).toEqual({ kind: 'invalid', reason: 'output is not an object' });
-  });
-
-  // The Link carries the owner's characters, never the model's re-spelling.
-  test('a swapped quote mark passes, and the block’s own spelling is what is kept', () => {
-    const v = checkProposal(
-      { ref: 'Sittings/2026-09-14#^y1', relation: 'follows', quote: "called it 'the hips' because" },
-      CANDIDATES,
-    );
-    expect(v).toEqual({
-      kind: 'ok',
-      value: { ref: 'Sittings/2026-09-14#^y1', relation: 'follows', quote: 'called it "the hips" because' },
-    });
-  });
-});
 
 describe('checkRevisit', () => {
   const PARAGRAPH = 'The map only aligned after I georeferenced it against the survey sheet.';
