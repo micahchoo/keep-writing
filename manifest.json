@@ -1,7 +1,7 @@
 {
   "id": "keep-writing",
   "name": "keep-writing",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minAppVersion": "1.13.0",
   "description": "Draws a question into your daily note, composes new ones from writing you have already done, and links every answer to what provoked it.",
   "author": "Micah",
