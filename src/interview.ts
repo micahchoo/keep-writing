@@ -28,7 +28,7 @@ import type { AnsweredIndex, Drawn, JarCounts } from './bank';
 import { ensureBlockId } from './blocks';
 import { readBookmark, runClosing } from './closing';
 import { CRAFT, INVITATION, lensFor } from './lens';
-import type { Model, RevisitCandidate } from './model';
+import type { Composed, Model, RevisitCandidate } from './model';
 import { paragraphAt } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { refusalLine } from './refusal';
@@ -88,6 +88,8 @@ export type Reach = 'pointed' | 'picked';
 export interface RevisitOffer {
   candidates: RevisitCandidate[];
   lens: string | null;
+  /** Why nothing was composed, when the reason was the call and not the model. */
+  error: string | null;
 }
 
 /** What marking an answer produced: the answer block, and what follows from it. */
@@ -95,6 +97,11 @@ export interface Answered {
   ref: Ref;
   /** Follow-up questions bonsai composed, best first. Empty when it had none. */
   questions: string[];
+  /**
+   * Why there are none, when the reason was the call and not the model. Null
+   * when the model simply had nothing to ask, which is a legal answer.
+   */
+  error: string | null;
 }
 
 /** The one fixed Revisit form, for when the model is off or offers nothing. A paragraph is never a dead end. */
@@ -250,13 +257,13 @@ export class Interview {
     const page = reach === 'pointed' ? CRAFT : INVITATION;
     const lens = await lensFor(this.app, page);
     const name = lens ? page : null;
-    if (!model.available) return { candidates: [], lens: name };
+    if (!model.available) return { candidates: [], lens: name, error: null };
     const asked = await this.askedAbout(paragraph);
-    const candidates =
+    const composed =
       reach === 'pointed'
         ? await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens)
         : await model.composeInvitation(paragraph.text, asked, lens);
-    return { candidates, lens: name };
+    return { candidates: composed.questions, lens: name, error: composed.error };
   }
 
   /**
@@ -356,7 +363,8 @@ export class Interview {
     // sits in.
     const source = parseRef(ask.sourceRef);
     if (source) await runClosing(this.app, file, source, marked.ref, bankFolder);
-    return { ref: marked.ref, questions: await this.followUps(file, ask) };
+    const followed = await this.followUps(file, ask);
+    return { ref: marked.ref, questions: followed.questions, error: followed.error };
   }
 
   /**
@@ -370,14 +378,14 @@ export class Interview {
    * answer. Measured 2026-09-16: handed a stale range, bonsai was shown the
    * Ask callout and composed a follow-up to the question's own text.
    */
-  private async followUps(file: TFile, ask: Ask): Promise<string[]> {
+  private async followUps(file: TFile, ask: Ask): Promise<Composed<string>> {
     const { model } = this.host;
-    if (!model.available) return [];
+    if (!model.available) return { questions: [], error: null };
     const content = await this.app.vault.cachedRead(file);
     const asks = parseAsks(content);
     const fresh = asks.find((a) => a.sourceRef === ask.sourceRef && a.question === ask.question) ?? ask;
     const answer = answerText(content, fresh);
-    if (!answer) return [];
+    if (!answer) return { questions: [], error: null };
     const target = readTarget(this.app, file)?.basename ?? ME_BASENAME;
     // Every other question this Sitting has already put. composeFollowUps
     // adds the one being answered itself.

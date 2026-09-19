@@ -3,7 +3,7 @@
 
 import { describe, expect, test } from 'bun:test';
 import { NotAParagraph } from '../src/blocks';
-import { Refused, refusalLine } from '../src/refusal';
+import { Refused, modelFailureLine, refusalLine } from '../src/refusal';
 import { NotSelectable } from '../src/selection';
 
 /** Run `fn` with console.error captured, so a defect's log can be asserted. */
@@ -50,5 +50,30 @@ describe('a refusal', () => {
   test('a refusal is never logged: it is not a defect', () => {
     const { logged } = capturingErrors(() => refusalLine(new NotSelectable('Select the words first.')));
     expect(logged).toBe(0);
+  });
+});
+
+describe('modelFailureLine', () => {
+  // The endpoint's own words are the diagnosis. A sentence written here can
+  // introduce them; it cannot replace them.
+  test('keeps what the server said', () => {
+    expect(modelFailureLine(`HTTP 404: {"error":{"message":"model 'nope' not found"}}`)).toBe(
+      `The model did not answer. HTTP 404: {"error":{"message":"model 'nope' not found"}}`,
+    );
+  });
+
+  test('keeps the setting a truncation names', () => {
+    const line = modelFailureLine('empty reply: used the whole 2048-token budget before answering — raise "Reply budget" in settings');
+    expect(line).toContain('Reply budget');
+  });
+
+  test('a Notice is not a wall of text', () => {
+    const line = modelFailureLine('x'.repeat(500));
+    expect(line.length).toBeLessThan(200);
+    expect(line.endsWith('…')).toBe(true);
+  });
+
+  test('a failure with nothing to say still says something', () => {
+    expect(modelFailureLine('   ')).toBe('The model did not answer.');
   });
 });

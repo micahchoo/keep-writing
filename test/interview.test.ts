@@ -8,7 +8,7 @@ import { describe, expect, test } from 'bun:test';
 import { parseAsks } from '../src/asks';
 import type { Ask } from '../src/asks';
 import { AnsweredIndex } from '../src/bank';
-import type { Model, RevisitCandidate } from '../src/model';
+import type { Composed, Model, RevisitCandidate } from '../src/model';
 import { Interview, dayStamp } from '../src/interview';
 import type { InterviewHost } from '../src/interview';
 import type { Paragraph } from '../src/paragraphs';
@@ -23,6 +23,13 @@ interface Plan {
   revisit?: RevisitCandidate[];
   invitation?: RevisitCandidate[];
   followUps?: string[];
+  /**
+   * What the call failed with. A model that is AVAILABLE and reached, whose
+   * exchange did not happen — a 404 on the model id, a timeout, a reply cut
+   * off mid-budget. Distinct from composing nothing, which is `plan` left
+   * empty and is the model declining.
+   */
+  error?: string;
 }
 
 function recordingModel(plan: Plan = {}) {
@@ -31,20 +38,26 @@ function recordingModel(plan: Plan = {}) {
     invitation: [] as { paragraph: string; asked: string[]; lens: string }[],
     followUp: [] as { question: string; answer: string; asked: string[]; target: string }[],
   };
+  // Mirrors createModel: a call that composed something has no error, whatever
+  // failed on the way.
+  const composed = <T>(questions: T[]): Composed<T> => ({
+    questions,
+    error: questions.length > 0 ? null : plan.error ?? null,
+  });
   const model: Model = {
     available: true,
     reason: '',
     composeRevisit: async (paragraph, framing, asked, lens) => {
       seen.revisit.push({ paragraph, framing, asked, lens });
-      return plan.revisit ?? [];
+      return composed(plan.revisit ?? []);
     },
     composeInvitation: async (paragraph, asked, lens) => {
       seen.invitation.push({ paragraph, asked, lens });
-      return plan.invitation ?? [];
+      return composed(plan.invitation ?? []);
     },
     composeFollowUps: async (question, answer, asked, target) => {
       seen.followUp.push({ question, answer, asked, target });
-      return plan.followUps ?? [];
+      return composed(plan.followUps ?? []);
     },
   };
   return { model, seen };
@@ -53,9 +66,9 @@ function recordingModel(plan: Plan = {}) {
 const OFF: Model = {
   available: false,
   reason: 'model switched off in settings',
-  composeRevisit: async () => [],
-  composeInvitation: async () => [],
-  composeFollowUps: async () => [],
+  composeRevisit: async () => ({ questions: [], error: null }),
+  composeInvitation: async () => ({ questions: [], error: null }),
+  composeFollowUps: async () => ({ questions: [], error: null }),
 };
 
 function open(notes: Record<string, string>, model: Model = OFF, hooks: VaultHooks = {}) {
@@ -734,5 +747,75 @@ describe('asking about a selection', () => {
 
     expect(v.text(`Sittings/${today}.md`)).toContain('> [!ask] which corner broke it first?');
     expect(surface.notices).toContain(`Asked in ${today}.`);
+  });
+});
+
+// A failed call and a declining model are not the same thing.
+//
+// Both composed nothing, and both were the value `[]` until 2026-09-18, so
+// every caller above the seam said "the model had nothing to ask" whatever had
+// happened — including a 404 naming a model id the server does not have, whose
+// own explanation was sitting in the console log unread. The Interview carries
+// the reason now; main.ts turns it into the Notice.
+describe('why nothing was composed', () => {
+  const FAILURE = `HTTP 404: {"error":{"message":"model 'nope' not found"}}`;
+  const sitting = () => ({
+    [TODAY]: [
+      '---',
+      '---',
+      '',
+      '## Asked',
+      '',
+      '> [!ask] what broke in the rig?',
+      '> from [[Bank/craft#^b1]]',
+      '',
+      ANSWERED,
+      '',
+    ].join('\n'),
+    'Bank/craft.md': '---\nkind: bank\n---\n\n- what broke in the rig? #register/episode ^b1\n',
+    'Pieces/cities.md': `---\ntitle: Cities\nstatus: published\n---\n\n${PARAGRAPH} ^p-004\n`,
+  });
+
+  const pick = (interview: Interview, v: ReturnType<typeof open>['v']) =>
+    interview.selection({ file: v.file('Pieces/cities.md'), selected: PARAGRAPH, line: 5 }) as Paragraph;
+
+  test('a failed call carries its reason out of offerFrom', async () => {
+    const { model } = recordingModel({ error: FAILURE });
+    const { v, interview } = open(sitting(), model);
+    const offer = await interview.offerFrom(pick(interview, v), 'pointed');
+    expect(offer.candidates).toEqual([]);
+    expect(offer.error).toBe(FAILURE);
+  });
+
+  // The distinction the type exists for. Nothing composed, nothing wrong.
+  test('a declining model reports no error', async () => {
+    const { model } = recordingModel();
+    const { v, interview } = open(sitting(), model);
+    const offer = await interview.offerFrom(pick(interview, v), 'pointed');
+    expect(offer.candidates).toEqual([]);
+    expect(offer.error).toBeNull();
+  });
+
+  test('a call that composed something is not a failure, whatever went wrong on the way', async () => {
+    const { model } = recordingModel({ error: FAILURE, revisit: [{ question: 'which corner broke it first?' }] });
+    const { v, interview } = open(sitting(), model);
+    const offer = await interview.offerFrom(pick(interview, v), 'pointed');
+    expect(offer.candidates).toHaveLength(1);
+    expect(offer.error).toBeNull();
+  });
+
+  test('marking an answer carries the reason too', async () => {
+    const { model } = recordingModel({ error: FAILURE });
+    const { v, interview } = open(sitting(), model);
+    const marked = await interview.markAt({ file: v.file(TODAY), line: 8 });
+    expect(marked?.questions).toEqual([]);
+    expect(marked?.error).toBe(FAILURE);
+  });
+
+  test('with the model off, nothing composed is nothing wrong', async () => {
+    const { v, interview } = open(sitting());
+    const marked = await interview.markAt({ file: v.file(TODAY), line: 8 });
+    expect(marked?.questions).toEqual([]);
+    expect(marked?.error).toBeNull();
   });
 });

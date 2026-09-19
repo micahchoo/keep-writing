@@ -29,3 +29,22 @@ export function refusalLine(e: unknown): string {
   console.error('[keep-writing]', e);
   return DEFECT;
 }
+
+/** Past this, a Notice is a wall of text nobody reads. */
+const REASON_MAX = 160;
+
+/**
+ * The line for a compose call that FAILED, as against the model declining.
+ * The two were one value until 2026-09-18 and the owner was told the model
+ * had nothing to say whatever had happened — including a 404 naming a model
+ * id their server does not have.
+ *
+ * The endpoint's own words are the useful part and are kept, bounded: "model
+ * 'nope' not found" is the whole diagnosis, and no sentence written here can
+ * replace it.
+ */
+export function modelFailureLine(reason: string): string {
+  const said = reason.trim();
+  if (!said) return 'The model did not answer.';
+  return `The model did not answer. ${said.length > REASON_MAX ? said.slice(0, REASON_MAX) + '…' : said}`;
+}

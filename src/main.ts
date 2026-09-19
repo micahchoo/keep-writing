@@ -22,6 +22,7 @@ import { OfferModal, choose } from './modals';
 import type { Choice } from './modals';
 import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
+import { modelFailureLine } from './refusal';
 import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
 import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
@@ -261,6 +262,10 @@ export default class KeepWritingPlugin extends Plugin {
   private async offer(sitting: TFile, paragraph: Paragraph, reach: Reach): Promise<void> {
     const offer = await this.composing(() => this.interview.offerFrom(paragraph, reach));
     const lens = offer.lens ? ` · through the ${offer.lens} lens` : '';
+    // The fallback below is indistinguishable from a composed question, so a
+    // failure must say so. Silently substituting it told the owner the model
+    // had answered when it had never been reached.
+    if (offer.error) new Notice(modelFailureLine(offer.error));
     // A paragraph is never a dead end: with nothing composed, the one fixed form.
     const candidates: RevisitCandidate[] = offer.candidates.length
       ? offer.candidates
@@ -287,8 +292,17 @@ export default class KeepWritingPlugin extends Plugin {
     const answered = await this.composing(() => this.interview.markAt({ file, line }));
     if (!answered) return;
     if (answered.questions.length === 0) {
-      // Never nothing: a silent command reads as a broken one.
-      new Notice(this.model.available ? 'Nothing to follow up with. Run it again to ask afresh.' : this.model.reason);
+      // Never nothing: a silent command reads as a broken one. And never the
+      // WRONG nothing: "nothing to follow up with" is the model declining, and
+      // saying it after a 404 blamed the model for a setting the owner could
+      // have fixed in ten seconds.
+      new Notice(
+        !this.model.available
+          ? this.model.reason
+          : answered.error
+            ? modelFailureLine(answered.error)
+            : 'Nothing to follow up with. Run it again to ask afresh.',
+      );
       return;
     }
     choose(
