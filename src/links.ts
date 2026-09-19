@@ -22,6 +22,19 @@ import type { Ref } from './refs';
 export const ANSWERS = 'answers';
 /** Written back on the source's note, unless the source is a Bank entry. */
 export const ANSWERED_BY = 'answered-by';
+/**
+ * The KINDS of question a note has answered — `episode`, `belief`, `value` —
+ * off the `#register/` tag of each Bank entry it answered.
+ *
+ * Not a relation, an attribute: it adds no edge and no inverse, so it does not
+ * reopen the table CONTEXT.md cut to one row on 2026-09-17. It exists because
+ * the register was legible only on the QUESTION, and the question lives in the
+ * Bank, where 70% of all answer-links converge — so nothing about what kind of
+ * thinking a day held was visible on the day itself. With this, Obsidian's
+ * graph colour groups can take `["registers","belief"]` and the graph shows
+ * the shape of an interview over years.
+ */
+export const REGISTERS = 'registers';
 
 /**
  * The source keys one note says it `answers`, resolved.
@@ -67,6 +80,16 @@ async function addToProperty(app: App, file: TFile, key: string, ref: Ref): Prom
     const list = asList(fm[key]);
     if (list.some((v) => sameRef(v, ref))) return;
     list.push(wikilink(ref));
+    fm[key] = list;
+  });
+}
+
+/** Add a plain string to a note's list property, once. */
+export async function addToStringList(app: App, file: TFile, key: string, value: string): Promise<void> {
+  await app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+    const list = asList(fm[key]);
+    if (list.includes(value)) return;
+    list.push(value);
     fm[key] = list;
   });
 }

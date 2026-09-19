@@ -24,7 +24,8 @@ import type { Paragraph } from './paragraphs';
  */
 export const BANK_SHARE = 0.7;
 
-const NO_REGISTER = 'none';
+/** What `parseBankLine` reports for an entry carrying no `#register/` tag. */
+export const NO_REGISTER = 'none';
 const REGISTER_PREFIX = '#register/';
 const ROLE_PREFIX = '#role/';
 

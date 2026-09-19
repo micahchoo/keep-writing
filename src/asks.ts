@@ -16,7 +16,8 @@
 
 import type { App, TFile } from 'obsidian';
 import { ensureBlockId } from './blocks';
-import { answeredKeys, linkAnswer } from './links';
+import { NO_REGISTER, questionAt } from './bank';
+import { REGISTERS, addToStringList, answeredKeys, linkAnswer } from './links';
 import { refusalLine } from './refusal';
 import { formatRef, keyOfRef, parseRef } from './refs';
 import type { Ref } from './refs';
@@ -310,5 +311,12 @@ export async function markAnswered(app: App, file: TFile, ask: Ask, opts: MarkOp
     return { kind: 'refused', reason: refusalLine(e) };
   }
   await linkAnswer(app, ref, source, opts);
+  // What KIND of question this was, kept on the note that answered it. Only a
+  // Bank entry carries a register; a paragraph of the owner's own writing has
+  // none, and an untagged entry reports the sentinel rather than a register.
+  const question = await questionAt(app, source, file.path, opts.bankFolder);
+  if (question && question.register !== NO_REGISTER) {
+    await addToStringList(app, file, REGISTERS, question.register);
+  }
   return { kind: 'ok', ref };
 }

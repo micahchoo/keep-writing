@@ -106,6 +106,49 @@ next: "[[Sittings/2026-09-16#^a4f201]]"
 
 On `me.md`, or on the note your day was `about`. The next day's draw offers that paragraph first, reads it as something you chose rather than something it found, and puts what you wrote under the question. It stops offering it once you answer it, or the next time you leave a bookmark.
 
+## Seeing it in the graph
+
+Every answer is linked, so after a few months the graph view is a picture of
+the interview. One thing spoils it out of the box, and one filter fixes it.
+
+**Filter the bank out.** Seven draws in ten come from your question bank, and
+the starter bank is four notes — so most of the links in the vault converge on
+four dots and the graph becomes a four-pointed star. In graph view's filter
+box:
+
+```
+-path:Bank
+```
+
+What is left is the part worth looking at: each day's writing tied to the
+older paragraphs that provoked it. A piece you keep returning to grows visible
+edges, because the plugin writes `answered-by` back onto whatever a question
+came from. The biggest node is the writing that keeps paying out.
+
+**Colour by what you were asked.** Marking an answer records the KIND of
+question on the note that answered it:
+
+```yaml
+registers:
+  - episode
+  - belief
+```
+
+In graph view → Groups → New group, one query per colour:
+
+| Query | Shows |
+|---|---|
+| `["registers","episode"]` | days spent on things that happened |
+| `["registers","belief"]` | days spent on what you hold true |
+| `["registers","value"]` | days spent on what you hold worth it |
+
+Then the shape of your attention is visible without reading a word — a season
+of retrieving episodes, a turn toward testing beliefs.
+
+One thing the graph cannot show: follow-up chains. A follow-up cites the
+answer it came from in the same note, and Obsidian draws no link from a note
+to itself.
+
 ## What it will not do
 
 The plugin never writes a sentence into your notes. Its entire write surface is three things:
