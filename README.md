@@ -4,7 +4,7 @@ A vault that interviews you, so that you keep writing.
 
 keep-writing puts a question into your daily note in [Obsidian](https://obsidian.md), you answer it in your own words, and every answer is linked to whatever provoked it. Over time the vault becomes the well your writing projects draw from — and the questions start coming from what you have already written.
 
-> **Early, and not in the community store yet.** Install it from a [release](https://github.com/micahchoo/keep-writing/releases) (below). Needs **Obsidian 1.13 or newer**. Questions composed from your own writing need a model endpoint; everything else works without one.
+> **In the community store, and early.** Search Obsidian's community plugins for **keep-writing**. Needs **Obsidian 1.13 or newer**. Questions composed from your own writing need a model endpoint; everything else works without one.
 
 ## What it does
 
@@ -120,6 +120,10 @@ There is no code path that inserts, edits or rewords prose. The body of a note i
 
 Composing a question from your own writing needs an OpenAI-compatible endpoint. Any will do — a local server, or a hosted one with an API key. It ships pointing at `http://127.0.0.1:8088/v1` with the key field empty, so **nothing configured, nothing leaves.** Point it somewhere else and your paragraphs go there instead; that is the whole of what changes.
 
+**Ollama** works: base URL `http://localhost:11434/v1`, the model id that `ollama list` prints, key empty. Nothing else to set up.
+
+> **Pick a model that does not reason.** The plugin asks for a short reply, and a reasoning model spends that whole budget thinking before it writes anything — so the answer comes back empty and you see no question and no error. This is the plugin's limit, not yours, and it is being fixed.
+
 Turn the model off in settings and the plugin makes no network call at all: the draw, the Ask, the seeded question and the linking all still work. You lose the questions composed from your own writing.
 
 Three jobs, one call each, temperature 0, JSON out, one retry, then it gives up quietly:
@@ -136,14 +140,13 @@ Your key is stored in plain text in `data.json`, beside the plugin in your vault
 
 ## Installing
 
-Not in the community plugins browser yet, so it goes in by hand. **Needs Obsidian 1.13 or newer.**
+**Needs Obsidian 1.13 or newer.**
 
-1. From the [latest release](https://github.com/micahchoo/keep-writing/releases/latest), download `main.js`, `manifest.json` and `styles.css`.
-2. Put all three in `<your vault>/<config folder>/plugins/keep-writing/` — the config folder is `.obsidian` unless you renamed it.
-3. Obsidian → Settings → Community plugins → turn off Restricted mode.
-4. Enable **keep-writing**, and say yes when it offers to write the question bank.
+1. Settings → Community plugins → turn off Restricted mode → **Browse**.
+2. Search for **keep-writing**, install, enable.
+3. Say yes when it offers to write the question bank.
 
-Or clone this repo into that folder and run `npm install && npm run build`, which produces the same `main.js`.
+By hand instead: download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/micahchoo/keep-writing/releases/latest) into `<your vault>/<config folder>/plugins/keep-writing/` — the config folder is `.obsidian` unless you renamed it. Or clone this repo there and run `npm install && npm run build`, which produces the same `main.js`.
 
 **Every release is signed against the commit it was built from**, which matters here more than for most plugins: `main.js` carries all 2,274 questions, and nobody can diff those by eye. Check before you install:
 
