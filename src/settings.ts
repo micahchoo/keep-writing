@@ -14,6 +14,12 @@ export interface KeepWritingSettings {
    * `data.json` in the vault, in plain text, like every Obsidian setting.
    */
   apiKey: string;
+  /**
+   * Ceiling on the model's reply, in tokens. A ceiling and not a target: a
+   * model that stops early costs what it generated. See BonsaiConfig#maxTokens
+   * for why 256 was too small to ship.
+   */
+  maxTokens: number;
   /** When off, follow-ups and Proposals are not attempted. */
   enableModel: boolean;
   /** Folder that holds Sittings (daily notes). */
@@ -41,6 +47,7 @@ export const DEFAULT_SETTINGS: KeepWritingSettings = {
   baseUrl: 'http://127.0.0.1:8088/v1',
   model: 'bonsai-2-27b',
   apiKey: '',
+  maxTokens: 2048,
   enableModel: true,
   sittingsFolder: 'Sittings',
   bankFolder: 'Bank',
@@ -80,23 +87,21 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         items: [
           {
             name: 'Sittings folder',
-            desc: 'Daily notes live here. A note in this folder is a Sitting.',
+            desc: "Where your daily notes live. Drawn questions land in today's note here, and one is made from `Templates/Sitting.md` if today has none. Point it at the folder you already use.",
             control: { type: 'folder', key: 'sittingsFolder', defaultValue: DEFAULT_SETTINGS.sittingsFolder },
           },
           {
             name: 'Bank folder',
-            desc: 'Question notes live here, one per channel.',
+            desc: 'Where question notes live. The starter bank is written here, and every question the plugin can draw is read from here. Change it only if you keep them somewhere else.',
             control: { type: 'folder', key: 'bankFolder', defaultValue: DEFAULT_SETTINGS.bankFolder },
           },
           {
             name: 'Draw your own writing from',
             desc:
-              'One folder per line. Every paragraph in these folders that carries a block id ' +
-              '(` ^abc123`) can be drawn, and the model turns it into a question about your ' +
-              'life now. Your daily notes folder is here by default, so your own answers come ' +
-              'back to you; add a folder of finished pieces and the plugin reaches into those ' +
-              'too. Nothing outside these folders is ever read. A note with `status: page` in ' +
-              'its frontmatter is skipped.',
+              'One folder per line. Every paragraph in them can become a question about your life ' +
+              'now. Your daily notes are here already, so your own answers come back to you; add a ' +
+              'folder of finished writing to widen what the plugin reaches. Nothing outside these ' +
+              'folders is ever read, and a note with `status: page` is skipped.',
             aliases: ['pieces', 'corpus', 'paragraphs'],
             control: {
               type: 'textarea',
@@ -114,19 +119,17 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           {
             name: 'Use a model',
             desc:
-              'Compose questions from your own writing. Off: the plugin draws from the Bank ' +
-              'only, and makes no network call at all.',
+              'Off: no network call is made at all. You keep the draw, the Ask and the linking, ' +
+              'and lose only the questions composed from your own writing.',
             control: { type: 'toggle', key: 'enableModel', defaultValue: DEFAULT_SETTINGS.enableModel },
           },
           {
-            name: 'Endpoint base URL',
+            name: 'Endpoint',
             desc:
-              'Any OpenAI-compatible endpoint. The default is a server on this machine, so ' +
-              'nothing you write leaves it. Point this somewhere else and your paragraphs go ' +
-              'there instead — that is the whole of what changes.',
-            // The one setting that decides whether anything leaves the machine,
-            // so it says why it is refusing rather than silently keeping the
-            // old value.
+              'Any OpenAI-compatible server. The default is one on this machine, so nothing you ' +
+              'write leaves it — Ollama is `http://localhost:11434/v1`. Point this elsewhere and ' +
+              'the paragraphs it composes from go there instead.',
+            aliases: ['url', 'ollama', 'openai', 'server'],
             control: {
               type: 'text',
               key: 'baseUrl',
@@ -136,8 +139,11 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             },
           },
           {
-            name: 'Model id',
-            desc: 'Sent to that endpoint as the model name.',
+            name: 'Model',
+            desc:
+              'Must name a model your server actually has — `ollama list` prints them. A name it ' +
+              'does not know fails every composition, with nothing to see but a line in the ' +
+              'developer console.',
             control: {
               type: 'text',
               key: 'model',
@@ -146,15 +152,31 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             },
           },
           {
+            name: 'Reply budget',
+            desc:
+              'A ceiling on the reply, not a target: a model that stops early costs only what it ' +
+              'wrote, so headroom is nearly free. Raise it if you get no questions and no error — ' +
+              'most models now think before they answer, and that thinking comes out of this budget.',
+            aliases: ['tokens', 'max tokens', 'length', 'empty', 'nothing happens'],
+            control: {
+              type: 'number',
+              key: 'maxTokens',
+              defaultValue: DEFAULT_SETTINGS.maxTokens,
+              min: 256,
+              max: 32768,
+              step: 256,
+              disabled: () => !this.host.settings.enableModel,
+            },
+          },
+          {
             name: 'API key',
             desc:
-              'Sent as a bearer token. Leave it empty for a local server, which needs none. ' +
-              'It is kept in plain text in this vault, at ' +
+              'Only if your endpoint needs one; a server on this machine does not. Kept in plain ' +
               // Obsidian's configuration folder only has its default name until
               // the owner renames it, which they may. A sentence that names the
               // default sends them looking in a folder that is not there.
-              `${this.app.vault.configDir}/plugins/keep-writing/data.json, like every ` +
-              'Obsidian setting — so do not commit that file to a public repository.',
+              `text in \`${this.app.vault.configDir}/plugins/keep-writing/data.json\`, like every ` +
+              'Obsidian setting, so keep that file out of a public repository.',
             aliases: ['token', 'bearer', 'secret'],
             // Rendered by hand, not declared: no declarative control masks its
             // input, and a key legible over a shoulder is worse than a setting
@@ -194,6 +216,8 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         return s.baseUrl;
       case 'model':
         return s.model;
+      case 'maxTokens':
+        return s.maxTokens;
       case 'apiKey':
         return s.apiKey;
     }
@@ -222,6 +246,9 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       case 'model':
         s.model = text.trim() || DEFAULT_SETTINGS.model;
         break;
+      case 'maxTokens':
+        s.maxTokens = typeof value === 'number' && value > 0 ? Math.floor(value) : DEFAULT_SETTINGS.maxTokens;
+        break;
       case 'apiKey':
         s.apiKey = text.trim();
         break;
@@ -231,7 +258,15 @@ export class KeepWritingSettingTab extends PluginSettingTab {
 }
 
 /** Every setting the tab binds. `starterOffered` is not one: nothing shows it. */
-type ControlKey = 'sittingsFolder' | 'bankFolder' | 'writingFolders' | 'enableModel' | 'baseUrl' | 'model' | 'apiKey';
+type ControlKey =
+  | 'sittingsFolder'
+  | 'bankFolder'
+  | 'writingFolders'
+  | 'enableModel'
+  | 'baseUrl'
+  | 'model'
+  | 'maxTokens'
+  | 'apiKey';
 
 function stripSlashes(v: string): string {
   return v.trim().replace(/^\/+|\/+$/g, '');

@@ -122,7 +122,7 @@ Composing a question from your own writing needs an OpenAI-compatible endpoint. 
 
 **Ollama** works: base URL `http://localhost:11434/v1`, the model id that `ollama list` prints, key empty. Nothing else to set up.
 
-> **Pick a model that does not reason.** The plugin asks for a short reply, and a reasoning model spends that whole budget thinking before it writes anything — so the answer comes back empty and you see no question and no error. This is the plugin's limit, not yours, and it is being fixed.
+> If you get no questions and no error, raise **Reply budget** in settings. A model that thinks before it answers spends that budget on the thinking.
 
 Turn the model off in settings and the plugin makes no network call at all: the draw, the Ask, the seeded question and the linking all still work. You lose the questions composed from your own writing.
 
@@ -164,9 +164,10 @@ Searchable from Obsidian's own settings search — type "bank folder" or "endpoi
 | Bank folder | `Bank` | Where question notes live. Also a picker |
 | Draw your own writing from | `Sittings` | One folder per line. Every block with an id in these can be drawn |
 | — | — | The starter bank is offered once; **Install the starter question bank** does it any time |
-| Enable model | on | Off makes it bank-only, and greys out the three below |
-| Base URL | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible endpoint. Rejects what it cannot call, and says so |
-| Model | `bonsai-2-27b` | Model id sent to that endpoint |
+| Use a model | on | Off makes it bank-only, with no network call at all, and greys out the endpoint, model and budget |
+| Endpoint | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible server. Rejects what it cannot call, and says so |
+| Model | `bonsai-2-27b` | Must name a model your server has |
+| Reply budget | `2048` | Ceiling on the reply. Raise it if you get no questions and no error |
 | API key | empty | Sent as a bearer token. A local server needs none |
 
 Empty a folder field and it falls back to its default rather than storing nothing and reaching nothing.

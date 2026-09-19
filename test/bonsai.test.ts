@@ -315,3 +315,39 @@ describe('checkRevisit', () => {
     ).toEqual({ kind: 'ok', value: [{ question: 'explain it back to me?', dueDays: 3 }] });
   });
 });
+
+// The reply budget reaches the wire.
+//
+// It was a compiled-in 256 until 2026-09-18, and 256 is shared with the
+// REASONING block most current models now emit: the whole budget went to
+// thinking, `content` came back '' with `finish_reason: 'length'`, and
+// `extractJson('')` returned null, so the composer abstained. Measured against
+// Ollama 0.30.11, four of six local models returned nothing at 256. A setting
+// nobody can see reaching the request is no setting at all.
+describe('the reply budget', () => {
+  const sent: Record<string, unknown>[] = [];
+  const spy = (maxTokens?: number): BonsaiConfig => ({
+    baseUrl: 'http://fake',
+    model: 'fake',
+    ...(maxTokens === undefined ? {} : { maxTokens }),
+    fetcher: async (_url, init) => {
+      sent.push(JSON.parse(init.body) as Record<string, unknown>);
+      return {
+        status: 200,
+        text: JSON.stringify({ choices: [{ message: { content: '{"abstain": true}' } }] }),
+      };
+    },
+  });
+
+  test('what the setting says is what the endpoint is asked for', async () => {
+    sent.length = 0;
+    await composeFollowUps(spy(777), 'q?', ANSWER, [], 'me');
+    expect(sent[0]?.['max_tokens']).toBe(777);
+  });
+
+  test('unset falls back to a budget with room to think in', async () => {
+    sent.length = 0;
+    await composeFollowUps(spy(), 'q?', ANSWER, [], 'me');
+    expect(sent[0]?.['max_tokens']).toBe(2048);
+  });
+});

@@ -43,7 +43,7 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
       composeInvitation: async () => [],
     };
   }
-  const cfg: BonsaiConfig = { baseUrl: settings.baseUrl, model: settings.model, fetcher };
+  const cfg: BonsaiConfig = { baseUrl: settings.baseUrl, model: settings.model, fetcher, maxTokens: settings.maxTokens };
   if (settings.apiKey.trim()) cfg.apiKey = settings.apiKey.trim();
   if (onLog) cfg.onLog = onLog;
   return {

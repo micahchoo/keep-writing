@@ -41,12 +41,23 @@ export interface BonsaiConfig {
    * no part of the request.
    */
   apiKey?: string;
+  /**
+   * Ceiling on the reply, NOT a target: a model that stops early costs what it
+   * generated, so headroom is close to free. It was a compiled-in 256 until
+   * 2026-09-18, which is ample for the three questions a reply carries and far
+   * too little for the REASONING most current models emit first — the whole
+   * budget went to thinking, `content` came back empty with
+   * `finish_reason: 'length'`, and the composer read that as abstention.
+   * Measured against Ollama 0.30.11: four of six local models returned nothing
+   * at 256.
+   */
+  maxTokens?: number;
   timeoutMs?: number;
   onLog?: (entry: CallLog) => void;
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
-const MAX_TOKENS = 256;
+const DEFAULT_MAX_TOKENS = 2048;
 
 // Phrases that refer to the conversation itself. A follow-up must read as a
 // fresh question, not as a reply.
@@ -81,7 +92,7 @@ async function chat(cfg: BonsaiConfig, messages: Message[]): Promise<string> {
   const body = JSON.stringify({
     model: cfg.model,
     temperature: 0,
-    max_tokens: MAX_TOKENS,
+    max_tokens: cfg.maxTokens ?? DEFAULT_MAX_TOKENS,
     messages,
   });
   const timeoutMs = cfg.timeoutMs ?? DEFAULT_TIMEOUT_MS;
