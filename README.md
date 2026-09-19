@@ -4,7 +4,7 @@ A vault that interviews you, so that you keep writing.
 
 A blank page stops you; a question doesn't. keep-writing puts one into your daily note in [Obsidian](https://obsidian.md), you answer it in your own words, and the next questions come out of what you already wrote — so it never runs out.
 
-![A daily note holding a question from the bank, the answer written under it, and a follow-up question the model composed from that answer. The note's properties show the question it answers and the kind of question it was.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/day.png)
+![Three steps in a daily note: choosing "Mark this answer done" from the right-click menu; the answer gaining a link to the question it answers and the kind of question it was; then a follow-up question, composed from that answer, written in and answered.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/loop.gif)
 
 > **In the community store, and early.** Search community plugins for **keep-writing**. Needs **Obsidian 1.13 or newer**. Questions built from your own writing need a model endpoint; everything else works without one.
 
@@ -73,6 +73,8 @@ Findable from Obsidian's own settings search: type "bank folder" or "endpoint" a
 | **Model** | Must name a model your server has. |
 | **Reply budget** | Raise it if you get no questions and no error. Default `2048`. |
 | **API key** | Only if your server needs one. Saved as plain text in this vault. |
+
+![The plugin's settings, in two groups. Vault: daily notes folder, question bank folder, and the folders it may read your writing from. Model: a switch, the endpoint, the model name, the reply budget and an API key.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/settings.png)
 
 **Nothing you write leaves your computer** unless you point the endpoint somewhere else. That is the whole of what changes.
 

@@ -1,6 +1,6 @@
 {
   "name": "keep-writing",
-  "version": "0.3.0",
+  "version": "0.2.5",
   "description": "Obsidian plugin: the vault interviews its owner. Draws a question into the daily note, composes new ones from what the owner has written, and links every answer to what provoked it.",
   "license": "MIT",
   "main": "main.js",
