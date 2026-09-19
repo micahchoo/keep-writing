@@ -46,14 +46,30 @@ answers:
 
 ## Commands
 
-All three are on the editor's right-click menu, under **keep-writing**.
+They are on the editor's right-click menu, under **keep-writing**, and in the command palette.
 
 | Command | What happens |
 |---|---|
 | **Install the starter question bank** | Writes the shipped question notes into your bank folder. Skips any note already there, so it is safe to run twice. |
 | **Draw a question** | Three sources to choose from, led by where you said to pick up. A bank question becomes an Ask at once; a paragraph of yours goes to the model first, and its questions are the second chooser. |
 | **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers follow-up questions. Safe to run again on an answer already linked — it writes nothing and composes afresh. |
-| **Ask about the selection** | Highlight any run of text, in **any** note, and be asked about it. The Ask lands in today's note. |
+| **Ask about the selection** | Highlight any run of text, in **any** note, and be asked about it. The question lands in today's note. |
+| **Open the menu** | All of the above, as one chooser. Made for the mobile toolbar — see [On a phone](#on-a-phone). |
+
+## On a phone
+
+There is no right-click on a phone, so the menu is a command instead.
+
+1. Settings → Toolbar (under Mobile).
+2. Add **keep-writing: Open the menu**.
+
+That one button reaches everything: draw a question, ask about what you have
+highlighted, mark an answer done. Which of them it offers depends on where you
+are — asking about a selection only appears when you have selected something.
+
+The right-click menu still works if you attach a keyboard or use a tablet with
+a trackpad, and it lays itself out flat rather than nested, because a nested
+menu wants a hover and a second precise tap.
 
 ## Where questions come from
 

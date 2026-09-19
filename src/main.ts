@@ -9,7 +9,7 @@
 // the first only ever showed an offer the owner was about to answer, which is
 // what a modal is for. What is left is commands.
 
-import { MarkdownView, Notice, Plugin, TFile } from 'obsidian';
+import { MarkdownView, Notice, Platform, Plugin, TFile } from 'obsidian';
 import type { App, Menu } from 'obsidian';
 import { AnsweredIndex } from './bank';
 import type { Drawn } from './bank';
@@ -34,6 +34,7 @@ const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
 const MARK = 'Mark this answer done, and follow up';
 const INSTALL = 'Install the starter question bank';
+const MENU = 'Open the menu';
 
 /**
  * `MenuItem.setSubmenu` is absent from the published typings and present in
@@ -110,6 +111,7 @@ export default class KeepWritingPlugin extends Plugin {
       },
     });
     this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => void this.installStarterBank() });
+    this.addCommand({ id: 'menu', name: MENU, callback: () => this.openMenu() });
     this.addCommand({
       id: 'ask-about-selection',
       name: ASK_SELECTION,
@@ -145,12 +147,16 @@ export default class KeepWritingPlugin extends Plugin {
           });
         };
 
-        let flat = false;
+        // Flat on mobile even where submenus exist: a nested menu wants a
+        // hover and a second precise tap, and a phone has neither. The
+        // fallback written for builds WITHOUT `setSubmenu` is the same shape
+        // touch wants, so mobile takes that branch rather than a second one.
+        let flat = Platform.isMobile;
         menu.addItem((item) => {
           const nest = (item as Partial<Submenuable>).setSubmenu;
-          if (typeof nest !== 'function') {
-            // No submenus in this build. This item becomes the draw itself and
-            // the rest follow it, so nothing is lost and nothing throws.
+          if (flat || typeof nest !== 'function') {
+            // No submenus here. This item becomes the draw itself and the rest
+            // follow it, so nothing is lost and nothing throws.
             flat = true;
             item.setTitle(DRAW).setIcon('shuffle').setSection(SECTION).onClick(() => void this.drawQuestion());
             return;
@@ -164,6 +170,50 @@ export default class KeepWritingPlugin extends Plugin {
       }),
     );
     this.addSettingTab(new KeepWritingSettingTab(this.app, this));
+  }
+
+  /**
+   * Everything the plugin does, as one chooser.
+   *
+   * The right-click submenu is the desktop way in, and a phone has no right
+   * click. Obsidian's own answer is the command palette and the mobile
+   * toolbar, and both reach ONE command at a time — so the four commands are
+   * all reachable and none of them is discoverable. This is the submenu as a
+   * single command: one toolbar slot, all of it.
+   *
+   * The editor is read HERE, before anything opens, because opening makes the
+   * new thing the active leaf. An action that needs an editor is offered only
+   * when there is one.
+   */
+  private openMenu(): void {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const selected = view?.editor.getSelection() ?? '';
+    const from = view?.editor.getCursor('from').line ?? 0;
+    const at = view?.editor.getCursor().line ?? 0;
+
+    const actions: Choice<() => void>[] = [
+      { value: () => void this.drawQuestion(), title: DRAW, note: 'Three to pick from. Escape writes nothing.' },
+    ];
+    if (view && selected.trim()) {
+      actions.push({
+        value: () => void this.askAboutSelection(view, selected, from),
+        title: ASK_SELECTION,
+        note: 'Be asked about the words you highlighted.',
+      });
+    }
+    if (view) {
+      actions.push({
+        value: () => void this.markUnderCursor(view, at),
+        title: MARK,
+        note: 'Link the answer you are in, then offer what follows from it.',
+      });
+    }
+    actions.push({
+      value: () => void this.installStarterBank(),
+      title: INSTALL,
+      note: 'Write the question notes into your bank folder. Safe to run twice.',
+    });
+    choose(this.app, actions, 'what would you like to do?', (run) => run());
   }
 
   // -------------------------------------------------------------------------
