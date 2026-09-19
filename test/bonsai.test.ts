@@ -351,3 +351,48 @@ describe('the reply budget', () => {
     expect(sent[0]?.['max_tokens']).toBe(2048);
   });
 });
+
+// A truncated reply is an error, not an abstention.
+//
+// The two are opposite facts and were reported identically until 2026-09-18:
+// an abstain is the model saying it has nothing to ask, and the composer must
+// not go around it; an empty reply is the model never getting to speak. The
+// log has to be able to tell them apart, and the reason has to name the
+// setting that fixes it.
+describe('an empty reply', () => {
+  const logs: CallLog[] = [];
+  const replying = (choice: Record<string, unknown>): BonsaiConfig => ({
+    baseUrl: 'http://fake',
+    model: 'fake',
+    onLog: (e) => logs.push(e),
+    fetcher: async () => ({ status: 200, text: JSON.stringify({ choices: [choice] }) }),
+  });
+
+  test('cut off mid-budget is an error that names the setting', async () => {
+    logs.length = 0;
+    const out = await composeFollowUps(replying({ finish_reason: 'length', message: { content: '' } }), 'q?', ANSWER, [], 'me');
+    expect(out).toEqual([]);
+    // Twice: a failed first arm falls through to the answer-only arm, which
+    // truncates the same way. Wasteful on this path, harmless, and the second
+    // arm is there for a model that choked on the longer prompt.
+    expect(logs.map((l) => l.outcome)).toEqual(['error', 'error']);
+    expect(logs[0]?.reason).toContain('Reply budget');
+    expect(logs[0]?.reason).toContain('2048');
+  });
+
+  test('empty for any other reason is still an error, and says which', async () => {
+    logs.length = 0;
+    await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '   ' } }), 'q?', ANSWER, [], 'me');
+    expect(logs.map((l) => l.outcome)).toEqual(['error', 'error']);
+    expect(logs[0]?.reason).toContain('finish_reason: stop');
+  });
+
+  // The distinction this exists to protect: an abstain is content, and stays
+  // an abstain. One attempt, no retry, no error.
+  test('an abstain is not an error', async () => {
+    logs.length = 0;
+    const out = await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '{"abstain": true}' } }), 'q?', ANSWER, [], 'me');
+    expect(out).toEqual([]);
+    expect(logs.map((l) => l.outcome)).toEqual(['abstain']);
+  });
+});

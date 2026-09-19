@@ -117,9 +117,28 @@ async function chat(cfg: BonsaiConfig, messages: Message[]): Promise<string> {
     if (res.status < 200 || res.status >= 300) {
       throw new Error(`HTTP ${res.status}: ${res.text.slice(0, 200)}`);
     }
-    const parsed = JSON.parse(res.text) as { choices?: { message?: { content?: string } }[] };
-    const content = parsed.choices?.[0]?.message?.content;
+    const parsed = JSON.parse(res.text) as {
+      choices?: { finish_reason?: string; message?: { content?: string } }[];
+    };
+    const choice = parsed.choices?.[0];
+    const content = choice?.message?.content;
     if (typeof content !== 'string') throw new Error('no message content in response');
+    // An empty reply is NOT the model declining. `{"abstain": true}` is how it
+    // declines, and that is content. Empty means it wrote nothing, and
+    // `finish_reason` says whether it was cut off: most current models think
+    // before they answer, and the thinking comes out of this same budget, so
+    // the whole of it can go before a single word is written. Until
+    // 2026-09-18 this returned '' and let `extractJson` fail, which logged
+    // `invalid`, burned the retry re-truncating, and finally read as an
+    // abstain — the opposite fact, reported identically.
+    if (content.trim() === '') {
+      const budget = cfg.maxTokens ?? DEFAULT_MAX_TOKENS;
+      throw new Error(
+        choice?.finish_reason === 'length'
+          ? `empty reply: used the whole ${budget}-token budget before answering — raise "Reply budget" in settings`
+          : `empty reply (finish_reason: ${choice?.finish_reason ?? 'absent'})`,
+      );
+    }
     return content;
   } finally {
     if (timer !== undefined) window.clearTimeout(timer);

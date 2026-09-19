@@ -86,23 +86,24 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         heading: 'Vault',
         items: [
           {
-            name: 'Sittings folder',
-            desc: "Where your daily notes live. Drawn questions land in today's note here, and one is made from `Templates/Sitting.md` if today has none. Point it at the folder you already use.",
+            name: 'Daily notes folder',
+            desc: "Where your daily notes are. Questions go into today's note.",
+            aliases: ['sittings', 'journal', 'diary'],
             control: { type: 'folder', key: 'sittingsFolder', defaultValue: DEFAULT_SETTINGS.sittingsFolder },
           },
           {
-            name: 'Bank folder',
-            desc: 'Where question notes live. The starter bank is written here, and every question the plugin can draw is read from here. Change it only if you keep them somewhere else.',
+            name: 'Question bank folder',
+            desc: 'Where the questions are kept. They are ordinary notes — edit them, delete them, add your own.',
+            aliases: ['bank'],
             control: { type: 'folder', key: 'bankFolder', defaultValue: DEFAULT_SETTINGS.bankFolder },
           },
           {
-            name: 'Draw your own writing from',
+            name: 'Ask about writing in',
             desc:
-              'One folder per line. Every paragraph in them can become a question about your life ' +
-              'now. Your daily notes are here already, so your own answers come back to you; add a ' +
-              'folder of finished writing to widen what the plugin reaches. Nothing outside these ' +
-              'folders is ever read, and a note with `status: page` is skipped.',
-            aliases: ['pieces', 'corpus', 'paragraphs'],
+              'One folder per line. The plugin reads what you wrote there and asks you about it. ' +
+              'Your daily notes are included already; add a folder of finished writing for ' +
+              'questions about that. Nothing outside these folders is read.',
+            aliases: ['pieces', 'corpus', 'paragraphs', 'draw'],
             control: {
               type: 'textarea',
               key: 'writingFolders',
@@ -119,16 +120,15 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           {
             name: 'Use a model',
             desc:
-              'Off: no network call is made at all. You keep the draw, the Ask and the linking, ' +
-              'and lose only the questions composed from your own writing.',
+              'Turning this off keeps the question bank working and stops all network use. ' +
+              'You lose only the questions written about your own writing.',
             control: { type: 'toggle', key: 'enableModel', defaultValue: DEFAULT_SETTINGS.enableModel },
           },
           {
             name: 'Endpoint',
             desc:
-              'Any OpenAI-compatible server. The default is one on this machine, so nothing you ' +
-              'write leaves it — Ollama is `http://localhost:11434/v1`. Point this elsewhere and ' +
-              'the paragraphs it composes from go there instead.',
+              'The server that writes those questions. The default runs on your own computer, so ' +
+              'nothing you write leaves it. For Ollama: http://localhost:11434/v1',
             aliases: ['url', 'ollama', 'openai', 'server'],
             control: {
               type: 'text',
@@ -141,9 +141,8 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           {
             name: 'Model',
             desc:
-              'Must name a model your server actually has — `ollama list` prints them. A name it ' +
-              'does not know fails every composition, with nothing to see but a line in the ' +
-              'developer console.',
+              'Which model to use. It must be one your server already has — `ollama list` shows ' +
+              'them. A wrong name means no questions appear.',
             control: {
               type: 'text',
               key: 'model',
@@ -153,10 +152,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           },
           {
             name: 'Reply budget',
-            desc:
-              'A ceiling on the reply, not a target: a model that stops early costs only what it ' +
-              'wrote, so headroom is nearly free. Raise it if you get no questions and no error — ' +
-              'most models now think before they answer, and that thinking comes out of this budget.',
+            desc: 'How much the model may write at once. If no questions appear, raise it.',
             aliases: ['tokens', 'max tokens', 'length', 'empty', 'nothing happens'],
             control: {
               type: 'number',
@@ -171,12 +167,8 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           {
             name: 'API key',
             desc:
-              'Only if your endpoint needs one; a server on this machine does not. Kept in plain ' +
-              // Obsidian's configuration folder only has its default name until
-              // the owner renames it, which they may. A sentence that names the
-              // default sends them looking in a folder that is not there.
-              `text in \`${this.app.vault.configDir}/plugins/keep-writing/data.json\`, like every ` +
-              'Obsidian setting, so keep that file out of a public repository.',
+              'Only if your server needs one; a server on your own computer does not. Saved as ' +
+              'plain text in this vault.',
             aliases: ['token', 'bearer', 'secret'],
             // Rendered by hand, not declared: no declarative control masks its
             // input, and a key legible over a shoulder is worse than a setting

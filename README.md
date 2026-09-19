@@ -160,9 +160,9 @@ Searchable from Obsidian's own settings search — type "bank folder" or "endpoi
 
 | Setting | Default | |
 |---|---|---|
-| Sittings folder | `Sittings` | Where daily notes live. A folder picker, so you cannot name one that isn't there |
-| Bank folder | `Bank` | Where question notes live. Also a picker |
-| Draw your own writing from | `Sittings` | One folder per line. Every block with an id in these can be drawn |
+| Daily notes folder | `Sittings` | Where your daily notes are. A folder picker, so you cannot name one that isn't there |
+| Question bank folder | `Bank` | Where the questions are kept. Also a picker |
+| Ask about writing in | `Sittings` | One folder per line. The plugin reads what you wrote there and asks about it |
 | — | — | The starter bank is offered once; **Install the starter question bank** does it any time |
 | Use a model | on | Off makes it bank-only, with no network call at all, and greys out the endpoint, model and budget |
 | Endpoint | `http://127.0.0.1:8088/v1` | Any OpenAI-compatible server. Rejects what it cannot call, and says so |
