@@ -63,6 +63,8 @@ One call each, temperature 0, JSON out, one retry, then it gives up quietly.
 
 Given the same list about georeferencing a map in QGIS, the Revisit asked *"what specific data layer did you align the PNG against?"* and the Invitation asked *"what does it cost to make a thing fit the map it was never drawn for?"*
 
+![Three follow-up questions composed from one answer about a door handle: what the owner did with it, which key still fits it, and what the flat looked like in the rain.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/followup.png)
+
 The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]` — the job, how long it took and how it ended, never the request or your key.
 
 `Lenses/craft.md` and `Lenses/invitation.md` are prose notes whose bodies are appended to the prompt verbatim, one per composer. Edit them to change how the model asks: it is the interviewer's technique as a page you control, not a string in the source.

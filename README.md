@@ -4,10 +4,7 @@ A vault that interviews you, so that you keep writing.
 
 A blank page stops you; a question doesn't. keep-writing puts one into your daily note in [Obsidian](https://obsidian.md), you answer it in your own words, and the next questions come out of what you already wrote — so it never runs out.
 
-<!-- A GIF of the draw → pick → answer loop belongs here, at the top.
-     Host it absolutely: drag the file into a GitHub comment box and use the
-     URL GitHub hands back. Never a relative path — the plugin browser renders
-     this README outside the repo and relative images break there. -->
+![A daily note holding a question from the bank, the answer written under it, and a follow-up question the model composed from that answer. The note's properties show the question it answers and the kind of question it was.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/day.png)
 
 > **In the community store, and early.** Search community plugins for **keep-writing**. Needs **Obsidian 1.13 or newer**. Questions built from your own writing need a model endpoint; everything else works without one.
 
@@ -38,6 +35,8 @@ On first run it offers to fill your question bank: 2,274 questions written for t
 ▏
 ```
 
+![The draw offering three sources: two bank questions with their kind and address underneath, and one paragraph the owner wrote a week earlier, marked as a revisit.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/draw.png)
+
 4. Write. Then, with the cursor still in your answer, run **Mark this answer done, and follow up**.
 
 Your answer gets an id and a link back to the question, and the model reads what you wrote to offer the next one.
@@ -53,6 +52,8 @@ On the editor's right-click menu under **keep-writing**, and in the command pale
 | **Ask about the selection** | Highlight text in **any** note and be asked about it. The question lands in today's note. |
 | **Install the starter question bank** | Writes the question notes into your bank folder. Skips anything already there. |
 | **Open the menu** | All of the above, as one chooser. Made for the mobile toolbar. |
+
+![Obsidian's right-click menu with a keep-writing submenu open, holding Draw a question and Mark this answer done.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/menu.png)
 
 ## On a phone
 
