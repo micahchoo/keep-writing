@@ -49,6 +49,8 @@ On the editor's right-click menu under **keep-writing**, and in the command pale
 |---|---|
 | **Draw a question** | Three to choose from. A bank question is written straight in; a paragraph of yours goes to the model first. |
 | **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers what follows from it. Safe to run twice. |
+| **Reopen latest follow-ups** | Restores the latest saved offer without another model call, including after restarting. |
+| **Unmark this answer** | Removes its answer links and matching bookmark. Keeps the text, block ID, and existing follow-ups. |
 | **Ask about the selection** | Highlight text in **any** note and be asked about it. The question lands in today's note. |
 | **Install the starter question bank** | Writes the question notes into your bank folder. Skips anything already there. |
 | **Open the menu** | All of the above, as one chooser. Made for the mobile toolbar. |
@@ -68,11 +70,12 @@ Findable from Obsidian's own settings search: type "bank folder" or "endpoint" a
 | **Daily notes folder** | Where your daily notes are. A folder picker, so you cannot name one that isn't there. Default `Sittings`. |
 | **Question bank folder** | Where the questions are kept. Default `Bank`. |
 | **Ask about writing in** | One folder per line. The plugin reads what you wrote there and asks about it. Your daily notes are included already; add a folder of finished writing to widen it. |
+| **Bank share** | Default 70%. Choose how often to draw a bank question instead of your writing. An empty jar falls back to the other. |
 | **Use a model** | Off makes it bank-only, with no network call at all. |
 | **Endpoint** | Any OpenAI-compatible server. Default is one on your own computer. For Ollama: `http://localhost:11434/v1` |
 | **Model** | Must name a model your server has. |
 | **Reply budget** | Raise it if you get no questions and no error. Default `2048`. |
-| **API key** | Only if your server needs one. Saved as plain text in this vault. |
+| **API key** | Only if your server needs one. Saved in Obsidian secret storage on this device; existing plaintext settings migrate automatically. |
 
 ![The plugin's settings, in two groups. Vault: daily notes folder, question bank folder, and the folders it may read your writing from. Model: a switch, the endpoint, the model name, the reply budget and an API key.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/settings.png)
 

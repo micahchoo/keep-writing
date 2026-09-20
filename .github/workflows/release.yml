@@ -51,6 +51,7 @@ jobs:
           "
 
       - run: npm ci
+      - run: npm run lint
       - run: bun test # install.test.ts is the release gate
       - run: npm run build # tsc -noEmit, then the production bundle
 
@@ -67,5 +68,5 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
-            --generate-notes \
+            --notes-file docs/RELEASE-NOTES.md \
             main.js manifest.json styles.css

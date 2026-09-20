@@ -1,3 +1,6 @@
+import { readOffer } from './recovery';
+import type { FollowUpOffer } from './recovery';
+import { unmarkAt } from './unmark';
 // keep-writing: the vault interviews its owner. See CONTEXT.md.
 //
 // Write surface, whole: frontmatter properties (processFrontMatter), a block
@@ -32,6 +35,8 @@ import { isSitting } from './target';
 // read the same four names, so they cannot drift apart.
 const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
+const UNMARK = 'Unmark this answer';
+const REOPEN = 'Reopen latest follow-ups';
 const MARK = 'Mark this answer done, and follow up';
 const INSTALL = 'Install the starter question bank';
 const MENU = 'Open the menu';
@@ -56,6 +61,9 @@ const SECTION = 'keep-writing';
 export default class KeepWritingPlugin extends Plugin {
   override settings: KeepWritingSettings = { ...DEFAULT_SETTINGS };
   index!: AnsweredIndex;
+  private acceptingOffer = false;
+  private followUpOffer: FollowUpOffer | null = null;
+  private indexTimer?: number;
   model!: Model;
   interview!: Interview;
 
@@ -72,9 +80,19 @@ export default class KeepWritingPlugin extends Plugin {
 
     // A note changed: answered-ness may have. Nothing else here follows the
     // owner around any more, because nothing is drawn until they ask for it.
-    this.registerEvent(this.app.metadataCache.on('changed', () => this.index.invalidate()));
-    this.registerEvent(this.app.metadataCache.on('deleted', () => this.index.invalidate()));
-    this.registerEvent(this.app.metadataCache.on('resolved', () => this.index.invalidate()));
+    const schedule = () => {
+      if (this.indexTimer) window.clearTimeout(this.indexTimer);
+      this.indexTimer = window.setTimeout(() => {
+        const s = this.settings;
+        void this.index.jars(s.bankFolder, s.sittingsFolder, s.writingFolders).catch(error => console.warn('Keep Writing index:', error));
+      }, 250);
+    };
+    this.registerEvent(this.app.metadataCache.on('changed', file => { this.index.invalidate(file); schedule(); }));
+    this.registerEvent(this.app.metadataCache.on('resolve', file => this.index.resolve(file)));
+    this.registerEvent(this.app.metadataCache.on('deleted', file => this.index.remove(file.path)));
+    this.registerEvent(this.app.vault.on('rename', (file, oldPath) => { if (file instanceof TFile) this.index.rename(file, oldPath); else this.index.invalidate(); schedule(); }));
+    this.register(() => { if (this.indexTimer) window.clearTimeout(this.indexTimer); this.index.dispose(); });
+
 
     // A Sitting nobody has written in yet is a blank page, and the blank page
     // is the failure mode the owner named. Whoever makes the note — this
@@ -102,7 +120,11 @@ export default class KeepWritingPlugin extends Plugin {
 
     this.addRibbonIcon('message-circle-question', 'Draw a question', () => void this.drawQuestion());
 
-    this.addCommand({ id: 'draw-question', name: DRAW, callback: () => void this.drawQuestion() });
+    this.addCommand({ id: 'reopen-follow-ups', name: REOPEN, callback: () => this.reopenFollowUps() });
+    this.addCommand({ id: 'unmark-answer', name: UNMARK, editorCallback: (editor, view) => {
+      if (view instanceof MarkdownView) void this.unmarkUnderCursor(view, editor.getCursor().line);
+    } });
+    this.addCommand({ id: 'draw-question' , name: DRAW, callback: () => void this.drawQuestion() });
     this.addCommand({
       id: 'mark-answer-under-cursor',
       name: MARK,
@@ -133,6 +155,9 @@ export default class KeepWritingPlugin extends Plugin {
         const from = editor.getCursor('from').line;
         const at = editor.getCursor().line;
         const ask = (target: Menu, flat: boolean) => {
+          for (const [title, run] of [[UNMARK, () => void this.unmarkUnderCursor(view, at)], [REOPEN, () => this.reopenFollowUps()]] as const) {
+            target.addItem(item => { item.setTitle(title); if (flat) item.setSection(SECTION); item.onClick(run); });
+          }
           if (selected.trim()) {
             target.addItem((i) => {
               i.setTitle(ASK_SELECTION).setIcon('message-circle-question');
@@ -194,6 +219,7 @@ export default class KeepWritingPlugin extends Plugin {
     const actions: Choice<() => void>[] = [
       { value: () => void this.drawQuestion(), title: DRAW, note: 'Three to pick from. Escape writes nothing.' },
     ];
+    if (this.followUpOffer?.questions.length) actions.push({ title: REOPEN, value: () => this.reopenFollowUps() });
     if (view && selected.trim()) {
       actions.push({
         value: () => void this.askAboutSelection(view, selected, from),
@@ -202,6 +228,7 @@ export default class KeepWritingPlugin extends Plugin {
       });
     }
     if (view) {
+      actions.push({ title: UNMARK, value: () => void this.unmarkUnderCursor(view, at), note: 'Remove the answer links; keep text and block IDs.' });
       actions.push({
         value: () => void this.markUnderCursor(view, at),
         title: MARK,
@@ -333,8 +360,8 @@ export default class KeepWritingPlugin extends Plugin {
    * The note and the line are read here, while the editor still holds focus.
    *
    * Run it again on the same answer to ask for another Follow-up: marking an
-   * answer twice writes nothing, and the questions are composed afresh. That
-   * is the only way back to them, because the chooser does not persist.
+   * answer twice writes nothing, and the questions are composed afresh. The latest offer
+   * is also saved and can be reopened without composing again.
    */
   private async markUnderCursor(view: MarkdownView, line: number): Promise<void> {
     const file = view.file;
@@ -355,12 +382,10 @@ export default class KeepWritingPlugin extends Plugin {
       );
       return;
     }
-    choose(
-      this.app,
-      answered.questions.map((q) => ({ value: q, title: q })),
-      'follow up on this answer',
-      (question) => void this.interview.acceptFollowUp(file, question, answered.ref),
-    );
+    this.followUpOffer = { sitting: file.path, ref: answered.ref, questions: answered.questions };
+    try { await this.persistSettings(); }
+    catch (error) { new Notice(`Follow-ups are kept for this session only: ${error instanceof Error ? error.message : String(error)}`); }
+    this.reopenFollowUps();
   }
 
   /**
@@ -391,18 +416,58 @@ export default class KeepWritingPlugin extends Plugin {
     return sitting;
   }
 
+  private async unmarkUnderCursor(view: MarkdownView, line: number): Promise<void> {
+    const file = view.file;
+    if (!file || !isSitting(file, this.settings.sittingsFolder)) { new Notice('Open a daily note to unmark an answer.'); return; }
+    try { const message = await unmarkAt(this.app, file, line); this.index.invalidate(file); new Notice(message); }
+    catch (error) { new Notice(error instanceof Error ? error.message : String(error)); }
+  }
+
+  private reopenFollowUps(): void {
+    const offer = this.followUpOffer;
+    if (!offer || !offer.questions.length) { new Notice('No saved follow-ups. Mark an answer done to compose some.'); return; }
+    const file = this.app.vault.getFileByPath(offer.sitting);
+    const source = this.app.metadataCache.getFirstLinkpathDest(offer.ref.path, offer.sitting);
+    if (!file || !source || !offer.ref.blockId || !this.app.metadataCache.getFileCache(source)?.blocks?.[offer.ref.blockId]) { new Notice('The saved offer’s source is missing or still indexing. No question was inserted.'); return; }
+    choose(this.app, offer.questions.map(question => ({ value: question, title: question })), 'Saved follow-ups · reopen from the command palette', question => {
+      if (this.acceptingOffer || this.followUpOffer !== offer || !offer.questions.includes(question)) return;
+      this.acceptingOffer = true;
+      void this.interview.acceptFollowUp(file, question, offer.ref).then(async () => {
+        if (this.followUpOffer !== offer) return;
+        this.followUpOffer = { ...offer, questions: offer.questions.filter(value => value !== question) };
+        await this.persistSettings();
+      }).catch(error => new Notice(String(error))).finally(() => { this.acceptingOffer = false; });
+    });
+  }
+
   private buildModel(): Model {
     return createModel(this.settings, (e) => console.debug('[keep-writing]', e));
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = { ...DEFAULT_SETTINGS, ...((await this.loadData()) as Partial<KeepWritingSettings> | null) };
+    const loaded: unknown = await this.loadData();
+    const data = loaded && typeof loaded === 'object' ? loaded as Partial<KeepWritingSettings> & { followUpOffer?: unknown } : {};
+    this.settings = { ...DEFAULT_SETTINGS, ...data };
+    this.followUpOffer = readOffer(data.followUpOffer);
+    const secret = this.app.secretStorage.getSecret('keep-writing-api-key');
+    const legacy = typeof data.apiKey === 'string' ? data.apiKey : '';
+    if (!secret && legacy) this.app.secretStorage.setSecret('keep-writing-api-key', legacy);
+    this.settings.apiKey = this.app.secretStorage.getSecret('keep-writing-api-key') ?? '';
+    if (legacy && !secret && this.settings.apiKey !== legacy) throw new Error('API key migration failed. The existing settings were preserved.');
+    this.settings.bankShare = typeof data.bankShare === 'number' && Number.isFinite(data.bankShare) ? Math.max(0, Math.min(1, data.bankShare)) : 0.7;
+    if ('apiKey' in data) await this.persistSettings();
   }
-
+  private async persistSettings(): Promise<void> {
+    const { apiKey: _apiKey, ...settings } = this.settings;
+    await this.saveData({ ...settings, followUpOffer: this.followUpOffer });
+  }
   async saveSettings(): Promise<void> {
-    await this.saveData(this.settings);
+    this.app.secretStorage.setSecret('keep-writing-api-key', this.settings.apiKey);
+    if ((this.app.secretStorage.getSecret('keep-writing-api-key') ?? '') !== this.settings.apiKey) throw new Error('Could not save the API key to Obsidian secret storage.');
+    await this.persistSettings();
     this.model = this.buildModel();
   }
+
 }
 
 /** Pure: one drawn source as a row — what it says, and where it comes from. */

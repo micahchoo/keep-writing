@@ -72,7 +72,7 @@ export async function ensureBlockId(app: App, file: TFile, line: number): Promis
     }
     // Guard: the cache may lag the file. Only append if no id is there yet.
     const existing = /\s\^([A-Za-z0-9-]+)\s*$/.exec(last);
-    if (existing) { id = existing[1] as string; return data; }
+    if (existing) { id = existing[1]; return data; }
     // Insert before CR in CRLF notes; preserve every existing space and character.
     const cr = last.endsWith('\r') ? '\r' : '';
     lines[para.end] = (cr ? last.slice(0, -1) : last) + ` ^${id}` + cr;

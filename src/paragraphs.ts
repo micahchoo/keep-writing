@@ -334,3 +334,10 @@ export async function paragraphJar(
   );
   return oneTellingEach(prose);
 }
+
+/** Parse only one changed file; global duplicate selection stays in the jar. */
+export async function paragraphsForFile(app: App, file: TFile, sittingsFolder: string, writingFolders: string[]): Promise<Paragraph[]> {
+  if (!inFolders(file, writingFolders) || !isDrawn(app, file)) return [];
+  return (await blockParagraphs(app, file, fileFacts(app, file, sittingsFolder))).filter(p =>
+    readsAsParagraph(p.text, headingAbove(app.metadataCache.getFileCache(file), p.line)));
+}

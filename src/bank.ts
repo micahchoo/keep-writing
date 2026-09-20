@@ -9,7 +9,7 @@ import type { App, TFile } from 'obsidian';
 import { answeredKeys } from './links';
 import { refOf, resolveRef, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
-import { paragraphJar } from './paragraphs';
+import { paragraphsForFile, oneTellingEach } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 
 /**
@@ -116,27 +116,78 @@ export function bankNotes(app: App, bankFolder: string): TFile[] {
  * `answers` link to it. Rebuilt lazily after `invalidate()`.
  */
 export class AnsweredIndex {
-  private keys = new Set<string>();
-  private dirty = true;
-
+  private files = new Map<string, TFile>();
+  private answers = new Map<string, string[]>();
+  private counts = new Map<string, number>();
+  private rows = new Map<string, { bank: BankQuestion[]; paragraphs: Paragraph[] }>();
+  private pending = new Map<string, number>();
+  private initialized = false;
+  private revision = 0;
+  private config = '';
+  private stopped = false;
+  private running?: Promise<void>;
   constructor(private app: App) {}
 
-  invalidate(): void {
-    this.dirty = true;
+  invalidate(file?: TFile): void {
+    if (this.stopped) return;
+    if (!file) { this.initialized = false; this.revision++; return; }
+    this.files.set(file.path, file);
+    this.updateAnswers(file);
+    this.pending.set(file.path, ++this.revision);
   }
-
-  has(key: string): boolean {
-    this.rebuildIfDirty();
-    return this.keys.has(key);
+  rename(file: TFile, oldPath: string): void {
+    this.remove(oldPath); this.invalidate(file);
+    for (const other of this.files.values()) this.updateAnswers(other);
   }
-
-  private rebuildIfDirty(): void {
-    if (!this.dirty) return;
-    this.keys = new Set();
-    for (const file of this.app.vault.getMarkdownFiles()) {
-      for (const key of answeredKeys(this.app, file)) this.keys.add(key);
+  resolve(file: TFile): void { if (!this.stopped) this.updateAnswers(file); }
+  remove(path: string): void {
+    this.setAnswers(path, []);
+    this.files.delete(path); this.answers.delete(path); this.rows.delete(path); this.pending.delete(path);
+    this.revision++;
+  }
+  dispose(): void { this.stopped = true; this.revision++; this.files.clear(); this.answers.clear(); this.counts.clear(); this.rows.clear(); this.pending.clear(); }
+  private setAnswers(path: string, keys: string[]): void {
+    for (const key of this.answers.get(path) ?? []) {
+      const count = (this.counts.get(key) ?? 1) - 1;
+      if (count) this.counts.set(key, count); else this.counts.delete(key);
     }
-    this.dirty = false;
+    this.answers.set(path, keys);
+    for (const key of keys) this.counts.set(key, (this.counts.get(key) ?? 0) + 1);
+  }
+  private updateAnswers(file: TFile): void { this.setAnswers(file.path, answeredKeys(this.app, file)); }
+  private initialize(): void {
+    if (this.initialized || this.stopped) return;
+    this.initialized = true;
+    const files = this.app.vault.getMarkdownFiles();
+    const present = new Set(files.map(file => file.path));
+    for (const path of this.files.keys()) if (!present.has(path)) this.remove(path);
+    for (const file of files) this.invalidate(file);
+  }
+  has(key: string): boolean { this.initialize(); return this.counts.has(key); }
+  async jars(bankFolder: string, sittingsFolder: string, writingFolders: string[]): Promise<Jars> {
+    while (this.running) await this.running;
+    this.initialize();
+    const config = JSON.stringify([bankFolder, sittingsFolder, writingFolders]);
+    if (config !== this.config) {
+      this.config = config;
+      for (const file of this.files.values()) this.pending.set(file.path, ++this.revision);
+    }
+    const work = async () => {
+      while (this.pending.size && !this.stopped) {
+        const [path, version] = this.pending.entries().next().value as [string, number];
+        const file = this.files.get(path);
+        if (!file) { this.pending.delete(path); continue; }
+        const bank = path.startsWith(bankFolder + '/') && isBankNote(this.app, file) ? await loadBank(this.app, file) : [];
+        const paragraphs = await paragraphsForFile(this.app, file, sittingsFolder, writingFolders);
+        if (this.stopped) return;
+        if (this.pending.get(path) !== version) continue;
+        this.rows.set(path, { bank, paragraphs }); this.pending.delete(path);
+      }
+    };
+    this.running = work();
+    try { await this.running; } finally { this.running = undefined; }
+    const rows = [...this.rows.values()];
+    return { bank: rows.flatMap(row => row.bank), paragraphs: oneTellingEach(rows.flatMap(row => row.paragraphs)) };
   }
 }
 
@@ -197,6 +248,7 @@ export interface DrawContext {
   skipped: Set<string>;
   random?: () => number;
   today?: Date;
+  bankShare?: number;
 }
 
 /**
@@ -231,10 +283,11 @@ export function jarCounts(jars: Jars): JarCounts {
  */
 export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<Jars> {
   const drawable = (key: string) => !ctx.index.has(key) && !ctx.skipped.has(key);
-  const bank = await bankJar(ctx, target);
+  const cached = await ctx.index.jars(ctx.bankFolder, ctx.sittingsFolder, ctx.writingFolders);
+  const bank = target ? [] : cached.bank.filter(q => q.role === null && drawable(q.key));
 
   const today = ctx.sitting?.path;
-  let paragraphs = (await paragraphJar(ctx.app, ctx.sittingsFolder, ctx.writingFolders)).filter(
+  let paragraphs = cached.paragraphs.filter(
     (p) => drawable(p.key) && p.file.path !== today,
   );
   if (target) paragraphs = paragraphs.filter((p) => p.file.path === target.path);
@@ -278,11 +331,11 @@ export async function bankJar(ctx: DrawContext, target: TFile | null): Promise<B
  * not a share at all. Coverage is a real goal and this was the wrong
  * instrument for it; a filter that retires itself would be the right one.
  */
-export function pickFromJars(jars: Jars, random: () => number = Math.random, today: Date = new Date()): Drawn | null {
+export function pickFromJars(jars: Jars, random: () => number = Math.random, today: Date = new Date(), bankShare = BANK_SHARE): Drawn | null {
   const hasBank = jars.bank.length > 0;
   const hasParagraphs = jars.paragraphs.length > 0;
   if (!hasBank && !hasParagraphs) return null;
-  if (hasBank && (!hasParagraphs || random() < BANK_SHARE)) {
+  if (hasBank && (!hasParagraphs || random() < bankShare)) {
     const question = pickOne(jars.bank, random);
     if (!question) return null;
     const drawn: Drawn = { source: question };
@@ -326,7 +379,7 @@ export async function drawMany(ctx: DrawContext, target: TFile | null, count: nu
   const counts = jarCounts(jars);
   const drawn: Drawn[] = [];
   for (let i = 0; i < count; i++) {
-    const pick = pickFromJars(jars, random, today);
+    const pick = pickFromJars(jars, random, today, ctx.bankShare);
     if (!pick) break;
     drawn.push(pick);
     removePicked(jars, pick);

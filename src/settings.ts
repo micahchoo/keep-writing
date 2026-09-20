@@ -11,9 +11,10 @@ export interface KeepWritingSettings {
   /**
    * Bearer token for the endpoint. Empty for a local server, which is the
    * default: nothing configured, nothing leaves the machine. Stored in
-   * `data.json` in the vault, in plain text, like every Obsidian setting.
+   * Obsidian secret storage; never written to plugin data.
    */
   apiKey: string;
+  bankShare: number;
   /**
    * Ceiling on the model's reply, in tokens. A ceiling and not a target: a
    * model that stops early costs what it generated. See BonsaiConfig#maxTokens
@@ -47,6 +48,7 @@ export const DEFAULT_SETTINGS: KeepWritingSettings = {
   baseUrl: 'http://127.0.0.1:8088/v1',
   model: 'bonsai-2-27b',
   apiKey: '',
+  bankShare: 0.7,
   maxTokens: 2048,
   enableModel: true,
   sittingsFolder: 'Sittings',
@@ -85,6 +87,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         type: 'group',
         heading: 'Vault',
         items: [
+          { name: 'Bank share', desc: 'Share of draws from the question bank: 0 means writing only, 1 means bank only. An empty jar falls back to the other.', control: { type: 'slider', key: 'bankShare', defaultValue: 0.7, min: 0, max: 1, step: 0.05 } },
           {
             name: 'Daily notes folder',
             desc: "Where your daily notes are. Questions go into today's note.",
@@ -168,7 +171,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             name: 'API key',
             desc:
               'Only if your server needs one; a server on your own computer does not. Saved as ' +
-              'plain text in this vault.',
+              "Obsidian secret storage on this device.",
             aliases: ['token', 'bearer', 'secret'],
             // Rendered by hand, not declared: no declarative control masks its
             // input, and a key legible over a shoulder is worse than a setting
@@ -176,7 +179,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             render: (setting: Setting) => {
               setting.addText((t) => {
                 t.inputEl.type = 'password';
-                t.setPlaceholder('none')
+                t.setPlaceholder('None')
                   .setValue(this.host.settings.apiKey)
                   .onChange((v) => void this.setControlValue('apiKey', v));
               });
@@ -210,6 +213,8 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         return s.model;
       case 'maxTokens':
         return s.maxTokens;
+      case 'bankShare':
+        return s.bankShare;
       case 'apiKey':
         return s.apiKey;
     }
@@ -241,6 +246,9 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       case 'maxTokens':
         s.maxTokens = typeof value === 'number' && value > 0 ? Math.floor(value) : DEFAULT_SETTINGS.maxTokens;
         break;
+      case 'bankShare':
+        s.bankShare = typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0.7;
+        break;
       case 'apiKey':
         s.apiKey = text.trim();
         break;
@@ -250,7 +258,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
 }
 
 /** Every setting the tab binds. `starterOffered` is not one: nothing shows it. */
-type ControlKey =
+type ControlKey = 'bankShare'
   | 'sittingsFolder'
   | 'bankFolder'
   | 'writingFolders'

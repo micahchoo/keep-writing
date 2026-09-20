@@ -213,7 +213,7 @@ export class Interview {
       const key = ref && keyOfRef(this.app, ref, sitting.path);
       if (key) placed.add(key);
     }
-    return { app: this.app, bankFolder, sittingsFolder, writingFolders, index: this.host.index, skipped: placed, sitting };
+    return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankShare: this.host.settings.bankShare, index: this.host.index, skipped: placed, sitting };
   }
 
   /** Write a drawn Bank question as an Ask, and put the cursor under it. */

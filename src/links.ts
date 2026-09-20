@@ -67,7 +67,7 @@ export interface LinkOptions {
 function asList(v: unknown): string[] {
   if (v == null) return [];
   if (Array.isArray(v)) return v.map(String);
-  return [String(v)];
+  return typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' ? [String(v)] : [];
 }
 
 function sameRef(a: string, b: Ref): boolean {

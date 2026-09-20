@@ -110,3 +110,34 @@ The plugin never writes a sentence into your notes. Its entire write surface is 
 3. **A `> [!ask]` callout**, at the end of the `## Asked` section.
 
 There is no code path that inserts, edits or rewords prose. The body of a note is yours. Nothing is written without you picking it first, and Escape always means no.
+
+
+## Recover follow-ups and correct a mark
+
+**Reopen latest follow-ups** restores the most recent offer, even after restarting Obsidian.
+The offer is saved before its chooser opens. Dismissing the chooser keeps it.
+Choosing a question removes it from the saved offer after insertion succeeds.
+Composing another successful offer replaces the previous one. Saved offers live in plugin data and can sync with that file.
+Missing or renamed source notes are reported instead of inserting a broken reference.
+
+**Unmark this answer** removes the selected source from the daily note's `answers` property and the corresponding inverse link.
+A `next` bookmark is cleared only when it still points to this answer.
+The answer text, native block ID, register tags, and existing follow-ups remain.
+The command reports notes that still cite the answer.
+If several asks in the same note share one source, their property is ambiguous and the command refuses without writing.
+Writes across several notes are not atomic; if a write fails, retry after resolving the error.
+
+## Draw settings and indexing
+
+**Bank share** ranges from 0 (writing) to 1 (bank), with a default of 0.7.
+When one jar is empty, draws use the other. A target still restricts draws to that note's paragraphs.
+After the initial index, draws reuse parsed questions and paragraphs.
+Changed files refresh after a short debounce; a draw waits for pending updates.
+File renames refresh the renamed file and answer resolution. Folder renames or folder-setting changes rebuild the relevant index.
+
+## API key storage
+
+API keys use Obsidian secret storage on the current device and are excluded from plugin `data.json`.
+An existing plaintext key migrates on startup. The old value is removed only after secret storage succeeds.
+An existing stored secret takes precedence. Old backups can still contain the previous plaintext key.
+Remote endpoints still receive the text sent for composing questions; secret storage does not change that behavior.
