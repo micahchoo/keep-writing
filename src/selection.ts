@@ -53,6 +53,7 @@ export function selectionParagraph(
   selected: string,
   line: number,
   sittingsFolder: string,
+  document?: string,
 ): Paragraph {
   const text = stripBlockDecoration(selected);
   if (!text) throw new NotSelectable('Select the words to ask about first.');
@@ -65,5 +66,11 @@ export function selectionParagraph(
   if (!block) throw new NotSelectable('Select inside a paragraph or a list item.');
   // The text is the SELECTION; the ref, the key and the line are the whole
   // block that holds it. Everything else a paragraph carries is the note's.
-  return paragraphOf(file, facts, { id: block.id, line: block.start, text });
+  const paragraph = paragraphOf(file, facts, { id: block.id, line: block.start, text });
+  const original = document?.split('\n').slice(block.start, block.end + 1).join('\n');
+  if (original !== undefined && !original.includes(selected)) {
+    throw new NotSelectable('The paragraph changed. Select it again.');
+  }
+  paragraph.selectionSnapshot = { selected: selected.trim(), ...(original !== undefined ? { block: original } : {}) };
+  return paragraph;
 }

@@ -15,11 +15,11 @@
 // reason is data now; the Interview's Surface says it.
 
 import type { App, TFile } from 'obsidian';
-import { ensureBlockId } from './blocks';
+import { ensureSourceBlockId } from './blocks';
 import { NO_REGISTER, questionAt } from './bank';
 import { REGISTERS, addToStringList, answeredKeys, linkAnswer } from './links';
 import { refusalLine } from './refusal';
-import { formatRef, keyOfRef, parseRef } from './refs';
+import { formatRef, keyOfRef, parseRef, refOf, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
 
 const ASK_TITLE = /^>\s*\[!ask\][+-]?\s*(.*?)\s*$/i;
@@ -49,6 +49,8 @@ export interface Ask {
   answer: { start: number; end: number };
   /** First non-blank run of lines in the answer, or null if the answer is empty. */
   firstParagraph: LineRange | null;
+  /** Original answer text, captured with its range before any asynchronous mutation. */
+  firstParagraphText?: string;
   answered: boolean;
 }
 
@@ -99,6 +101,7 @@ export function parseAsks(
       firstParagraph: firstParagraph(lines, end + 1, answerEnd),
       answered: sourceRef ? isAnswered(sourceRef) : false,
     };
+    if (ask.firstParagraph) ask.firstParagraphText = lines.slice(ask.firstParagraph.start, ask.firstParagraph.end + 1).join('\n');
     if (due) ask.due = due;
     asks.push(ask);
     i = answerEnd;
@@ -306,7 +309,15 @@ export async function markAnswered(app: App, file: TFile, ask: Ask, opts: MarkOp
   if (!source) return { kind: 'refused', reason: 'This Ask has no source link; it is malformed.' };
   let ref: Ref;
   try {
-    ref = await ensureBlockId(app, file, ask.firstParagraph.start);
+    if (!ask.firstParagraphText) return { kind: 'refused', reason: 'The answer changed. Put the cursor in it and try again.' };
+    const original = ask.firstParagraphText;
+    ref = await ensureSourceBlockId(app, {
+      file, ref: refOf(file), text: stripBlockDecoration(original),
+      selectionSnapshot: { selected: original.trim(), block: original, anchorFirst: true },
+    }, (content, line) => parseAsks(content).some(current =>
+      current.question === ask.question && current.sourceRef === ask.sourceRef &&
+      !!current.firstParagraph && current.firstParagraph.start <= line && line <= current.firstParagraph.end,
+    ));
   } catch (e) {
     return { kind: 'refused', reason: refusalLine(e) };
   }

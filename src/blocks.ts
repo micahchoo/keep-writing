@@ -3,8 +3,55 @@
 
 import type { App, CachedMetadata, TFile } from 'obsidian';
 import { Refused } from './refusal';
-import { newBlockId, refOf } from './refs';
+import { newBlockId, refOf, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
+import type { Paragraph as SourceParagraph } from './paragraphs';
+
+/** Revalidate delayed offers against current text, including already anchored sources. */
+export async function ensureSourceBlockId(
+  app: App,
+  source: Pick<SourceParagraph, 'file' | 'ref' | 'text' | 'selectionSnapshot'>,
+  validate?: (content: string, line: number) => boolean,
+): Promise<Ref> {
+  const changed = () => new NotAParagraph('The paragraph changed or is ambiguous. Select it again.');
+  const content = await app.vault.cachedRead(source.file);
+  const cache = app.metadataCache.getFileCache(source.file);
+  const lines = content.split('\n');
+  const snapshot = source.selectionSnapshot;
+  const needle = snapshot?.selected ?? source.text;
+  // IDs disambiguate drawn blocks. Unanchored selections require unique text.
+  let para: Paragraph | null;
+  if (source.ref.blockId) {
+    const block = cache?.blocks?.[source.ref.blockId];
+    para = block ? paragraphAt(cache, block.position.start.line) : null;
+  } else {
+    const at = content.indexOf(needle);
+    if (at < 0 || content.indexOf(needle, at + 1) >= 0) throw changed();
+    para = paragraphAt(cache, content.slice(0, at).split('\n').length - 1);
+  }
+  if (!para || !ID_INLINE_TYPES.has(para.type)) throw changed();
+  const raw = lines.slice(para.start, para.end + 1).join('\n');
+  const matches = snapshot?.anchorFirst ? needle.startsWith(raw.trim()) : raw.includes(needle);
+  if (snapshot ? !matches : stripBlockDecoration(raw) !== source.text) throw changed();
+  if (snapshot?.block !== undefined && !snapshot.anchorFirst && stripBlockDecoration(raw) !== stripBlockDecoration(snapshot.block)) throw changed();
+  // A stale range must not split a paragraph that has moved or grown.
+  if (para.type === 'paragraph' &&
+      ((para.start > 0 && lines[para.start - 1]?.trim()) || lines[para.end + 1]?.trim())) throw changed();
+  const present = /\s\^([A-Za-z0-9-]+)\s*$/.exec(raw)?.[1];
+  if (source.ref.blockId && present !== source.ref.blockId) throw changed();
+  const id = present ?? newBlockId(cache);
+  await app.vault.process(source.file, (data) => {
+    if (data !== content) throw changed();
+    if (validate && !validate(data, para.start)) throw changed();
+    if (present) return data;
+    const last = lines[para.end];
+    if (last === undefined || !last.trim()) throw changed();
+    const cr = last.endsWith('\r') ? '\r' : '';
+    lines[para.end] = (cr ? last.slice(0, -1) : last) + ` ^${id}` + cr;
+    return lines.join('\n');
+  });
+  return refOf(source.file, id);
+}
 
 /** Section types where an inline ` ^id` on the last line is valid markdown. */
 const ID_INLINE_TYPES = new Set(['paragraph', 'list', 'heading']);

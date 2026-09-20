@@ -25,7 +25,7 @@ import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks,
 import type { Ask, AskOptions } from './asks';
 import { bankJar, drawMany, parseDue, pickOne } from './bank';
 import type { AnsweredIndex, Drawn, JarCounts } from './bank';
-import { ensureBlockId } from './blocks';
+import { ensureSourceBlockId } from './blocks';
 import { readBookmark, runClosing } from './closing';
 import { CRAFT, INVITATION, lensFor } from './lens';
 import type { Composed, Model, RevisitCandidate } from './model';
@@ -37,9 +37,11 @@ import type { Ref } from './refs';
 import { selectionParagraph } from './selection';
 import type { KeepWritingSettings } from './settings';
 import { ME_BASENAME, isSitting, readTarget } from './target';
+import type { ExtractionCache } from './extraction-cache';
 
 /** What the Interview reads the vault and the model through. The plugin is one. */
 export interface InterviewHost {
+  extraction?: ExtractionCache;
   app: App;
   settings: KeepWritingSettings;
   index: AnsweredIndex;
@@ -144,6 +146,7 @@ export class Interview {
    * anything already answered.
    */
   async draw(sitting: TFile, count: number = DRAW_COUNT): Promise<Drawing> {
+    await this.host.index.prepare();
     const target = readTarget(this.app, sitting);
     const ctx = await this.context(sitting);
     // The pick-up takes the first of the `count` rows, never an extra one:
@@ -177,6 +180,7 @@ export class Interview {
     if (!ref) return null;
     const paragraph = await paragraphAt(this.app, ref, this.host.settings.sittingsFolder);
     if (!paragraph || paragraph.file.path === sitting.path) return null;
+    await this.host.index.prepare();
     if (this.host.index.has(paragraph.key) || placed.has(paragraph.key)) return null;
     return paragraph;
   }
@@ -213,7 +217,7 @@ export class Interview {
       const key = ref && keyOfRef(this.app, ref, sitting.path);
       if (key) placed.add(key);
     }
-    return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankShare: this.host.settings.bankShare, index: this.host.index, skipped: placed, sitting };
+    return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankShare: this.host.settings.bankShare, index: this.host.index, skipped: placed, sitting, extraction: this.host.extraction };
   }
 
   /** Write a drawn Bank question as an Ask, and put the cursor under it. */
@@ -231,7 +235,7 @@ export class Interview {
    * selection cannot be one; the reason is said to them here, because it is
    * the only thing that happens.
    */
-  selection(picked: { file: TFile; selected: string; line: number }): Paragraph | null {
+  selection(picked: { file: TFile; selected: string; line: number; document?: string }): Paragraph | null {
     try {
       return selectionParagraph(
         this.app,
@@ -239,6 +243,7 @@ export class Interview {
         picked.selected,
         picked.line,
         this.host.settings.sittingsFolder,
+        picked.document,
       );
     } catch (e) {
       this.surface.notice(refusalLine(e));
@@ -304,15 +309,15 @@ export class Interview {
     candidate: RevisitCandidate,
     reach: Reach,
   ): Promise<void> {
-    let ref = source.ref;
-    if (!ref.blockId) {
-      try {
-        ref = await ensureBlockId(this.app, source.file, source.line);
-      } catch (e) {
-        this.surface.notice(refusalLine(e));
-        return;
-      }
+    this.host.extraction?.assertActive();
+    let ref: Ref;
+    try {
+      ref = await ensureSourceBlockId(this.app, source);
+    } catch (e) {
+      this.surface.notice(refusalLine(e));
+      return;
     }
+    this.host.extraction?.assertActive();
     const opts: AskOptions = reach === 'pointed' ? { embed: true } : {};
     const due = candidate.dueDays !== undefined ? parseDue(`+${candidate.dueDays}d`, new Date()) : null;
     if (due) opts.due = due;
