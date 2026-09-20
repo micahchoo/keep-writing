@@ -33,27 +33,11 @@ jobs:
           cache: npm
       - uses: oven-sh/setup-bun@v2
 
-      # A tag that disagrees with the manifest installs as the wrong version
-      # and never updates. Fail here rather than in someone's vault.
-      - name: The tag, the manifest and versions.json must agree
-        run: |
-          version=$(node -p "require('./manifest.json').version")
-          if [ "$GITHUB_REF_NAME" != "$version" ]; then
-            echo "tag $GITHUB_REF_NAME does not match manifest version $version" >&2
-            exit 1
-          fi
-          node -e "
-            const v = require('./versions.json'), m = require('./manifest.json');
-            if (v[m.version] !== m.minAppVersion) {
-              console.error('versions.json['+m.version+'] is '+v[m.version]+', manifest says '+m.minAppVersion);
-              process.exit(1);
-            }
-          "
-
       - run: npm ci
-      - run: npm run lint
-      - run: bun test # install.test.ts is the release gate
-      - run: npm run build # tsc -noEmit, then the production bundle
+      - run: npm audit --audit-level=moderate
+      - run: npm run release:verify
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
 
       - uses: actions/attest-build-provenance@v4
         with:
@@ -67,6 +51,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
+            --verify-tag --title "$GITHUB_REF_NAME" \
             --notes-file docs/RELEASE-NOTES.md \
             main.js manifest.json styles.css
