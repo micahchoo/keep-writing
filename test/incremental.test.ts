@@ -30,9 +30,12 @@ test('draw index reads changed files only, retains other answer owners, and remo
 });
 test('disposal cannot repopulate a pending read', async () => {
   let release!: () => void;
-  const v = fakeVault({ 'Pieces/a.md': 'Some words about a memory that matters. and more words to make this a full paragraph. ^a' }, { beforeRead: () => new Promise<void>(resolve => { release = resolve; }) });
+  let started!: () => void;
+  const reading = new Promise<void>(resolve => { started = resolve; });
+  const v = fakeVault({ 'Pieces/a.md': 'Some words about a memory that matters. and more words to make this a full paragraph. ^a' }, { beforeRead: () => new Promise<void>(resolve => { release = resolve; started(); }) });
   const index = new AnsweredIndex(v.app);
   const pending = index.jars('Bank', 'Sittings', ['Pieces']);
+  await reading;
   index.dispose(); release();
   expect((await pending).paragraphs).toEqual([]);
 });
@@ -46,9 +49,12 @@ test('bank share endpoints select their jar and empty jars still fall back', asy
 test('an edit during a read cannot publish stale paragraphs; folder changes rebuild the selection', async () => {
   let release!: () => void;
   let hold = true;
-  const v = fakeVault({ 'Pieces/a.md': 'I wrote a long paragraph about the moment I understood what had happened. ^a' }, { beforeRead: () => { if (hold) { hold = false; return new Promise<void>(resolve => { release = resolve; }); } } });
+  let started!: () => void;
+  const reading = new Promise<void>(resolve => { started = resolve; });
+  const v = fakeVault({ 'Pieces/a.md': 'I wrote a long paragraph about the moment I understood what had happened. ^a' }, { beforeRead: () => { if (hold) { hold = false; return new Promise<void>(resolve => { release = resolve; started(); }); } } });
   const index = new AnsweredIndex(v.app);
   const pending = index.jars('Bank', 'Sittings', ['Pieces']);
+  await reading;
   await v.app.vault.process(v.file('Pieces/a.md'), () => 'I revised this paragraph because I understood something new about what had happened. ^a');
   index.invalidate(v.file('Pieces/a.md')); release();
   expect((await pending).paragraphs[0]?.text).toContain('revised');

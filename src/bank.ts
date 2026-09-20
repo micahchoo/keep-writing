@@ -9,8 +9,10 @@ import type { App, TFile } from 'obsidian';
 import { answeredKeys } from './links';
 import { refOf, resolveRef, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
-import { paragraphsForFile, oneTellingEach } from './paragraphs';
+import { paragraphsForFile, oneTellingEachAsync, paragraphJar } from './paragraphs';
 import type { Paragraph } from './paragraphs';
+import type { ExtractionCache } from './extraction-cache';
+import { WorkBudget } from './work';
 
 /**
  * Share of draws that come from the Bank. Set to 0.7 on 2026-09-13: at an
@@ -67,13 +69,16 @@ export function parseBankLine(line: string): { text: string; register: string; d
 }
 
 /** All questions of one bank note: list items that carry a block id. */
-export async function loadBank(app: App, file: TFile): Promise<BankQuestion[]> {
+export async function loadBank(app: App, file: TFile, extraction?: ExtractionCache, budget = new WorkBudget()): Promise<BankQuestion[]> {
+  if (extraction) return extraction.get(file, 'bank', () => loadBank(app, file, undefined, budget));
   const cache = app.metadataCache.getFileCache(file);
   const items = (cache?.listItems ?? []).filter((i) => i.id);
   if (items.length === 0) return [];
   const lines = (await app.vault.cachedRead(file)).split('\n');
   const out: BankQuestion[] = [];
-  for (const item of items) {
+  for (let i = 0; i < items.length; i++) {
+    if (i % 128 === 0) await budget.checkpoint();
+    const item = items[i];
     const id = item.id as string;
     const raw = lines.slice(item.position.start.line, item.position.end.line + 1).join(' ');
     const parts = parseBankLine(raw);
@@ -123,35 +128,46 @@ export class AnsweredIndex {
   private pending = new Map<string, number>();
   private initialized = false;
   private revision = 0;
+  private scanRevision = 0;
   private config = '';
   private stopped = false;
-  private running?: Promise<void>;
+  private running?: Promise<Jars>;
+  private preparing?: Promise<void>;
+  private snapshot?: Jars;
   constructor(private app: App) {}
 
   invalidate(file?: TFile): void {
     if (this.stopped) return;
-    if (!file) { this.initialized = false; this.revision++; return; }
+    this.snapshot = undefined;
+    if (!file) { this.initialized = false; this.scanRevision++; this.revision++; return; }
     this.files.set(file.path, file);
     this.updateAnswers(file);
     this.pending.set(file.path, ++this.revision);
   }
   rename(file: TFile, oldPath: string): void {
     this.remove(oldPath); this.invalidate(file);
-    for (const other of this.files.values()) this.updateAnswers(other);
+    // Obsidian resolves updated links per file; changed/resolve events refresh their owners.
+    this.initialized = false;
+    this.scanRevision++;
   }
   resolve(file: TFile): void { if (!this.stopped) this.updateAnswers(file); }
   remove(path: string): void {
+    if (this.stopped) return;
     this.setAnswers(path, []);
     this.files.delete(path); this.answers.delete(path); this.rows.delete(path); this.pending.delete(path);
+    this.snapshot = undefined;
     this.revision++;
   }
-  dispose(): void { this.stopped = true; this.revision++; this.files.clear(); this.answers.clear(); this.counts.clear(); this.rows.clear(); this.pending.clear(); }
+  dispose(): void {
+    this.stopped = true; this.revision++; this.files.clear(); this.answers.clear();
+    this.counts.clear(); this.rows.clear(); this.pending.clear(); this.snapshot = undefined;
+  }
   private setAnswers(path: string, keys: string[]): void {
     for (const key of this.answers.get(path) ?? []) {
       const count = (this.counts.get(key) ?? 1) - 1;
       if (count) this.counts.set(key, count); else this.counts.delete(key);
     }
-    this.answers.set(path, keys);
+    if (keys.length) this.answers.set(path, keys); else this.answers.delete(path);
     for (const key of keys) this.counts.set(key, (this.counts.get(key) ?? 0) + 1);
   }
   private updateAnswers(file: TFile): void { this.setAnswers(file.path, answeredKeys(this.app, file)); }
@@ -163,31 +179,101 @@ export class AnsweredIndex {
     for (const path of this.files.keys()) if (!present.has(path)) this.remove(path);
     for (const file of files) this.invalidate(file);
   }
+  /** Draws prepare answer ownership cooperatively before synchronous membership checks. */
+  async prepare(budget = new WorkBudget()): Promise<void> {
+    if (this.preparing) await this.preparing;
+    if (this.initialized || this.stopped) return;
+    const scan = async () => {
+      while (!this.initialized && !this.stopped) {
+        const revision = this.scanRevision;
+        const present = new Set<string>();
+        let count = 0;
+        for (const file of this.app.vault.getMarkdownFiles()) {
+          if (++count % 128 === 0) await budget.checkpoint();
+          if (this.stopped) return;
+          present.add(file.path);
+          this.invalidate(file);
+        }
+        for (const path of this.files.keys()) {
+          if (++count % 128 === 0) await budget.checkpoint();
+          if (this.stopped) return;
+          if (!present.has(path)) this.remove(path);
+        }
+        if (revision === this.scanRevision) this.initialized = true;
+      }
+    };
+    this.preparing = scan();
+    try { await this.preparing; } finally { this.preparing = undefined; }
+  }
   has(key: string): boolean { this.initialize(); return this.counts.has(key); }
-  async jars(bankFolder: string, sittingsFolder: string, writingFolders: string[]): Promise<Jars> {
+  get requiresPreparation(): boolean { return !this.initialized && !this.stopped; }
+  private async waitForWork(): Promise<void> {
     while (this.running) await this.running;
-    this.initialize();
+  }
+  async jars(bankFolder: string, sittingsFolder: string, writingFolders: string[], extraction?: ExtractionCache): Promise<Jars> {
+    await this.waitForWork();
+    const budget = new WorkBudget();
+    await this.prepare(budget);
+    while (this.running) await this.running;
+    if (this.stopped) return { bank: [], paragraphs: [] };
     const config = JSON.stringify([bankFolder, sittingsFolder, writingFolders]);
-    if (config !== this.config) {
-      this.config = config;
-      for (const file of this.files.values()) this.pending.set(file.path, ++this.revision);
-    }
-    const work = async () => {
-      while (this.pending.size && !this.stopped) {
-        const [path, version] = this.pending.entries().next().value as [string, number];
-        const file = this.files.get(path);
-        if (!file) { this.pending.delete(path); continue; }
-        const bank = path.startsWith(bankFolder + '/') && isBankNote(this.app, file) ? await loadBank(this.app, file) : [];
-        const paragraphs = await paragraphsForFile(this.app, file, sittingsFolder, writingFolders);
-        if (this.stopped) return;
-        if (this.pending.get(path) !== version) continue;
-        this.rows.set(path, { bank, paragraphs }); this.pending.delete(path);
+    if (config === this.config && this.snapshot && !this.pending.size) return this.snapshot;
+    const work = async (): Promise<Jars> => {
+      if (config !== this.config) {
+        this.config = config;
+        this.snapshot = undefined;
+        let count = 0;
+        for (const file of this.files.values()) {
+          if (++count % 128 === 0) await budget.checkpoint();
+          if (this.stopped) return { bank: [], paragraphs: [] };
+          this.pending.set(file.path, ++this.revision);
+        }
+      }
+      for (;;) {
+        while (this.pending.size && !this.stopped) {
+          // Keep one iterator: restarting after every delete rescans Map tombstones.
+          for (const [path, version] of this.pending) {
+            await budget.checkpoint();
+            if (this.stopped) return { bank: [], paragraphs: [] };
+            const file = this.files.get(path);
+            if (!file) { this.pending.delete(path); continue; }
+            let bank: BankQuestion[], paragraphs: Paragraph[];
+            try {
+              bank = path.startsWith(bankFolder + '/') && isBankNote(this.app, file) ? await loadBank(this.app, file, extraction, budget) : [];
+              paragraphs = await paragraphsForFile(this.app, file, sittingsFolder, writingFolders, extraction, budget);
+            } catch (error) {
+              if (this.stopped) return { bank: [], paragraphs: [] };
+              if (this.pending.get(path) !== version) continue;
+              throw error;
+            }
+            if (this.stopped) return { bank: [], paragraphs: [] };
+            if (this.pending.get(path) !== version) continue;
+            this.rows.set(path, { bank, paragraphs }); this.pending.delete(path);
+          }
+        }
+        if (this.stopped) return { bank: [], paragraphs: [] };
+        if (!this.initialized) { await this.prepare(budget); continue; }
+        const revision = this.revision;
+        const bank: BankQuestion[] = [];
+        let count = 0;
+        for (const row of this.rows.values()) {
+          if (++count % 128 === 0) await budget.checkpoint();
+          for (const question of row.bank) {
+            if (++count % 128 === 0) await budget.checkpoint();
+            bank.push(question);
+          }
+        }
+        function* paragraphs(rows: Iterable<{ paragraphs: Paragraph[] }>) {
+          for (const row of rows) yield* row.paragraphs;
+        }
+        const prose = await oneTellingEachAsync(paragraphs(this.rows.values()), budget);
+        if (this.stopped) return { bank: [], paragraphs: [] };
+        if (revision !== this.revision) continue;
+        return this.snapshot = { bank, paragraphs: prose };
       }
     };
     this.running = work();
-    try { await this.running; } finally { this.running = undefined; }
-    const rows = [...this.rows.values()];
-    return { bank: rows.flatMap(row => row.bank), paragraphs: oneTellingEach(rows.flatMap(row => row.paragraphs)) };
+    try { return await this.running; } finally { this.running = undefined; }
   }
 }
 
@@ -236,6 +322,7 @@ export interface Drawn {
 }
 
 export interface DrawContext {
+  extraction?: ExtractionCache;
   /** The Sitting being drawn for; its own blocks are never drawn back the same day. */
   sitting?: TFile;
   app: App;
@@ -282,15 +369,26 @@ export function jarCounts(jars: Jars): JarCounts {
  * the one note it names.
  */
 export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<Jars> {
+  const budget = new WorkBudget();
+  await ctx.index.prepare(budget);
   const drawable = (key: string) => !ctx.index.has(key) && !ctx.skipped.has(key);
-  const cached = await ctx.index.jars(ctx.bankFolder, ctx.sittingsFolder, ctx.writingFolders);
-  const bank = target ? [] : cached.bank.filter(q => q.role === null && drawable(q.key));
-
-  const today = ctx.sitting?.path;
-  let paragraphs = cached.paragraphs.filter(
-    (p) => drawable(p.key) && p.file.path !== today,
-  );
-  if (target) paragraphs = paragraphs.filter((p) => p.file.path === target.path);
+  const cached = target
+    ? { bank: [], paragraphs: await paragraphJar(ctx.app, ctx.sittingsFolder, ctx.writingFolders, target, ctx.extraction, budget) }
+    : await ctx.index.jars(ctx.bankFolder, ctx.sittingsFolder, ctx.writingFolders, ctx.extraction);
+  const bank: BankQuestion[] = [], paragraphs: Paragraph[] = [];
+  let count = 0;
+  if (ctx.index.requiresPreparation) return fillJars(ctx, target);
+  for (const question of cached.bank) {
+    if (++count % 128 === 0) await budget.checkpoint();
+    if (ctx.index.requiresPreparation) return fillJars(ctx, target);
+    if (question.role === null && drawable(question.key)) bank.push(question);
+  }
+  for (const paragraph of cached.paragraphs) {
+    if (++count % 128 === 0) await budget.checkpoint();
+    if (ctx.index.requiresPreparation) return fillJars(ctx, target);
+    ctx.extraction?.assertActive();
+    if (drawable(paragraph.key) && paragraph.file.path !== ctx.sitting?.path) paragraphs.push(paragraph);
+  }
   return { bank, paragraphs };
 }
 
@@ -308,9 +406,12 @@ export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<
  */
 export async function bankJar(ctx: DrawContext, target: TFile | null): Promise<BankQuestion[]> {
   if (target) return [];
+  await ctx.index.prepare();
   const out: BankQuestion[] = [];
   for (const f of bankNotes(ctx.app, ctx.bankFolder)) {
-    for (const q of await loadBank(ctx.app, f)) {
+    const questions = await loadBank(ctx.app, f, ctx.extraction);
+    await ctx.index.prepare();
+    for (const q of questions) {
       if (q.role === null && !ctx.index.has(q.key) && !ctx.skipped.has(q.key)) out.push(q);
     }
   }
@@ -355,12 +456,13 @@ export interface Drawing {
 
 /** Take a picked source out of the jars, so the next pick cannot repeat it. */
 function removePicked(jars: Jars, drawn: Drawn): void {
-  const { key } = drawn.source;
   if (drawn.source.kind === 'question') {
-    jars.bank = jars.bank.filter((q) => q.key !== key);
-    return;
+    const at = jars.bank.indexOf(drawn.source);
+    if (at >= 0) jars.bank.splice(at, 1);
+  } else {
+    const at = jars.paragraphs.indexOf(drawn.source);
+    if (at >= 0) jars.paragraphs.splice(at, 1);
   }
-  jars.paragraphs = jars.paragraphs.filter((p) => p.key !== key);
 }
 
 /**

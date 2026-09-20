@@ -31,6 +31,8 @@ import { headingAbove, readsAsParagraph } from './furniture';
 import { blockTexts, refOf, resolveRef } from './refs';
 import type { Ref } from './refs';
 import { isSitting } from './target';
+import type { ExtractionCache } from './extraction-cache';
+import { WorkBudget } from './work';
 
 /** The register a paragraph counts as. */
 const REVISIT_REGISTER = 'revisit';
@@ -57,6 +59,8 @@ export interface Paragraph {
   meta: string[];
   /** First line of the paragraph, 0-based: what ensureBlockId needs when there is no id yet. */
   line: number;
+  /** Exact selected words and, when available, their original editor block. */
+  selectionSnapshot?: { selected: string; block?: string; anchorFirst?: boolean };
   /** `published` or `set-down` for a Piece paragraph; absent for every other shelf. */
   status?: string;
 }
@@ -279,8 +283,14 @@ export async function paragraphAt(app: App, ref: Ref, sittingsFolder: string): P
  * The paragraphs of a note whose blocks already carry ids: a finished Piece,
  * or a Sitting. The two shelves differ only in the facts their note lends.
  */
-async function blockParagraphs(app: App, file: TFile, facts: ParagraphFacts): Promise<Paragraph[]> {
-  return (await blockTexts(app, file)).map((b) => paragraphOf(file, facts, b));
+async function blockParagraphs(app: App, file: TFile, facts: ParagraphFacts, budget: WorkBudget): Promise<Paragraph[]> {
+  const blocks = await blockTexts(app, file, budget);
+  const result: Paragraph[] = [];
+  for (let i = 0; i < blocks.length; i++) {
+    if (i % 128 === 0) await budget.checkpoint();
+    result.push(paragraphOf(file, facts, blocks[i]));
+  }
+  return result;
 }
 
 /**
@@ -323,21 +333,58 @@ export async function paragraphJar(
   app: App,
   sittingsFolder: string,
   writingFolders: string[],
+  target: TFile | null = null,
+  extraction?: ExtractionCache,
+  budget = new WorkBudget(),
 ): Promise<Paragraph[]> {
   const jar: Paragraph[] = [];
-  for (const file of app.vault.getMarkdownFiles()) {
+  let files = 0;
+  for (const file of target ? [target] : app.vault.getMarkdownFiles()) {
+    if (++files % 128 === 0) await budget.checkpoint();
+    extraction?.assertActive();
     if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
-    jar.push(...(await blockParagraphs(app, file, fileFacts(app, file, sittingsFolder))));
+    const extract = async () => {
+      const blocks = await blockParagraphs(app, file, fileFacts(app, file, sittingsFolder), budget);
+      const paragraphs: Paragraph[] = [];
+      const metadata = app.metadataCache.getFileCache(file);
+      for (let i = 0; i < blocks.length; i++) {
+        if (i % 128 === 0) await budget.checkpoint();
+        extraction?.assertActive();
+        const paragraph = blocks[i];
+        if (readsAsParagraph(paragraph.text, headingAbove(metadata, paragraph.line))) paragraphs.push(paragraph);
+      }
+      return paragraphs;
+    };
+    const paragraphs = extraction
+      ? await extraction.get(file, `paragraphs:${sittingsFolder}`, extract)
+      : await extract();
+    if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
+    for (const paragraph of paragraphs) jar.push(paragraph);
   }
-  const prose = jar.filter((p) =>
-    readsAsParagraph(p.text, headingAbove(app.metadataCache.getFileCache(p.file), p.line)),
-  );
-  return oneTellingEach(prose);
+  return oneTellingEachAsync(jar, budget);
+}
+
+/** Keep duplicate selection cooperative when a jar contains hundreds of thousands of blocks. */
+export async function oneTellingEachAsync(paragraphs: Iterable<Paragraph>, budget = new WorkBudget()): Promise<Paragraph[]> {
+  const best = new Map<string, Paragraph>();
+  let count = 0;
+  for (const paragraph of paragraphs) {
+    if (++count % 128 === 0) await budget.checkpoint();
+    const seen = best.get(paragraph.text);
+    if (!seen || (paragraph.status === 'published' && seen.status !== 'published') ||
+        ((paragraph.status === 'published') === (seen.status === 'published') && paragraph.file.path < seen.file.path)) {
+      best.set(paragraph.text, paragraph);
+    }
+  }
+  const result: Paragraph[] = [];
+  for (const paragraph of best.values()) {
+    if (result.length % 128 === 0) await budget.checkpoint();
+    result.push(paragraph);
+  }
+  return result;
 }
 
 /** Parse only one changed file; global duplicate selection stays in the jar. */
-export async function paragraphsForFile(app: App, file: TFile, sittingsFolder: string, writingFolders: string[]): Promise<Paragraph[]> {
-  if (!inFolders(file, writingFolders) || !isDrawn(app, file)) return [];
-  return (await blockParagraphs(app, file, fileFacts(app, file, sittingsFolder))).filter(p =>
-    readsAsParagraph(p.text, headingAbove(app.metadataCache.getFileCache(file), p.line)));
+export async function paragraphsForFile(app: App, file: TFile, sittingsFolder: string, writingFolders: string[], extraction?: ExtractionCache, budget = new WorkBudget()): Promise<Paragraph[]> {
+  return paragraphJar(app, sittingsFolder, writingFolders, file, extraction, budget);
 }

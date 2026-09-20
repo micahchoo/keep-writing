@@ -4,6 +4,9 @@
 import { plugin } from 'bun';
 import { mock } from 'bun:test';
 
+// The browser timer used to yield large draws; Bun supplies the same timer API.
+Object.defineProperty(globalThis, 'window', { value: globalThis, configurable: true });
+
 // `starter/*.md` is the shipped question bank, imported as TEXT: esbuild is
 // told so in esbuild.config.mjs, and bun must be told separately, because its
 // own `.md` loader renders markdown to HTML. Without this the tests read the

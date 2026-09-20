@@ -30,6 +30,7 @@ import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
 import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
 import { isSitting } from './target';
+import { ExtractionCache, ExtractionStopped } from './extraction-cache';
 
 // The three things the plugin does. The command palette and the context menu
 // read the same four names, so they cannot drift apart.
@@ -66,10 +67,12 @@ export default class KeepWritingPlugin extends Plugin {
   private indexTimer?: number;
   model!: Model;
   interview!: Interview;
+  extraction = new ExtractionCache();
 
   override async onload(): Promise<void> {
     await this.loadSettings();
     this.index = new AnsweredIndex(this.app);
+    this.register(() => this.extraction.dispose());
     this.model = this.buildModel();
     this.interview = new Interview(this, {
       placeCursor: (file, line) => placeCursor(this.app, file, line),
@@ -84,15 +87,26 @@ export default class KeepWritingPlugin extends Plugin {
       if (this.indexTimer) window.clearTimeout(this.indexTimer);
       this.indexTimer = window.setTimeout(() => {
         const s = this.settings;
-        void this.index.jars(s.bankFolder, s.sittingsFolder, s.writingFolders).catch(error => console.warn('Keep Writing index:', error));
+        void this.index.jars(s.bankFolder, s.sittingsFolder, s.writingFolders, this.extraction).catch(error => { if (!(error instanceof ExtractionStopped)) console.warn('Keep Writing index:', error); });
       }, 250);
     };
-    this.registerEvent(this.app.metadataCache.on('changed', file => { this.index.invalidate(file); schedule(); }));
+    const invalidate = (file: TFile) => {
+      this.extraction.invalidate(file.path);
+      this.index.invalidate(file);
+      schedule();
+    };
+    this.registerEvent(this.app.metadataCache.on('changed', invalidate));
     this.registerEvent(this.app.metadataCache.on('resolve', file => this.index.resolve(file)));
-    this.registerEvent(this.app.metadataCache.on('deleted', file => this.index.remove(file.path)));
-    this.registerEvent(this.app.vault.on('rename', (file, oldPath) => { if (file instanceof TFile) this.index.rename(file, oldPath); else this.index.invalidate(); schedule(); }));
+    this.registerEvent(this.app.metadataCache.on('deleted', file => { this.extraction.invalidate(file.path); this.index.remove(file.path); }));
+    this.registerEvent(this.app.vault.on('modify', file => { if (file instanceof TFile) invalidate(file); }));
+    this.registerEvent(this.app.vault.on('delete', file => { if (file instanceof TFile) { this.extraction.invalidate(file.path); this.index.remove(file.path); } }));
+    this.registerEvent(this.app.vault.on('rename', (file, oldPath) => {
+      this.extraction.invalidate(oldPath);
+      if (file instanceof TFile) { this.extraction.invalidate(file.path); this.index.rename(file, oldPath); }
+      else { this.extraction.clear(); this.index.invalidate(); }
+      schedule();
+    }));
     this.register(() => { if (this.indexTimer) window.clearTimeout(this.indexTimer); this.index.dispose(); });
-
 
     // A Sitting nobody has written in yet is a blank page, and the blank page
     // is the failure mode the owner named. Whoever makes the note — this
@@ -110,7 +124,7 @@ export default class KeepWritingPlugin extends Plugin {
       this.registerEvent(
         this.app.vault.on('create', (file) => {
           if (file instanceof TFile && isSitting(file, this.settings.sittingsFolder)) {
-            void this.interview.seed(file);
+            this.run(() => this.interview.seed(file));
           }
         }),
       );
@@ -118,28 +132,28 @@ export default class KeepWritingPlugin extends Plugin {
 
     this.app.workspace.onLayoutReady(() => this.offerStarterBank());
 
-    this.addRibbonIcon('message-circle-question', 'Draw a question', () => void this.drawQuestion());
+    this.addRibbonIcon('message-circle-question', 'Draw a question', () => this.run(() => this.drawQuestion()));
 
     this.addCommand({ id: 'reopen-follow-ups', name: REOPEN, callback: () => this.reopenFollowUps() });
     this.addCommand({ id: 'unmark-answer', name: UNMARK, editorCallback: (editor, view) => {
-      if (view instanceof MarkdownView) void this.unmarkUnderCursor(view, editor.getCursor().line);
+      if (view instanceof MarkdownView) this.run(() => this.unmarkUnderCursor(view, editor.getCursor().line));
     } });
-    this.addCommand({ id: 'draw-question' , name: DRAW, callback: () => void this.drawQuestion() });
+    this.addCommand({ id: 'draw-question' , name: DRAW, callback: () => this.run(() => this.drawQuestion()) });
     this.addCommand({
       id: 'mark-answer-under-cursor',
       name: MARK,
       editorCallback: (editor, view) => {
-        if (view instanceof MarkdownView) void this.markUnderCursor(view, editor.getCursor().line);
+        if (view instanceof MarkdownView) this.run(() => this.markUnderCursor(view, editor.getCursor().line));
       },
     });
-    this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => void this.installStarterBank() });
+    this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => this.run(() => this.installStarterBank()) });
     this.addCommand({ id: 'menu', name: MENU, callback: () => this.openMenu() });
     this.addCommand({
       id: 'ask-about-selection',
       name: ASK_SELECTION,
       editorCallback: (editor, view) => {
         if (view instanceof MarkdownView) {
-          void this.askAboutSelection(view, editor.getSelection(), editor.getCursor('from').line);
+          this.run(() => this.askAboutSelection(view, editor.getSelection(), editor.getCursor('from').line));
         }
       },
     });
@@ -155,20 +169,20 @@ export default class KeepWritingPlugin extends Plugin {
         const from = editor.getCursor('from').line;
         const at = editor.getCursor().line;
         const ask = (target: Menu, flat: boolean) => {
-          for (const [title, run] of [[UNMARK, () => void this.unmarkUnderCursor(view, at)], [REOPEN, () => this.reopenFollowUps()]] as const) {
+          for (const [title, run] of [[UNMARK, () => this.run(() => this.unmarkUnderCursor(view, at))], [REOPEN, () => this.reopenFollowUps()]] as const) {
             target.addItem(item => { item.setTitle(title); if (flat) item.setSection(SECTION); item.onClick(run); });
           }
           if (selected.trim()) {
             target.addItem((i) => {
               i.setTitle(ASK_SELECTION).setIcon('message-circle-question');
               if (flat) i.setSection(SECTION);
-              i.onClick(() => void this.askAboutSelection(view, selected, from));
+              i.onClick(() => this.run(() => this.askAboutSelection(view, selected, from)));
             });
           }
           target.addItem((i) => {
             i.setTitle(MARK).setIcon('check');
             if (flat) i.setSection(SECTION);
-            i.onClick(() => void this.markUnderCursor(view, at));
+            i.onClick(() => this.run(() => this.markUnderCursor(view, at)));
           });
         };
 
@@ -183,12 +197,12 @@ export default class KeepWritingPlugin extends Plugin {
             // No submenus here. This item becomes the draw itself and the rest
             // follow it, so nothing is lost and nothing throws.
             flat = true;
-            item.setTitle(DRAW).setIcon('shuffle').setSection(SECTION).onClick(() => void this.drawQuestion());
+            item.setTitle(DRAW).setIcon('shuffle').setSection(SECTION).onClick(() => this.run(() => this.drawQuestion()));
             return;
           }
           item.setTitle(SECTION).setIcon('message-circle-question');
           const sub = nest.call(item);
-          sub.addItem((i) => i.setTitle(DRAW).setIcon('shuffle').onClick(() => void this.drawQuestion()));
+          sub.addItem((i) => i.setTitle(DRAW).setIcon('shuffle').onClick(() => this.run(() => this.drawQuestion())));
           ask(sub, false);
         });
         if (flat) ask(menu, true);
@@ -211,32 +225,33 @@ export default class KeepWritingPlugin extends Plugin {
    * when there is one.
    */
   private openMenu(): void {
+    if (this.extraction?.isDisposed) return;
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
     const selected = view?.editor.getSelection() ?? '';
     const from = view?.editor.getCursor('from').line ?? 0;
     const at = view?.editor.getCursor().line ?? 0;
 
     const actions: Choice<() => void>[] = [
-      { value: () => void this.drawQuestion(), title: DRAW, note: 'Three to pick from. Escape writes nothing.' },
+      { value: () => this.run(() => this.drawQuestion()), title: DRAW, note: 'Three to pick from. Escape writes nothing.' },
     ];
     if (this.followUpOffer?.questions.length) actions.push({ title: REOPEN, value: () => this.reopenFollowUps() });
     if (view && selected.trim()) {
       actions.push({
-        value: () => void this.askAboutSelection(view, selected, from),
+        value: () => this.run(() => this.askAboutSelection(view, selected, from)),
         title: ASK_SELECTION,
         note: 'Be asked about the words you highlighted.',
       });
     }
     if (view) {
-      actions.push({ title: UNMARK, value: () => void this.unmarkUnderCursor(view, at), note: 'Remove the answer links; keep text and block IDs.' });
+      actions.push({ title: UNMARK, value: () => this.run(() => this.unmarkUnderCursor(view, at)), note: 'Remove the answer links; keep text and block IDs.' });
       actions.push({
-        value: () => void this.markUnderCursor(view, at),
+        value: () => this.run(() => this.markUnderCursor(view, at)),
         title: MARK,
         note: 'Link the answer you are in, then offer what follows from it.',
       });
     }
     actions.push({
-      value: () => void this.installStarterBank(),
+      value: () => this.run(() => this.installStarterBank()),
       title: INSTALL,
       note: 'Write the question notes into your bank folder. Safe to run twice.',
     });
@@ -263,7 +278,7 @@ export default class KeepWritingPlugin extends Plugin {
     if (folder && folder.children.length > 0) return;
     const answered = () => {
       this.settings.starterOffered = true;
-      void this.saveSettings();
+      this.run(() => this.saveSettings());
     };
     new OfferModal(
       this.app,
@@ -279,7 +294,7 @@ export default class KeepWritingPlugin extends Plugin {
       },
       () => {
         answered();
-        void this.installStarterBank();
+        this.run(() => this.installStarterBank());
       },
       answered,
     ).open();
@@ -308,17 +323,19 @@ export default class KeepWritingPlugin extends Plugin {
   private async drawQuestion(): Promise<void> {
     const sitting = await this.openSitting();
     const { drawn, jars, target } = await this.interview.draw(sitting);
+    if (this.extraction?.isDisposed) return;
     if (drawn.length === 0) {
       new Notice('Nothing left to draw. Every source here is answered or already asked.');
       return;
     }
     const where = target ? `only ${target}` : jarsLine(jars);
     choose(this.app, drawn.map(drawnChoice), where, (pick) => {
-      if (pick.source.kind === 'question') void this.interview.accept(sitting, pick);
+      const source = pick.source;
+      if (source.kind === 'question') this.run(() => this.interview.accept(sitting, pick));
       // The draw chose it, not the owner: an Invitation, aimed at their
       // present. Except the pick-up, which the owner chose at the end of an
       // earlier Sitting — that one is interviewed, and reads in place.
-      else void this.offer(sitting, pick.source, pick.pickUp ? 'pointed' : 'picked');
+      else this.run(() => this.offer(sitting, source, pick.pickUp ? 'pointed' : 'picked'));
     });
   }
 
@@ -329,7 +346,7 @@ export default class KeepWritingPlugin extends Plugin {
   private async askAboutSelection(view: MarkdownView, selected: string, line: number): Promise<void> {
     const file = view.file;
     if (!file) return;
-    const paragraph = this.interview.selection({ file, selected, line });
+    const paragraph = this.interview.selection({ file, selected, line, document: view.editor.getValue() });
     if (!paragraph) return;
     // The owner went and pointed at this: interview it.
     await this.offer(await this.interview.sitting(file), paragraph, 'pointed');
@@ -338,6 +355,7 @@ export default class KeepWritingPlugin extends Plugin {
   /** bonsai's questions from a paragraph, as the second chooser. */
   private async offer(sitting: TFile, paragraph: Paragraph, reach: Reach): Promise<void> {
     const offer = await this.composing(() => this.interview.offerFrom(paragraph, reach));
+    if (this.extraction?.isDisposed) return;
     const lens = offer.lens ? ` · through the ${offer.lens} lens` : '';
     // The fallback below is indistinguishable from a composed question, so a
     // failure must say so. Silently substituting it told the owner the model
@@ -351,7 +369,7 @@ export default class KeepWritingPlugin extends Plugin {
       this.app,
       candidates.map((c) => revisitChoice(c)),
       `${paragraph.title}${lens}`,
-      (candidate) => void this.interview.acceptFrom(sitting, paragraph, candidate, reach),
+      (candidate) => this.run(() => this.interview.acceptFrom(sitting, paragraph, candidate, reach)),
     );
   }
 
@@ -367,7 +385,7 @@ export default class KeepWritingPlugin extends Plugin {
     const file = view.file;
     if (!file) return;
     const answered = await this.composing(() => this.interview.markAt({ file, line }));
-    if (!answered) return;
+    if (!answered || this.extraction?.isDisposed) return;
     if (answered.questions.length === 0) {
       // Never nothing: a silent command reads as a broken one. And never the
       // WRONG nothing: "nothing to follow up with" is the model declining, and
@@ -424,19 +442,28 @@ export default class KeepWritingPlugin extends Plugin {
   }
 
   private reopenFollowUps(): void {
+    if (this.extraction?.isDisposed) return;
     const offer = this.followUpOffer;
     if (!offer || !offer.questions.length) { new Notice('No saved follow-ups. Mark an answer done to compose some.'); return; }
     const file = this.app.vault.getFileByPath(offer.sitting);
     const source = this.app.metadataCache.getFirstLinkpathDest(offer.ref.path, offer.sitting);
     if (!file || !source || !offer.ref.blockId || !this.app.metadataCache.getFileCache(source)?.blocks?.[offer.ref.blockId]) { new Notice('The saved offer’s source is missing or still indexing. No question was inserted.'); return; }
     choose(this.app, offer.questions.map(question => ({ value: question, title: question })), 'Saved follow-ups · reopen from the command palette', question => {
-      if (this.acceptingOffer || this.followUpOffer !== offer || !offer.questions.includes(question)) return;
+      if (this.extraction?.isDisposed || this.acceptingOffer || this.followUpOffer !== offer || !offer.questions.includes(question)) return;
       this.acceptingOffer = true;
       void this.interview.acceptFollowUp(file, question, offer.ref).then(async () => {
-        if (this.followUpOffer !== offer) return;
+        if (this.extraction?.isDisposed || this.followUpOffer !== offer) return;
         this.followUpOffer = { ...offer, questions: offer.questions.filter(value => value !== question) };
         await this.persistSettings();
       }).catch(error => new Notice(String(error))).finally(() => { this.acceptingOffer = false; });
+    });
+  }
+
+  private run(job: () => Promise<unknown>): void {
+    if (this.extraction?.isDisposed) return;
+    void job().catch(error => {
+      if (error instanceof ExtractionStopped || this.extraction?.isDisposed) return;
+      new Notice(error instanceof Error ? error.message : String(error));
     });
   }
 
