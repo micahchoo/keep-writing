@@ -63,14 +63,19 @@ export async function ensureBlockId(app: App, file: TFile, line: number): Promis
   }
   if (para.id) return refOf(file, para.id);
 
-  const id = newBlockId(cache);
+  let id = newBlockId(cache);
   await app.vault.process(file, (data) => {
     const lines = data.split('\n');
     const last = lines[para.end];
-    if (last === undefined) return data;
+    if (last === undefined || !last.trim()) {
+      throw new NotAParagraph('The paragraph changed. Put the cursor in it and try again.');
+    }
     // Guard: the cache may lag the file. Only append if no id is there yet.
-    if (/\s\^[A-Za-z0-9-]+\s*$/.test(last)) return data;
-    lines[para.end] = last.replace(/\s*$/, '') + ` ^${id}`;
+    const existing = /\s\^([A-Za-z0-9-]+)\s*$/.exec(last);
+    if (existing) { id = existing[1] as string; return data; }
+    // Insert before CR in CRLF notes; preserve every existing space and character.
+    const cr = last.endsWith('\r') ? '\r' : '';
+    lines[para.end] = (cr ? last.slice(0, -1) : last) + ` ^${id}` + cr;
     return lines.join('\n');
   });
   return refOf(file, id);

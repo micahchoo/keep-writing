@@ -38,3 +38,30 @@ describe('paragraphAt', () => {
     expect(paragraphAt(vault.app.metadataCache.getFileCache(vault.file('x.md')), 1)).toEqual({ start: 1, end: 1, id: undefined, type: 'list' });
   });
 });
+
+describe('block refs with lagging metadata', () => {
+  test('returns the ID already present in current text instead of allocating a phantom ref', async () => {
+    const v = fakeVault({ 'x.md': 'Original paragraph.\n' });
+    const file = v.file('x.md');
+    const cache = v.app.metadataCache.getFileCache(file);
+    await v.app.vault.process(file, () => 'Original paragraph. ^actual\n');
+    v.app.metadataCache.getFileCache = () => cache;
+    const ref = await ensureBlockId(v.app, file, 0);
+    expect(ref.blockId).toBe('actual');
+    expect(v.text('x.md')).toBe('Original paragraph. ^actual\n');
+  });
+  test('refuses a paragraph that disappeared before the write', async () => {
+    const v = fakeVault({ 'x.md': 'First.\n\nSecond.\n' });
+    const file = v.file('x.md');
+    const cache = v.app.metadataCache.getFileCache(file);
+    await v.app.vault.process(file, () => 'First.\n');
+    v.app.metadataCache.getFileCache = () => cache;
+    await expect(ensureBlockId(v.app, file, 2)).rejects.toThrow('paragraph changed');
+    expect(v.text('x.md')).toBe('First.\n');
+  });
+  test('preserves CRLF and trailing spaces while appending the ID', async () => {
+    const v = fakeVault({ 'x.md': 'Paragraph.  \r\n' });
+    const ref = await ensureBlockId(v.app, v.file('x.md'), 0);
+    expect(v.text('x.md')).toBe(`Paragraph.   ^${ref.blockId}\r\n`);
+  });
+});
