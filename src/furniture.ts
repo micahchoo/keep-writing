@@ -97,17 +97,21 @@ export function isFurniture(text: string, heading = ''): boolean {
  * field label, 39 only the bibliography heading.
  */
 export function readsAsParagraph(text: string, heading = ''): boolean {
-  if (isFurniture(text, heading)) return false;
-  return proseOf(text).split(' ').filter(Boolean).length >= MIN_PROSE_WORDS;
+  if (FURNITURE_HEADING.test(heading)) return false;
+  const prose = proseOf(text);
+  if (!prose || FIELD_LABEL.test(prose)) return false;
+  return prose.split(' ').length >= MIN_PROSE_WORDS;
 }
 
 /** The nearest heading at or above `line`, lower-cased; empty when there is none. */
 export function headingAbove(cache: CachedMetadata | null, line: number): string {
-  let found = '';
-  for (const h of cache?.headings ?? []) {
-    if (h.position.start.line > line) break;
-    found = h.heading;
+  const headings = cache?.headings ?? [];
+  let lo = 0;
+  let hi = headings.length;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (headings[mid].position.start.line <= line) lo = mid + 1;
+    else hi = mid;
   }
-  return found.toLowerCase();
+  return lo ? headings[lo - 1].heading.toLowerCase() : '';
 }
-
