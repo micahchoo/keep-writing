@@ -24,7 +24,8 @@ import { normalizePath } from 'obsidian';
 import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
 import { bankJar, drawMany, parseDue, pickOne } from './bank';
-import type { AnsweredIndex, Drawn, JarCounts } from './bank';
+import type { Drawn, JarCounts } from './bank';
+import type { AnsweredIndex } from './answered';
 import { ensureSourceBlockId } from './blocks';
 import { readBookmark, runClosing } from './closing';
 import { CRAFT, INVITATION, lensFor } from './lens';
@@ -85,6 +86,17 @@ export interface Drawing {
  * showing the 2020 prose under a question about now undoes the work.
  */
 export type Reach = 'pointed' | 'picked';
+
+/**
+ * Everything a reach decides, in one row per reach: which Lens page frames
+ * the composer, which composer, and whether the paragraph is embedded under
+ * the Ask. Three ternaries decided these separately until 2026-09-21, and a
+ * third reach would have fallen into the `picked` arm of each without a word.
+ */
+const REACHES: Record<Reach, { lens: string; composer: 'revisit' | 'invitation'; embed: boolean }> = {
+  pointed: { lens: CRAFT, composer: 'revisit', embed: true },
+  picked: { lens: INVITATION, composer: 'invitation', embed: false },
+};
 
 /** The questions bonsai composed from a paragraph, and the Lens it read through. */
 export interface RevisitOffer {
@@ -259,13 +271,13 @@ export class Interview {
    */
   async offerFrom(paragraph: Paragraph, reach: Reach): Promise<RevisitOffer> {
     const { model } = this.host;
-    const page = reach === 'pointed' ? CRAFT : INVITATION;
+    const { lens: page, composer } = REACHES[reach];
     const lens = await lensFor(this.app, page);
     const name = lens ? page : null;
     if (!model.available) return { candidates: [], lens: name, error: null };
     const asked = await this.askedAbout(paragraph);
     const composed =
-      reach === 'pointed'
+      composer === 'revisit'
         ? await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens)
         : await model.composeInvitation(paragraph.text, asked, lens);
     return { candidates: composed.questions, lens: name, error: composed.error };
@@ -318,7 +330,7 @@ export class Interview {
       return;
     }
     this.host.extraction?.assertActive();
-    const opts: AskOptions = reach === 'pointed' ? { embed: true } : {};
+    const opts: AskOptions = REACHES[reach].embed ? { embed: true } : {};
     const due = candidate.dueDays !== undefined ? parseDue(`+${candidate.dueDays}d`, new Date()) : null;
     if (due) opts.due = due;
     this.landed(sitting, await insertAsk(this.app, sitting, candidate.question, ref, opts));
@@ -334,7 +346,7 @@ export class Interview {
    * every way this can refuse, is decided here.
    *
    * **An answer already linked is not refused.** Marking it again writes
-   * nothing — `ensureBlockId` hands back the id it already has and
+   * nothing — `ensureSourceBlockId` hands back the id it already has and
    * `linkBoth` skips a link that is already there — and the Follow-ups are
    * composed afresh. That is how the owner asks for another question about an
    * answer: put the cursor in it and run this again, today or next week. It

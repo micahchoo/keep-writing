@@ -141,11 +141,11 @@ export async function blockTexts(app: App, file: TFile, budget = new WorkBudget(
     if (end < 0) { lines.push(content.slice(from)); break; }
     lines.push(content.slice(from, end));
     from = end + 1;
-    if (lines.length % 128 === 0) await budget.checkpoint();
+    await budget.step();
   }
   const out: BlockText[] = [];
   for (let i = 0; i < entries.length; i++) {
-    if (i % 128 === 0) await budget.checkpoint();
+    await budget.step();
     const [id, block] = entries[i];
     const { start, end } = block.position;
     const text = stripBlockDecoration(lines.slice(start.line, end.line + 1).join('\n'));

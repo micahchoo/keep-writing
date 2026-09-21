@@ -1,5 +1,6 @@
 // Plugin settings and the settings tab.
 
+import { BANK_SHARE } from './bank';
 import { PluginSettingTab } from 'obsidian';
 import type { App, Plugin, Setting, SettingDefinitionItem } from 'obsidian';
 
@@ -44,11 +45,16 @@ export interface KeepWritingSettings {
   starterOffered: boolean;
 }
 
+/** A share between 0 and 1, or the default for anything that is not one. Read at load and at the slider. */
+export function normalizeBankShare(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : BANK_SHARE;
+}
+
 export const DEFAULT_SETTINGS: KeepWritingSettings = {
   baseUrl: 'http://127.0.0.1:8088/v1',
   model: 'bonsai-2-27b',
   apiKey: '',
-  bankShare: 0.7,
+  bankShare: BANK_SHARE,
   maxTokens: 2048,
   enableModel: true,
   sittingsFolder: 'Sittings',
@@ -87,7 +93,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         type: 'group',
         heading: 'Vault',
         items: [
-          { name: 'Bank share', desc: 'Share of draws from the question bank: 0 means writing only, 1 means bank only. An empty jar falls back to the other.', control: { type: 'slider', key: 'bankShare', defaultValue: 0.7, min: 0, max: 1, step: 0.05 } },
+          { name: 'Bank share', desc: 'Share of draws from the question bank: 0 means writing only, 1 means bank only. An empty jar falls back to the other.', control: { type: 'slider', key: 'bankShare', defaultValue: DEFAULT_SETTINGS.bankShare, min: 0, max: 1, step: 0.05 } },
           {
             name: 'Daily notes folder',
             desc: "Where your daily notes are. Questions go into today's note.",
@@ -247,7 +253,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         s.maxTokens = typeof value === 'number' && value > 0 ? Math.floor(value) : DEFAULT_SETTINGS.maxTokens;
         break;
       case 'bankShare':
-        s.bankShare = typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0.7;
+        s.bankShare = normalizeBankShare(value);
         break;
       case 'apiKey':
         s.apiKey = text.trim();

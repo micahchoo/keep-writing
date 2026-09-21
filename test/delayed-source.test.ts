@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { Interview } from '../src/interview';
-import { AnsweredIndex } from '../src/bank';
+import { AnsweredIndex } from '../src/answered';
 import { DEFAULT_SETTINGS } from '../src/settings';
 import { createModel } from '../src/model';
 import { fakeVault } from './fake-vault';

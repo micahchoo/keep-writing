@@ -7,7 +7,7 @@
 import { describe, expect, test } from 'bun:test';
 import { parseAsks } from '../src/asks';
 import type { Ask } from '../src/asks';
-import { AnsweredIndex } from '../src/bank';
+import { AnsweredIndex } from '../src/answered';
 import type { Composed, Model, RevisitCandidate } from '../src/model';
 import { Interview, dayStamp } from '../src/interview';
 import type { InterviewHost } from '../src/interview';

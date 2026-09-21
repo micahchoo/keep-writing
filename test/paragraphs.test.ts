@@ -2,11 +2,12 @@ import { describe, expect, test } from 'bun:test';
 import {
   framingOf,
   noteFraming,
-  oneTellingEach,
+  oneTellingEachAsync,
   paragraphJar,
   sittingFraming,
   sittingName,
 } from '../src/paragraphs';
+import type { Paragraph } from '../src/paragraphs';
 import { blockTexts } from '../src/refs';
 import { fakeVault } from './fake-vault';
 
@@ -57,32 +58,32 @@ describe('oneTellingEach', () => {
       kind: 'paragraph', file: { path } as never, ref: { path }, key: `${path}#^x`,
       register: 'revisit', text, origin: 'piece', wells, framing: '', title: path, meta: [],
       line: 0, status,
-    }) as never as Parameters<typeof oneTellingEach>[0][number];
+    }) as never as Paragraph;
 
   // The real pair, 86 blocks deep, measured 2026-09-16.
   const PUB = 'Pieces/2020-03-01-carefull-collectives.md';
   const MIRROR = 'Pieces/0000-00-00-careful-collectives-micah-alex.md';
   const TEXT = 'In Bidar, there is a community called the Valmiki Samaj who had been doing this for years.';
 
-  test('two tellings of one paragraph become one, and the finished telling is kept', () => {
-    const out = oneTellingEach([para(MIRROR, TEXT, 'set-down', ['me']), para(PUB, TEXT, 'published', ['Cities'])]);
+  test('two tellings of one paragraph become one, and the finished telling is kept', async () => {
+    const out = await oneTellingEachAsync([para(MIRROR, TEXT, 'set-down', ['me']), para(PUB, TEXT, 'published', ['Cities'])]);
     expect(out.length).toBe(1);
     expect(out[0]!.file.path).toBe(PUB);
   });
 
-  test('order does not decide the winner, so the draw cannot shift between runs', () => {
-    const a = oneTellingEach([para(MIRROR, TEXT, 'set-down', []), para(PUB, TEXT, 'published', [])]);
-    const b = oneTellingEach([para(PUB, TEXT, 'published', []), para(MIRROR, TEXT, 'set-down', [])]);
+  test('order does not decide the winner, so the draw cannot shift between runs', async () => {
+    const a = await oneTellingEachAsync([para(MIRROR, TEXT, 'set-down', []), para(PUB, TEXT, 'published', [])]);
+    const b = await oneTellingEachAsync([para(PUB, TEXT, 'published', []), para(MIRROR, TEXT, 'set-down', [])]);
     expect(a[0]!.file.path).toBe(b[0]!.file.path);
   });
 
-  test('two set-down tellings tie-break on path, never at random', () => {
-    const out = oneTellingEach([para('Pieces/z.md', TEXT, 'set-down', []), para('Pieces/a.md', TEXT, 'set-down', [])]);
+  test('two set-down tellings tie-break on path, never at random', async () => {
+    const out = await oneTellingEachAsync([para('Pieces/z.md', TEXT, 'set-down', []), para('Pieces/a.md', TEXT, 'set-down', [])]);
     expect(out[0]!.file.path).toBe('Pieces/a.md');
   });
 
-  test('different paragraphs are all kept, in the order they came', () => {
-    const out = oneTellingEach([para(PUB, 'one paragraph', 'published', []), para(PUB, 'another paragraph', 'published', [])]);
+  test('different paragraphs are all kept, in the order they came', async () => {
+    const out = await oneTellingEachAsync([para(PUB, 'one paragraph', 'published', []), para(PUB, 'another paragraph', 'published', [])]);
     expect(out.map((p) => p.text)).toEqual(['one paragraph', 'another paragraph']);
   });
 });

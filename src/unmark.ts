@@ -1,5 +1,7 @@
 import type { App, TFile } from 'obsidian';
 import { parseAsks } from './asks';
+import { NEXT } from './closing';
+import { ANSWERED_BY, ANSWERS } from './links';
 import { keyOfRef, parseRef, refOf } from './refs';
 import type { Ref } from './refs';
 
@@ -38,9 +40,9 @@ export async function unmarkAt(app: App, file: TFile, line: number): Promise<str
     const cache = app.metadataCache.getFileCache(target);
     if (cache?.links?.some(link => { const ref = parseRef(link.link); return ref && keyOfRef(app, ref, target.path) === answerKey; })) citations++;
     const contains = (value: unknown) => (Array.isArray(value) ? value : [value]).some(item => matches(item, answer, target.path));
-    if (target.path === app.metadataCache.getFirstLinkpathDest(source.path, file.path)?.path && contains(cache?.frontmatter?.['answered-by'])) await remove(target, 'answered-by', answer);
-    if (contains(cache?.frontmatter?.next)) await remove(target, 'next', answer);
+    if (target.path === app.metadataCache.getFirstLinkpathDest(source.path, file.path)?.path && contains(cache?.frontmatter?.[ANSWERED_BY])) await remove(target, ANSWERED_BY, answer);
+    if (contains(cache?.frontmatter?.[NEXT])) await remove(target, NEXT, answer);
   }
-  await remove(file, 'answers', source);
+  await remove(file, ANSWERS, source);
   return `Answer unmarked. Block ID and register tags kept.${citations ? ` ${citations} note(s) still cite this answer; their follow-ups and links were kept.` : ''}`;
 }

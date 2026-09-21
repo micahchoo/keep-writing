@@ -10,7 +10,6 @@ test('unmark removes only its relation, retains IDs, and conditionally clears bo
     'me.md': '---\nnext: "[[Sittings/day#^a1]]"\n---',
     'other.md': '---\nnext: "[[Sittings/other#^a2]]"\n---',
   });
-  v.app.vault.read = v.app.vault.cachedRead;
   const line = v.text('Sittings/day.md').split('\n').findIndex(line => line.includes('The answer'));
   expect(await unmarkAt(v.app, v.file('Sittings/day.md'), line)).toContain('unmarked');
   expect(v.text('Sittings/day.md')).toContain('^a1');
@@ -21,7 +20,6 @@ test('unmark removes only its relation, retains IDs, and conditionally clears bo
 });
 test('ambiguous shared answer properties refuse without writing', async () => {
   const v = fakeVault({ 'Sittings/day.md': answer + '\n\n' + answer, 'Pieces/a.md': 'Source text. ^p' });
-  v.app.vault.read = v.app.vault.cachedRead;
   expect(await unmarkAt(v.app, v.file('Sittings/day.md'), 3)).toContain('shared');
   expect(v.writes).toEqual([]);
 });

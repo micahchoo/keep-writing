@@ -1,7 +1,7 @@
 import { describe, expect, test, spyOn } from 'bun:test';
 import { ExtractionCache } from '../src/extraction-cache';
 import { markAnswered, parseAsks } from '../src/asks';
-import { AnsweredIndex } from '../src/bank';
+import { AnsweredIndex } from '../src/answered';
 import KeepWritingPlugin from '../src/main';
 import { ChoiceModal } from '../src/modals';
 import { selectionParagraph } from '../src/selection';

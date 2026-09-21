@@ -1,4 +1,5 @@
-import { fillJars, AnsweredIndex, drawMany } from '../src/bank';
+import { AnsweredIndex } from '../src/answered';
+import { fillJars, drawMany } from '../src/bank';
 import { ExtractionCache } from '../src/extraction-cache';
 import { paragraphJar } from '../src/paragraphs';
 import { fakeVault } from '../test/fake-vault';

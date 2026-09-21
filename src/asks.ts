@@ -158,7 +158,7 @@ export function questionsAbout(
  * property.
  *
  * That is narrower than the canon — "a source is answered when any block
- * carries an `answers` link to it", which is what `bank.ts#AnsweredIndex`
+ * carries an `answers` link to it", which is what `answered.ts#AnsweredIndex`
  * reads — and it is deliberate. An answer to an Ask lands in the Sitting that
  * holds the Ask, so the two readings agree; widening this one would mean a
  * vault scan on every keystroke in a Sitting, for a case that cannot arise.

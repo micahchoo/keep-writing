@@ -23,7 +23,7 @@
 // felt like a basemap).
 
 import type { App, TFile } from 'obsidian';
-import { paragraphAt } from './blocks';
+import { blockAt } from './blocks';
 import { proseOf } from './furniture';
 import { fileFacts, paragraphOf } from './paragraphs';
 import { Refused } from './refusal';
@@ -62,7 +62,7 @@ export function selectionParagraph(
     throw new NotSelectable(`That selection is ${text.length} characters. Select fewer than ${MAX_SELECTION}.`);
   }
   const facts = fileFacts(app, file, sittingsFolder);
-  const block = paragraphAt(app.metadataCache.getFileCache(file), line);
+  const block = blockAt(app.metadataCache.getFileCache(file), line);
   if (!block) throw new NotSelectable('Select inside a paragraph or a list item.');
   // The text is the SELECTION; the ref, the key and the line are the whole
   // block that holds it. Everything else a paragraph carries is the note's.

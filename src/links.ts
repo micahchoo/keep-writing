@@ -39,7 +39,7 @@ export const REGISTERS = 'registers';
 /**
  * The source keys one note says it `answers`, resolved.
  *
- * Two modules read it at two scopes, on purpose — `bank.ts#AnsweredIndex`
+ * Two modules read it at two scopes, on purpose — `answered.ts#AnsweredIndex`
  * unions it over the whole vault, which is the canon's rule ("a source is
  * answered when any block carries an `answers` link to it"), and
  * `asks.ts#asksOf` takes one Sitting's own, because an answer lands in the

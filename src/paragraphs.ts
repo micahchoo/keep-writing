@@ -57,7 +57,7 @@ export interface Paragraph {
   title: string;
   /** Meta parts after the title on the pane's framing line: date, publisher, `set down`. */
   meta: string[];
-  /** First line of the paragraph, 0-based: what ensureBlockId needs when there is no id yet. */
+  /** First line of the paragraph, 0-based: what ensureSourceBlockId needs when there is no id yet. */
   line: number;
   /** Exact selected words and, when available, their original editor block. */
   selectionSnapshot?: { selected: string; block?: string; anchorFirst?: boolean };
@@ -243,9 +243,9 @@ export interface ParagraphBlock {
  * (`facts`) and what this block is.
  *
  * The key is the one thing every path here must agree on, because
- * answered-ness is keyed by it (bank.ts#AnsweredIndex): a block with an id is
+ * answered-ness is keyed by it (answered.ts#AnsweredIndex): a block with an id is
  * addressed by the id, one without is addressed by its line and gets a real
- * id when the Ask is accepted (blocks.ts#ensureBlockId). Before 2026-09-17
+ * id when the Ask is accepted (blocks.ts#ensureSourceBlockId). Before 2026-09-17
  * this literal was written in four places — the two block shelves, the Well
  * body shelf, and a Selection in another module — and two of them spelled the
  * key without the branch.
@@ -287,40 +287,10 @@ async function blockParagraphs(app: App, file: TFile, facts: ParagraphFacts, bud
   const blocks = await blockTexts(app, file, budget);
   const result: Paragraph[] = [];
   for (let i = 0; i < blocks.length; i++) {
-    if (i % 128 === 0) await budget.checkpoint();
+    await budget.step();
     result.push(paragraphOf(file, facts, blocks[i]));
   }
   return result;
-}
-
-/**
- * Pure: one paragraph per distinct text. The corpus keeps every telling of a
- * Piece (CONTEXT.md, "Piece"), so the same words reach the jar under two
- * refs: 186 of 722 Piece paragraphs on 2026-09-16, 86 of them from a single
- * pair of tellings. To the draw two tellings are one paragraph. Left alone
- * they carry double weight, and because answered-ness is keyed by ref
- * (bank.ts#AnsweredIndex), answering one telling never retires the other, so
- * the owner can be asked about the same words twice.
- *
- * The telling kept is the finished one (published over set-down), then the
- * shortest path, so the choice cannot move between runs.
- */
-export function oneTellingEach(paragraphs: Paragraph[]): Paragraph[] {
-  const best = new Map<string, Paragraph>();
-  const order: string[] = [];
-  const rank = (p: Paragraph) => (p.status === 'published' ? 0 : 1);
-  for (const p of paragraphs) {
-    const seen = best.get(p.text);
-    if (!seen) {
-      best.set(p.text, p);
-      order.push(p.text);
-      continue;
-    }
-    const winner =
-      rank(p) < rank(seen) || (rank(p) === rank(seen) && p.file.path < seen.file.path) ? p : seen;
-    best.set(p.text, winner);
-  }
-  return order.map((t) => best.get(t) as Paragraph);
 }
 
 /**
@@ -338,9 +308,8 @@ export async function paragraphJar(
   budget = new WorkBudget(),
 ): Promise<Paragraph[]> {
   const jar: Paragraph[] = [];
-  let files = 0;
   for (const file of target ? [target] : app.vault.getMarkdownFiles()) {
-    if (++files % 128 === 0) await budget.checkpoint();
+    await budget.step();
     extraction?.assertActive();
     if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
     const extract = async () => {
@@ -348,7 +317,7 @@ export async function paragraphJar(
       const paragraphs: Paragraph[] = [];
       const metadata = app.metadataCache.getFileCache(file);
       for (let i = 0; i < blocks.length; i++) {
-        if (i % 128 === 0) await budget.checkpoint();
+        await budget.step();
         extraction?.assertActive();
         const paragraph = blocks[i];
         if (readsAsParagraph(paragraph.text, headingAbove(metadata, paragraph.line))) paragraphs.push(paragraph);
@@ -364,12 +333,24 @@ export async function paragraphJar(
   return oneTellingEachAsync(jar, budget);
 }
 
-/** Keep duplicate selection cooperative when a jar contains hundreds of thousands of blocks. */
+/**
+ * One paragraph per distinct text. The corpus keeps every telling of a
+ * Piece (CONTEXT.md, "Piece"), so the same words reach the jar under two
+ * refs: 186 of 722 Piece paragraphs on 2026-09-16, 86 of them from a single
+ * pair of tellings. To the draw two tellings are one paragraph. Left alone
+ * they carry double weight, and because answered-ness is keyed by ref
+ * (answered.ts#AnsweredIndex), answering one telling never retires the other,
+ * so the owner can be asked about the same words twice.
+ *
+ * The telling kept is the finished one (published over set-down), then the
+ * shortest path, so the choice cannot move between runs. Cooperative, because
+ * a jar can hold hundreds of thousands of blocks. One implementation: a
+ * synchronous twin carried the tests and had no caller until 2026-09-21.
+ */
 export async function oneTellingEachAsync(paragraphs: Iterable<Paragraph>, budget = new WorkBudget()): Promise<Paragraph[]> {
   const best = new Map<string, Paragraph>();
-  let count = 0;
   for (const paragraph of paragraphs) {
-    if (++count % 128 === 0) await budget.checkpoint();
+    await budget.step();
     const seen = best.get(paragraph.text);
     if (!seen || (paragraph.status === 'published' && seen.status !== 'published') ||
         ((paragraph.status === 'published') === (seen.status === 'published') && paragraph.file.path < seen.file.path)) {
@@ -378,7 +359,7 @@ export async function oneTellingEachAsync(paragraphs: Iterable<Paragraph>, budge
   }
   const result: Paragraph[] = [];
   for (const paragraph of best.values()) {
-    if (result.length % 128 === 0) await budget.checkpoint();
+    await budget.step();
     result.push(paragraph);
   }
   return result;

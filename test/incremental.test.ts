@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
-import { AnsweredIndex, pickFromJars } from '../src/bank';
+import { AnsweredIndex } from '../src/answered';
+import { pickFromJars } from '../src/bank';
 import { fakeVault } from './fake-vault';
 
 test('draw index reads changed files only, retains other answer owners, and removes deleted rows', async () => {

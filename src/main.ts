@@ -1,5 +1,4 @@
-import { readOffer } from './recovery';
-import type { FollowUpOffer } from './recovery';
+import { NO_SAVED_OFFER, SavedOffer, offerSitting, readOffer } from './saved-offer';
 import { unmarkAt } from './unmark';
 // keep-writing: the vault interviews its owner. See CONTEXT.md.
 //
@@ -14,7 +13,7 @@ import { unmarkAt } from './unmark';
 
 import { MarkdownView, Notice, Platform, Plugin, TFile } from 'obsidian';
 import type { App, Menu } from 'obsidian';
-import { AnsweredIndex } from './bank';
+import { AnsweredIndex } from './answered';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
 import type { Reach } from './interview';
@@ -26,7 +25,7 @@ import type { Choice } from './modals';
 import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
 import { modelFailureLine } from './refusal';
-import { DEFAULT_SETTINGS, KeepWritingSettingTab } from './settings';
+import { DEFAULT_SETTINGS, KeepWritingSettingTab, normalizeBankShare } from './settings';
 import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
 import { isSitting } from './target';
@@ -62,8 +61,8 @@ const SECTION = 'keep-writing';
 export default class KeepWritingPlugin extends Plugin {
   override settings: KeepWritingSettings = { ...DEFAULT_SETTINGS };
   index!: AnsweredIndex;
-  private acceptingOffer = false;
-  private followUpOffer: FollowUpOffer | null = null;
+  /** The Follow-ups the owner can come back to. Its rules are its own; this plugin persists it. */
+  offers!: SavedOffer;
   private indexTimer?: number;
   model!: Model;
   interview!: Interview;
@@ -234,7 +233,7 @@ export default class KeepWritingPlugin extends Plugin {
     const actions: Choice<() => void>[] = [
       { value: () => this.run(() => this.drawQuestion()), title: DRAW, note: 'Three to pick from. Escape writes nothing.' },
     ];
-    if (this.followUpOffer?.questions.length) actions.push({ title: REOPEN, value: () => this.reopenFollowUps() });
+    if (this.offers.current?.questions.length) actions.push({ title: REOPEN, value: () => this.reopenFollowUps() });
     if (view && selected.trim()) {
       actions.push({
         value: () => this.run(() => this.askAboutSelection(view, selected, from)),
@@ -400,8 +399,7 @@ export default class KeepWritingPlugin extends Plugin {
       );
       return;
     }
-    this.followUpOffer = { sitting: file.path, ref: answered.ref, questions: answered.questions };
-    try { await this.persistSettings(); }
+    try { await this.offers.replace({ sitting: file.path, ref: answered.ref, questions: answered.questions }); }
     catch (error) { new Notice(`Follow-ups are kept for this session only: ${error instanceof Error ? error.message : String(error)}`); }
     this.reopenFollowUps();
   }
@@ -441,21 +439,15 @@ export default class KeepWritingPlugin extends Plugin {
     catch (error) { new Notice(error instanceof Error ? error.message : String(error)); }
   }
 
+  /** The chooser over the saved offer. Which question may be accepted, and when, is `SavedOffer`'s. */
   private reopenFollowUps(): void {
     if (this.extraction?.isDisposed) return;
-    const offer = this.followUpOffer;
-    if (!offer || !offer.questions.length) { new Notice('No saved follow-ups. Mark an answer done to compose some.'); return; }
-    const file = this.app.vault.getFileByPath(offer.sitting);
-    const source = this.app.metadataCache.getFirstLinkpathDest(offer.ref.path, offer.sitting);
-    if (!file || !source || !offer.ref.blockId || !this.app.metadataCache.getFileCache(source)?.blocks?.[offer.ref.blockId]) { new Notice('The saved offer’s source is missing or still indexing. No question was inserted.'); return; }
+    const offer = this.offers.current;
+    if (!offer?.questions.length) { new Notice(NO_SAVED_OFFER); return; }
+    const sitting = offerSitting(this.app, offer);
+    if (typeof sitting === 'string') { new Notice(sitting); return; }
     choose(this.app, offer.questions.map(question => ({ value: question, title: question })), 'Saved follow-ups · reopen from the command palette', question => {
-      if (this.extraction?.isDisposed || this.acceptingOffer || this.followUpOffer !== offer || !offer.questions.includes(question)) return;
-      this.acceptingOffer = true;
-      void this.interview.acceptFollowUp(file, question, offer.ref).then(async () => {
-        if (this.extraction?.isDisposed || this.followUpOffer !== offer) return;
-        this.followUpOffer = { ...offer, questions: offer.questions.filter(value => value !== question) };
-        await this.persistSettings();
-      }).catch(error => new Notice(String(error))).finally(() => { this.acceptingOffer = false; });
+      this.run(() => this.offers.accept(offer, question, () => this.interview.acceptFollowUp(sitting, question, offer.ref)));
     });
   }
 
@@ -475,18 +467,18 @@ export default class KeepWritingPlugin extends Plugin {
     const loaded: unknown = await this.loadData();
     const data = loaded && typeof loaded === 'object' ? loaded as Partial<KeepWritingSettings> & { followUpOffer?: unknown } : {};
     this.settings = { ...DEFAULT_SETTINGS, ...data };
-    this.followUpOffer = readOffer(data.followUpOffer);
+    this.offers = new SavedOffer(readOffer(data.followUpOffer), () => this.persistSettings());
     const secret = this.app.secretStorage.getSecret('keep-writing-api-key');
     const legacy = typeof data.apiKey === 'string' ? data.apiKey : '';
     if (!secret && legacy) this.app.secretStorage.setSecret('keep-writing-api-key', legacy);
     this.settings.apiKey = this.app.secretStorage.getSecret('keep-writing-api-key') ?? '';
     if (legacy && !secret && this.settings.apiKey !== legacy) throw new Error('API key migration failed. The existing settings were preserved.');
-    this.settings.bankShare = typeof data.bankShare === 'number' && Number.isFinite(data.bankShare) ? Math.max(0, Math.min(1, data.bankShare)) : 0.7;
+    this.settings.bankShare = normalizeBankShare(data.bankShare);
     if ('apiKey' in data) await this.persistSettings();
   }
   private async persistSettings(): Promise<void> {
     const { apiKey: _apiKey, ...settings } = this.settings;
-    await this.saveData({ ...settings, followUpOffer: this.followUpOffer });
+    await this.saveData({ ...settings, followUpOffer: this.offers.current });
   }
   async saveSettings(): Promise<void> {
     this.app.secretStorage.setSecret('keep-writing-api-key', this.settings.apiKey);
@@ -498,7 +490,7 @@ export default class KeepWritingPlugin extends Plugin {
 }
 
 /** Pure: one drawn source as a row — what it says, and where it comes from. */
-export function drawnChoice(drawn: Drawn): Choice<Drawn> {
+function drawnChoice(drawn: Drawn): Choice<Drawn> {
   if (drawn.source.kind === 'question') {
     const parts = [drawn.source.register, formatRef(drawn.source.ref)];
     if (drawn.due) parts.push(`due ${drawn.due}`);
@@ -510,7 +502,7 @@ export function drawnChoice(drawn: Drawn): Choice<Drawn> {
 }
 
 /** Pure: one composed question as a row, with its due marker when it has one. */
-export function revisitChoice(candidate: RevisitCandidate): Choice<RevisitCandidate> {
+function revisitChoice(candidate: RevisitCandidate): Choice<RevisitCandidate> {
   const row: Choice<RevisitCandidate> = { value: candidate, title: candidate.question };
   if (candidate.dueDays !== undefined) row.note = `due in ${candidate.dueDays} days`;
   return row;

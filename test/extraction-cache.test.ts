@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { ExtractionCache } from '../src/extraction-cache';
-import { AnsweredIndex, fillJars } from '../src/bank';
+import { AnsweredIndex } from '../src/answered';
+import { fillJars } from '../src/bank';
 import { fakeVault } from './fake-vault';
 import { headingAbove } from '../src/furniture';
 

@@ -5,14 +5,15 @@
 // shortcodes, figure captions, project-sheet fields and bibliography entries
 // beside the writing. These are the tests that tell one from the other.
 //
-// Three paths take them differently, and the difference is the word floor:
+// Two paths take them differently, and the difference is the word floor:
 //
 // - the DRAW (paragraphs.ts) takes `readsAsParagraph`: furniture AND the floor;
 // - a SELECTION (selection.ts) takes `proseOf` alone, refusing only a run of
-//   text with no prose in it at all, because what the owner points at they meant;
-// - the PROPOSAL POOL (pool.ts) takes `isFurniture` without the floor, because
-//   it is not choosing what to put in front of the owner: it holds what a later
-//   answer might echo, and a short answer is echoable.
+//   text with no prose in it at all, because what the owner points at they meant.
+//
+// A third, the Proposal pool, took the furniture test without the floor until
+// the pool went on 2026-09-17; `isFurniture` outlived it with no caller until
+// 2026-09-21.
 //
 // Nothing here reads the vault. `headingAbove` takes a cache the caller already has.
 
@@ -65,32 +66,12 @@ export function proseOf(text: string): string {
 }
 
 /**
- * Pure: is this block Furniture — something carrying a block id that the
- * owner did not write as prose? `heading` is the nearest heading above it,
- * empty when there is none. Three species: nothing but markup, a caption or
- * field label, and apparatus sitting under a bibliography.
- *
- * This is the test that holds wherever the owner's own words are wanted. It
- * carries no length rule, because length is not what makes something
- * furniture: "Who gets to hold memory, and on whose terms?" is nine words and
- * is entirely the owner's.
- */
-export function isFurniture(text: string, heading = ''): boolean {
-  if (FURNITURE_HEADING.test(heading)) return true;
-  const prose = proseOf(text);
-  if (!prose) return true;
-  return FIELD_LABEL.test(prose);
-}
-
-/**
  * Pure: may the DRAW put this block in front of the owner? Not furniture, and
  * over the word floor.
  *
  * The floor belongs to the draw alone — it is choosing unattended among a
- * thousand blocks, and pays for that with some real short lines. The other
- * two paths take the furniture test without it: a Selection, because what the
- * owner points at they meant, and the Proposal pool (pool.ts), because a
- * short answer can still be the thing a later answer echoes.
+ * thousand blocks, and pays for that with some real short lines. A Selection
+ * takes the prose test without it, because what the owner points at they meant.
  *
  * Counted over `Pieces/` on 2026-09-15, each rule catches a species the
  * others miss: 126 blocks only the floor rejects, 33 only the caption or

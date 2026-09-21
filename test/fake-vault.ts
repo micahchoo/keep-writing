@@ -6,7 +6,8 @@
 // It is an adapter for Obsidian's `App`, and it covers both halves of what the
 // plugin does through that seam: the reads, and the whole write surface —
 // `vault.process` (a block id), `fileManager.processFrontMatter` (every typed
-// Link, and the Bookmark's `next`) and `vault.create` (today's Sitting). Every
+// Link, and the Bookmark's `next`) and `vault.create` (today's Sitting), plus
+// `vault.read`, which unmark.ts wants uncached. Every
 // write is recorded in `writes`. Before 2026-09-16 the frontmatter write was
 // missing, and `src/links.ts` — 220 lines carrying "every relation is written
 // on both ends" — could not be reached by a test at all.
@@ -183,6 +184,11 @@ export function fakeVault(notes: Record<string, string>, hooks: VaultHooks = {})
     vault: {
       getMarkdownFiles: () => files,
       cachedRead: async (f: TFile) => {
+        await hooks.beforeRead?.(f.path);
+        return bodies.get(f.path) ?? '';
+      },
+      // The uncached read is the same text here: nothing in this vault lags its cache.
+      read: async (f: TFile) => {
         await hooks.beforeRead?.(f.path);
         return bodies.get(f.path) ?? '';
       },

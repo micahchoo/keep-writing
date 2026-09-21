@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import KeepWritingPlugin from '../src/main';
-import { readOffer } from '../src/recovery';
+import { readOffer } from '../src/saved-offer';
 function host(data: unknown, initial?: string, fail = false) {
   let secret = initial;
   const writes: unknown[] = [];

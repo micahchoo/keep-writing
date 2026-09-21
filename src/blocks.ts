@@ -1,7 +1,11 @@
 // The one permitted body edit: append ` ^id` to the last line of a paragraph.
 // Never changes an existing character.
+//
+// One writer. There were two until 2026-09-21: `ensureBlockId(app, file, line)`
+// carried the tests and had no caller; `ensureSourceBlockId` shipped and had
+// none. The tests measured the twin that did not ship.
 
-import type { App, CachedMetadata, TFile } from 'obsidian';
+import type { App, CachedMetadata } from 'obsidian';
 import { Refused } from './refusal';
 import { newBlockId, refOf, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
@@ -20,14 +24,14 @@ export async function ensureSourceBlockId(
   const snapshot = source.selectionSnapshot;
   const needle = snapshot?.selected ?? source.text;
   // IDs disambiguate drawn blocks. Unanchored selections require unique text.
-  let para: Paragraph | null;
+  let para: BlockSpan | null;
   if (source.ref.blockId) {
     const block = cache?.blocks?.[source.ref.blockId];
-    para = block ? paragraphAt(cache, block.position.start.line) : null;
+    para = block ? blockAt(cache, block.position.start.line) : null;
   } else {
     const at = content.indexOf(needle);
     if (at < 0 || content.indexOf(needle, at + 1) >= 0) throw changed();
-    para = paragraphAt(cache, content.slice(0, at).split('\n').length - 1);
+    para = blockAt(cache, content.slice(0, at).split('\n').length - 1);
   }
   if (!para || !ID_INLINE_TYPES.has(para.type)) throw changed();
   const raw = lines.slice(para.start, para.end + 1).join('\n');
@@ -40,6 +44,8 @@ export async function ensureSourceBlockId(
   const present = /\s\^([A-Za-z0-9-]+)\s*$/.exec(raw)?.[1];
   if (source.ref.blockId && present !== source.ref.blockId) throw changed();
   const id = present ?? newBlockId(cache);
+  // An id already there and nothing to check inside the write: no write at all.
+  if (present && !validate) return refOf(source.file, id);
   await app.vault.process(source.file, (data) => {
     if (data !== content) throw changed();
     if (validate && !validate(data, para.start)) throw changed();
@@ -56,7 +62,8 @@ export async function ensureSourceBlockId(
 /** Section types where an inline ` ^id` on the last line is valid markdown. */
 const ID_INLINE_TYPES = new Set(['paragraph', 'list', 'heading']);
 
-export interface Paragraph {
+/** The lines one block spans, from the metadata cache. Not paragraphs.ts#Paragraph, which is what the draw offers. */
+export interface BlockSpan {
   /** First line of the paragraph (0-based). */
   start: number;
   /** Last line of the paragraph (0-based, inclusive). */
@@ -65,8 +72,8 @@ export interface Paragraph {
   type: string;
 }
 
-/** The paragraph (section, or list item inside a list) that contains `line`. */
-export function paragraphAt(cache: CachedMetadata | null, line: number): Paragraph | null {
+/** The block (section, or list item inside a list) that contains `line`. */
+export function blockAt(cache: CachedMetadata | null, line: number): BlockSpan | null {
   const section = cache?.sections?.find(
     (s) => s.position.start.line <= line && line <= s.position.end.line,
   );
@@ -96,34 +103,3 @@ export function paragraphAt(cache: CachedMetadata | null, line: number): Paragra
 
 /** The cursor is not in something that can carry an inline block id. */
 export class NotAParagraph extends Refused {}
-
-/**
- * Give the paragraph containing `line` a block id if it has none, and return
- * a ref to it. Throws NotAParagraph if the line is not inside a paragraph,
- * list item or heading.
- */
-export async function ensureBlockId(app: App, file: TFile, line: number): Promise<Ref> {
-  const cache = app.metadataCache.getFileCache(file);
-  const para = paragraphAt(cache, line);
-  if (!para || !ID_INLINE_TYPES.has(para.type)) {
-    throw new NotAParagraph('Put the cursor in a paragraph, list item or heading.');
-  }
-  if (para.id) return refOf(file, para.id);
-
-  let id = newBlockId(cache);
-  await app.vault.process(file, (data) => {
-    const lines = data.split('\n');
-    const last = lines[para.end];
-    if (last === undefined || !last.trim()) {
-      throw new NotAParagraph('The paragraph changed. Put the cursor in it and try again.');
-    }
-    // Guard: the cache may lag the file. Only append if no id is there yet.
-    const existing = /\s\^([A-Za-z0-9-]+)\s*$/.exec(last);
-    if (existing) { id = existing[1]; return data; }
-    // Insert before CR in CRLF notes; preserve every existing space and character.
-    const cr = last.endsWith('\r') ? '\r' : '';
-    lines[para.end] = (cr ? last.slice(0, -1) : last) + ` ^${id}` + cr;
-    return lines.join('\n');
-  });
-  return refOf(file, id);
-}

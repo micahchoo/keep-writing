@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { AnsweredIndex, fillJars, jarCounts } from '../src/bank';
+import { AnsweredIndex } from '../src/answered';
+import { fillJars, jarCounts } from '../src/bank';
 import type { DrawContext } from '../src/bank';
 import { readTarget } from '../src/target';
 import { fakeVault } from './fake-vault';

@@ -3,7 +3,7 @@
 // differently — see CONTEXT.md, "Furniture".
 
 import { describe, expect, test } from 'bun:test';
-import { headingAbove, isFurniture, proseOf, readsAsParagraph } from '../src/furniture';
+import { headingAbove, proseOf, readsAsParagraph } from '../src/furniture';
 import { fakeVault } from './fake-vault';
 
 describe('proseOf', () => {
@@ -59,16 +59,16 @@ describe('readsAsParagraph', () => {
   });
 });
 
-describe('isFurniture vs readsAsParagraph', () => {
+describe('the floor and furniture', () => {
   const own = 'Who gets to hold memory, and on whose terms?';
-  test('the floor separates them: the draw refuses this line, everything else keeps it', () => {
-    expect(isFurniture(own)).toBe(false);
+  test('the floor: nine of the owner’s own words are prose, and the draw still refuses them', () => {
+    expect(proseOf(own)).toBe(own);
     expect(readsAsParagraph(own)).toBe(false);
   });
-  test('furniture fails both, whatever its length', () => {
-    expect(isFurniture('{{< /card >}}')).toBe(true);
-    expect(isFurniture('Fig 13: I helped the Sukhibhava team make this poster which was then translated')).toBe(true);
-    expect(isFurniture('Ahmed, Sara. Fragile Connections. Durham: Duke University Press.', 'bibliography')).toBe(true);
+  test('furniture is refused whatever its length', () => {
+    expect(readsAsParagraph('{{< /card >}}')).toBe(false);
+    expect(readsAsParagraph('Fig 13: I helped the Sukhibhava team make this poster which was then translated into three languages for the campaign')).toBe(false);
+    expect(readsAsParagraph('Ahmed, Sara. Fragile Connections. Durham: Duke University Press, two thousand and seventeen, second edition.', 'bibliography')).toBe(false);
   });
 });
 
