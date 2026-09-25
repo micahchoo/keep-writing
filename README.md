@@ -4,7 +4,7 @@ A vault that interviews you, so that you keep writing.
 
 A blank page stops you; a question doesn't. keep-writing puts one into your daily note in [Obsidian](https://obsidian.md), you answer it in your own words, and the next questions come out of what you already wrote — so it never runs out.
 
-![Three steps in a daily note: choosing "Mark this answer done" from the right-click menu; the answer gaining a link to the question it answers and the kind of question it was; then a follow-up question, composed from that answer, written in and answered.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/loop.gif)
+![In a daily note, an answer is written under a question; "Mark this answer done, and follow up" is chosen from the right-click menu; the answer gains a block id and a link to the question it answers; the model offers three follow-up questions from what was written, and the chosen one lands below the answer.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/loop.gif)
 
 > **In the community store, and early.** Search community plugins for **keep-writing**. Needs **Obsidian 1.13 or newer**. Questions built from your own writing need a model endpoint; everything else works without one.
 
@@ -54,7 +54,9 @@ On the editor's right-click menu under **keep-writing**, and in the command pale
 | **Install the starter question bank** | Writes the question notes into your bank folder. Skips anything already there. |
 | **Graduate threads to pieces** | In a daily note, turns a question and its follow-ups into a piece of writing of its own: your words moved as written, the questions as headings. |
 
-![Obsidian's right-click menu with a keep-writing submenu open, holding Draw a question and Mark this answer done.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/menu.png)
+![Graduating a daily note's thread: "Graduate threads to pieces" from the right-click menu; a form with three lines on what the thread is about, a title typed in, and suggested headings filled in; then the new piece, with its title, date, headings and the answers as they were written.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/graduate.gif)
+
+![Obsidian's right-click menu with a keep-writing submenu open, holding Draw a question, Mark this answer done, and Graduate threads to pieces.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/menu.png)
 
 ## On a phone
 
@@ -76,7 +78,7 @@ Findable from Obsidian's own settings search: type "bank folder" or "endpoint" a
 | **Reply budget** | Raise it if you get no questions and no error. Default `2048`. |
 | **API key** | Only if your server needs one. Saved in Obsidian secret storage on this device; existing plaintext settings migrate automatically. |
 
-![The plugin's settings, in two groups. Vault: daily notes folder, question bank folder, and the folders it may read your writing from. Model: a switch, the endpoint, the model name, the reply budget and an API key.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/settings.png)
+![The plugin's settings, in two groups. Vault: the bank share, the daily notes and question bank folders chosen from dropdowns, and the folders it reads your writing from, with an Add a folder dropdown. Model: a switch, the endpoint, the model name, the reply budget and an API key.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/settings.png)
 
 **Nothing you write leaves your computer** unless you point the endpoint somewhere else. That is the whole of what changes.
 

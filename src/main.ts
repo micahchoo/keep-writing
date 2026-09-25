@@ -24,7 +24,7 @@ import { sittingName } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
 import { modelFailureLine, refusalLine } from './refusal';
-import { DEFAULT_SETTINGS, KeepWritingSettingTab, normalizeBankShare, readFolders } from './settings';
+import { DEFAULT_SETTINGS, KeepWritingSettingTab, keepFoldersFresh, normalizeBankShare, readFolders } from './settings';
 import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
 import { isSitting } from './target';
@@ -168,7 +168,9 @@ export default class KeepWritingPlugin extends Plugin {
         addMenuActions(menu, actions, Platform.isMobile);
       }),
     );
-    this.addSettingTab(new KeepWritingSettingTab(this.app, this));
+    const settingsTab = new KeepWritingSettingTab(this.app, this);
+    this.addSettingTab(settingsTab);
+    keepFoldersFresh(this.app, settingsTab, (ref) => this.registerEvent(ref));
   }
 
   // -------------------------------------------------------------------------

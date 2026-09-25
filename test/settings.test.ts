@@ -7,7 +7,8 @@
 // textarea, or by hand in data.json. It is cleaned when it is read.
 
 import { describe, expect, test } from 'bun:test';
-import { folderOptions, isEndpoint, readFolders, withFolder, withoutFolder } from '../src/settings';
+import { TFile, TFolder } from 'obsidian';
+import { folderOptions, keepFoldersFresh, isEndpoint, readFolders, withFolder, withoutFolder } from '../src/settings';
 
 describe('readFolders', () => {
   test('a stored list, as it is', () => {
@@ -63,5 +64,41 @@ describe('isEndpoint', () => {
     expect(isEndpoint('127.0.0.1:8088')).toBe(false); // no scheme at all
     expect(isEndpoint('file:///etc/passwd')).toBe(false); // parses, but not something to POST to
     expect(isEndpoint('not a url')).toBe(false);
+  });
+});
+
+// Obsidian reads getSettingDefinitions() when the tab is ADDED — at plugin
+// load, before the vault is indexed — and draws that copy on every open; a
+// display() override is bypassed in 1.13. So the folder dropdowns offered
+// nothing but their current value after every restart, measured 2026-09-24
+// in a running 1.13.7: one option, three after update().
+describe('the folder options stay fresh', () => {
+  function wire() {
+    const handlers: Record<string, (f: unknown) => void> = {};
+    let ready: (() => void) | null = null;
+    const app = {
+      workspace: { onLayoutReady: (f: () => void) => { ready = f; } },
+      vault: { on: (name: string, f: (x: unknown) => void) => { handlers[name] = f; return name; } },
+    };
+    let updates = 0;
+    const registered: unknown[] = [];
+    keepFoldersFresh(app as never, { update: () => { updates++; } }, (ref) => registered.push(ref));
+    return { handlers, ready: () => ready?.(), updates: () => updates, registered };
+  }
+
+  test('once the vault is indexed, the definitions are read again', () => {
+    const w = wire();
+    expect(w.updates()).toBe(0);
+    w.ready();
+    expect(w.updates()).toBe(1);
+  });
+
+  test('a folder made, removed or renamed is read again; a note is not', () => {
+    const w = wire();
+    w.ready();
+    for (const event of ['create', 'delete', 'rename']) w.handlers[event]!(new TFolder());
+    w.handlers['create']!(new TFile());
+    expect(w.updates()).toBe(4);
+    expect(w.registered).toEqual(['create', 'delete', 'rename']);
   });
 });

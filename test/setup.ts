@@ -31,7 +31,10 @@ mock.module('obsidian', () => ({
   },
   FuzzySuggestModal: class {},
   Plugin: class {},
-  PluginSettingTab: class {},
+  PluginSettingTab: class {
+    display(): void {}
+    update(): void {}
+  },
   Setting: class {},
   DropdownComponent: class {},
   ExtraButtonComponent: class {},

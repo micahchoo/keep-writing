@@ -1,8 +1,8 @@
 // Plugin settings and the settings tab.
 
 import { BANK_SHARE } from './bank';
-import { DropdownComponent, ExtraButtonComponent, PluginSettingTab } from 'obsidian';
-import type { App, Plugin, Setting, SettingDefinitionItem } from 'obsidian';
+import { DropdownComponent, ExtraButtonComponent, PluginSettingTab, TFolder } from 'obsidian';
+import type { App, EventRef, Plugin, Setting, SettingDefinitionItem, TAbstractFile } from 'obsidian';
 
 export interface KeepWritingSettings {
   /** OpenAI-compatible endpoint base URL for bonsai. */
@@ -335,6 +335,26 @@ export function withFolder(list: string[], folder: string): string[] {
 /** Pure: the list without this folder. */
 export function withoutFolder(list: string[], folder: string): string[] {
   return list.filter((f) => f !== folder);
+}
+
+/**
+ * Keep the folder dropdowns offering the vault's folders. Obsidian reads
+ * getSettingDefinitions() once, when the tab is added — at plugin load, before
+ * the vault is indexed — and draws that copy on every open; a display()
+ * override is bypassed in 1.13. So the definitions are read again once the
+ * vault is indexed, and whenever a folder is made, removed or renamed. A note
+ * event costs one type check.
+ */
+export function keepFoldersFresh(app: App, tab: { update(): void }, register: (ref: EventRef) => void): void {
+  app.workspace.onLayoutReady(() => {
+    tab.update();
+    const refresh = (file: TAbstractFile) => {
+      if (file instanceof TFolder) tab.update();
+    };
+    register(app.vault.on('create', refresh));
+    register(app.vault.on('delete', refresh));
+    register(app.vault.on('rename', refresh));
+  });
 }
 
 /** Pure: something the endpoint call can actually be made against. */

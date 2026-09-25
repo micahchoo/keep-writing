@@ -1,3 +1,7 @@
+# Unreleased
+
+- The folder dropdowns in settings list every folder in the vault, including folders made or renamed while Obsidian is open. In 0.3.0 they offered only the folder already chosen, and no **Add a folder** list, until the plugin was reloaded.
+
 # 0.3.0
 
 - A draw reads only the notes it chooses. Over 250,000 synthetic notes a draw takes 58 ms, where it took 6 s. The plugin no longer does work each time any note is saved.
