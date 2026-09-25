@@ -6,13 +6,11 @@
 // The draw pulls from one jar or the other, seven draws in ten from the Bank.
 
 import type { App, TFile } from 'obsidian';
-import type { AnsweredIndex } from './answered';
+import { answeredInVault } from './links';
 import { refOf, resolveRef, stripBlockDecoration } from './refs';
-import type { Ref } from './refs';
-import { paragraphJar } from './paragraphs';
-import type { Paragraph } from './paragraphs';
-import type { ExtractionCache } from './extraction-cache';
-import { WorkBudget } from './work';
+import type { BlockText, Ref } from './refs';
+import { paragraphJar, readBlock } from './paragraphs';
+import type { Paragraph, UnreadBlock } from './paragraphs';
 
 /**
  * Share of draws that come from the Bank. Set to 0.7 on 2026-09-13: at an
@@ -69,16 +67,13 @@ export function parseBankLine(line: string): { text: string; register: string; d
 }
 
 /** All questions of one bank note: list items that carry a block id. */
-export async function loadBank(app: App, file: TFile, extraction?: ExtractionCache, budget = new WorkBudget()): Promise<BankQuestion[]> {
-  if (extraction) return extraction.get(file, 'bank', () => loadBank(app, file, undefined, budget));
+export async function loadBank(app: App, file: TFile): Promise<BankQuestion[]> {
   const cache = app.metadataCache.getFileCache(file);
   const items = (cache?.listItems ?? []).filter((i) => i.id);
   if (items.length === 0) return [];
   const lines = (await app.vault.cachedRead(file)).split('\n');
   const out: BankQuestion[] = [];
-  for (let i = 0; i < items.length; i++) {
-    await budget.step();
-    const item = items[i];
+  for (const item of items) {
     const id = item.id as string;
     const raw = lines.slice(item.position.start.line, item.position.end.line + 1).join(' ');
     const parts = parseBankLine(raw);
@@ -161,7 +156,6 @@ export interface Drawn {
 }
 
 export interface DrawContext {
-  extraction?: ExtractionCache;
   /** The Sitting being drawn for; its own blocks are never drawn back the same day. */
   sitting?: TFile;
   app: App;
@@ -169,7 +163,6 @@ export interface DrawContext {
   sittingsFolder: string;
   /** Folders whose paragraphs the draw may reach. */
   writingFolders: string[];
-  index: AnsweredIndex;
   /** Source keys skipped this session. */
   skipped: Set<string>;
   random?: () => number;
@@ -186,10 +179,11 @@ export interface DrawContext {
  * until 2026-09-17. It is one flat list now. See `pickFromJars` for what that
  * cost and what it fixed.
  */
-export interface Jars {
+export interface Jars<P = UnreadBlock> {
   /** Role-less questions. Empty when a Target is set: a Target narrows to paragraphs. */
   bank: BankQuestion[];
-  paragraphs: Paragraph[];
+  /** Unread until the draw chooses one: see `drawMany`. */
+  paragraphs: P[];
 }
 
 export interface JarCounts {
@@ -198,36 +192,24 @@ export interface JarCounts {
 }
 
 /** Pure: what the owner is told a draw is choosing among. */
-export function jarCounts(jars: Jars): JarCounts {
+export function jarCounts(jars: Jars<unknown>): JarCounts {
   return { questions: jars.bank.length, paragraphs: jars.paragraphs.length };
 }
 
 /**
  * Fill the two jars for a Sitting. Roaming (no Target): the whole Bank jar and
- * every drawable paragraph. With a Target: no Bank, and only the paragraphs of
- * the one note it names.
+ * every drawable block. With a Target: no Bank, and only the blocks of the one
+ * note it names. Answered-ness is read here, off the metadata cache, so a
+ * link written a moment ago counts.
  */
 export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<Jars> {
-  const budget = new WorkBudget();
-  await ctx.index.prepare(budget);
-  const drawable = (key: string) => !ctx.index.has(key) && !ctx.skipped.has(key);
-  const cached = target
-    ? { bank: [], paragraphs: await paragraphJar(ctx.app, ctx.sittingsFolder, ctx.writingFolders, target, ctx.extraction, budget) }
-    : await ctx.index.jars(ctx.bankFolder, ctx.sittingsFolder, ctx.writingFolders, ctx.extraction);
-  const bank: BankQuestion[] = [], paragraphs: Paragraph[] = [];
-  if (ctx.index.requiresPreparation) return fillJars(ctx, target);
-  for (const question of cached.bank) {
-    await budget.step();
-    if (ctx.index.requiresPreparation) return fillJars(ctx, target);
-    if (question.role === null && drawable(question.key)) bank.push(question);
-  }
-  for (const paragraph of cached.paragraphs) {
-    await budget.step();
-    if (ctx.index.requiresPreparation) return fillJars(ctx, target);
-    ctx.extraction?.assertActive();
-    if (drawable(paragraph.key) && paragraph.file.path !== ctx.sitting?.path) paragraphs.push(paragraph);
-  }
-  return { bank, paragraphs };
+  const answered = answeredInVault(ctx.app);
+  const drawable = (key: string) => !answered.has(key) && !ctx.skipped.has(key);
+  return {
+    bank: (await bankJar(ctx, target, answered)),
+    paragraphs: paragraphJar(ctx.app, ctx.writingFolders, target)
+      .filter((block) => drawable(block.key) && block.file.path !== ctx.sitting?.path),
+  };
 }
 
 /**
@@ -237,20 +219,15 @@ export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<
  * A role-tagged entry is never in it: a Closing move is carried into the
  * Sitting by the template, so drawing one would place it twice.
  *
- * Its own function because the Seed wants ONLY this (interview.ts#seed) and
- * building the paragraph jar to throw it away costs a read and a split of
- * every Piece in the vault — about 7 MB in this one, on a path that must be
- * instant and must never fail.
+ * Its own function because the Seed wants ONLY this (interview.ts#seed), on a
+ * path that must be instant and must never fail.
  */
-export async function bankJar(ctx: DrawContext, target: TFile | null): Promise<BankQuestion[]> {
+export async function bankJar(ctx: DrawContext, target: TFile | null, answered = answeredInVault(ctx.app)): Promise<BankQuestion[]> {
   if (target) return [];
-  await ctx.index.prepare();
   const out: BankQuestion[] = [];
   for (const f of bankNotes(ctx.app, ctx.bankFolder)) {
-    const questions = await loadBank(ctx.app, f, ctx.extraction);
-    await ctx.index.prepare();
-    for (const q of questions) {
-      if (q.role === null && !ctx.index.has(q.key) && !ctx.skipped.has(q.key)) out.push(q);
+    for (const q of await loadBank(ctx.app, f)) {
+      if (q.role === null && !answered.has(q.key) && !ctx.skipped.has(q.key)) out.push(q);
     }
   }
   return out;
@@ -270,14 +247,14 @@ export async function bankJar(ctx: DrawContext, target: TFile | null): Promise<B
  * not a share at all. Coverage is a real goal and this was the wrong
  * instrument for it; a filter that retires itself would be the right one.
  */
-export function pickFromJars(jars: Jars, random: () => number = Math.random, today: Date = new Date(), bankShare = BANK_SHARE): Drawn | null {
+export function pickFromJars<P>(jars: Jars<P>, random: () => number = Math.random, today: Date = new Date(), bankShare = BANK_SHARE): { source: BankQuestion | P; due?: string } | null {
   const hasBank = jars.bank.length > 0;
   const hasParagraphs = jars.paragraphs.length > 0;
   if (!hasBank && !hasParagraphs) return null;
   if (hasBank && (!hasParagraphs || random() < bankShare)) {
     const question = pickOne(jars.bank, random);
     if (!question) return null;
-    const drawn: Drawn = { source: question };
+    const drawn: { source: BankQuestion; due?: string } = { source: question };
     const due = question.due ? parseDue(question.due, today) : null;
     if (due) drawn.due = due;
     return drawn;
@@ -292,21 +269,19 @@ export interface Draws {
   jars: JarCounts;
 }
 
-/** Take a picked source out of the jars, so the next pick cannot repeat it. */
-function removePicked(jars: Jars, drawn: Drawn): void {
-  if (drawn.source.kind === 'question') {
-    const at = jars.bank.indexOf(drawn.source);
-    if (at >= 0) jars.bank.splice(at, 1);
-  } else {
-    const at = jars.paragraphs.indexOf(drawn.source);
-    if (at >= 0) jars.paragraphs.splice(at, 1);
-  }
+/** Take one item out of a list, so the next pick cannot repeat it. */
+function take<T>(items: T[], item: T): void {
+  const at = items.indexOf(item);
+  if (at >= 0) items.splice(at, 1);
 }
 
 /**
  * Draw up to `count` sources at once, each an independent flip between the
  * jars, with what is picked taken out so nothing repeats. Fewer than `count`
  * when the jars run out, which is honest: that is all there is.
+ *
+ * A block is read only once it is chosen. When it turns out to be Furniture,
+ * the paragraph jar is asked again, not the coin, so the Bank keeps its share.
  *
  * Several at once is what lets the owner refuse by pressing Escape. The draw
  * handed over exactly one source until 2026-09-17, so refusing it needed a
@@ -317,12 +292,23 @@ export async function drawMany(ctx: DrawContext, target: TFile | null, count: nu
   const today = ctx.today ?? new Date();
   const jars = await fillJars(ctx, target);
   const counts = jarCounts(jars);
+  const reads = new Map<string, Promise<BlockText[]>>();
   const drawn: Drawn[] = [];
-  for (let i = 0; i < count; i++) {
+  while (drawn.length < count) {
     const pick = pickFromJars(jars, random, today, ctx.bankShare);
     if (!pick) break;
-    drawn.push(pick);
-    removePicked(jars, pick);
+    if (pick.source.kind === 'question') {
+      take(jars.bank, pick.source);
+      drawn.push(pick as Drawn);
+      continue;
+    }
+    let block: UnreadBlock | null = pick.source;
+    while (block) {
+      take(jars.paragraphs, block);
+      const paragraph = await readBlock(ctx.app, ctx.sittingsFolder, block, reads);
+      if (paragraph) { drawn.push({ source: paragraph }); break; }
+      block = pickOne(jars.paragraphs, random);
+    }
   }
   return { drawn, jars: counts };
 }

@@ -16,6 +16,7 @@ A blank page stops you; a question doesn't. keep-writing puts one into your dail
 - **Follows up.** Mark an answer done and the model reads it, then offers the next question. Run it again next week and it writes fresh ones.
 - **Opens where you stopped.** Leave a note about where to pick up, and tomorrow's first question comes from what you wrote, with your own words under it.
 - **Links every answer** to the question that caused it, which is what stops a question coming back once you have answered it.
+- **Grows pieces out of days.** A question and its follow-ups can leave the daily note and become a piece of its own, with every link following the words.
 - **Never writes your prose.** It adds frontmatter, a block id, and the question itself — nothing else. No sentence of yours is ever inserted, edited or reworded.
 
 ## Getting started
@@ -48,18 +49,16 @@ On the editor's right-click menu under **keep-writing**, and in the command pale
 | Command | What happens |
 |---|---|
 | **Draw a question** | Three to choose from. A bank question is written straight in; a paragraph of yours goes to the model first. |
-| **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers what follows from it. Safe to run twice. |
-| **Reopen latest follow-ups** | Restores the latest saved offer without another model call, including after restarting. |
-| **Unmark this answer** | Removes its answer links and matching bookmark. Keeps the text, block ID, and existing follow-ups. |
+| **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers what follows from it. Run it again for fresh follow-ups. |
 | **Ask about the selection** | Highlight text in **any** note and be asked about it. The question lands in today's note. |
 | **Install the starter question bank** | Writes the question notes into your bank folder. Skips anything already there. |
-| **Open the menu** | All of the above, as one chooser. Made for the mobile toolbar. |
+| **Graduate threads to pieces** | In a daily note, turns a question and its follow-ups into a piece of writing of its own: your words moved as written, the questions as headings. |
 
 ![Obsidian's right-click menu with a keep-writing submenu open, holding Draw a question and Mark this answer done.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/menu.png)
 
 ## On a phone
 
-There is no right-click on a phone, so the menu is a command instead. Settings → Toolbar, add **keep-writing: Open the menu**, and that one button reaches everything. It offers only what applies where you are — asking about a selection appears when you have selected something.
+Where the editor menu opens on a phone, its keep-writing actions are listed flat, because a submenu wants a hover. The quickest way in is the toolbar: in Settings → Toolbar, add **keep-writing: Draw a question** and **keep-writing: Mark this answer done, and follow up**.
 
 ## Settings
 
@@ -67,9 +66,9 @@ Findable from Obsidian's own settings search: type "bank folder" or "endpoint" a
 
 | Setting | |
 |---|---|
-| **Daily notes folder** | Where your daily notes are. A folder picker, so you cannot name one that isn't there. Default `Sittings`. |
-| **Question bank folder** | Where the questions are kept. Default `Bank`. |
-| **Ask about writing in** | One folder per line. The plugin reads what you wrote there and asks about it. Your daily notes are included already; add a folder of finished writing to widen it. |
+| **Daily notes folder** | Where your daily notes are, chosen from your folders. Default `Sittings`. |
+| **Question bank folder** | Where the questions are kept, chosen from your folders. Default `Bank`. |
+| **Ask about writing in** | The folders the plugin reads and asks about, added from a dropdown. Your daily notes are there at first; add a folder of finished writing, which is also where graduated pieces go. |
 | **Bank share** | Default 70%. Choose how often to draw a bank question instead of your writing. An empty jar falls back to the other. |
 | **Use a model** | Off makes it bank-only, with no network call at all. |
 | **Endpoint** | Any OpenAI-compatible server. Default is one on your own computer. For Ollama: `http://localhost:11434/v1` |

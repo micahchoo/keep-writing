@@ -51,3 +51,35 @@
   font-size: var(--font-smaller);
   margin-top: var(--size-2-1);
 }
+
+/* The graduation form: one block per piece, the model's three lines under the
+   title field, quiet, because they are a reference and not a choice. */
+
+.kw-piece + .kw-piece {
+  border-top: 1px solid var(--background-modifier-border);
+  margin-top: var(--size-4-4);
+  padding-top: var(--size-4-2);
+}
+
+.kw-summary {
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+  padding: 0 0 var(--size-4-2);
+  line-height: var(--line-height-tight);
+}
+
+/* The writing folders setting: each chosen folder on its own line with a
+   button to take it out, then the dropdown that adds another. */
+
+.kw-folders {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--size-4-1);
+}
+
+.kw-folder {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+}

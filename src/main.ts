@@ -1,5 +1,3 @@
-import { NO_SAVED_OFFER, SavedOffer, offerSitting, readOffer } from './saved-offer';
-import { unmarkAt } from './unmark';
 // keep-writing: the vault interviews its owner. See CONTEXT.md.
 //
 // Write surface, whole: frontmatter properties (processFrontMatter), a block
@@ -13,33 +11,30 @@ import { unmarkAt } from './unmark';
 
 import { MarkdownView, Notice, Platform, Plugin, TFile } from 'obsidian';
 import type { App, Menu } from 'obsidian';
-import { AnsweredIndex } from './answered';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
 import type { Reach } from './interview';
 import { createModel } from './model';
 import type { Model, RevisitCandidate } from './model';
 import { installBank, installedLine, questionCount } from './install';
+import { GraduateModal } from './graduate-modal';
 import { OfferModal, choose } from './modals';
 import type { Choice } from './modals';
+import { sittingName } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
-import { modelFailureLine } from './refusal';
-import { DEFAULT_SETTINGS, KeepWritingSettingTab, normalizeBankShare } from './settings';
+import { modelFailureLine, refusalLine } from './refusal';
+import { DEFAULT_SETTINGS, KeepWritingSettingTab, normalizeBankShare, readFolders } from './settings';
 import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
 import { isSitting } from './target';
-import { ExtractionCache, ExtractionStopped } from './extraction-cache';
 
-// The three things the plugin does. The command palette and the context menu
-// read the same four names, so they cannot drift apart.
+// What the plugin does, as the command palette names it.
 const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
-const UNMARK = 'Unmark this answer';
-const REOPEN = 'Reopen latest follow-ups';
 const MARK = 'Mark this answer done, and follow up';
 const INSTALL = 'Install the starter question bank';
-const MENU = 'Open the menu';
+const GRADUATE = 'Graduate threads to pieces';
 
 /**
  * `MenuItem.setSubmenu` is absent from the published typings and present in
@@ -51,27 +46,59 @@ const MENU = 'Open the menu';
  * Because it is undocumented it may be absent, and calling it then throws
  * inside an `editor-menu` handler — which would take out the WHOLE right-click
  * menu, Obsidian's own items included, not just ours. So it is tested for, and
- * the three commands go flat in their own section when it is missing.
+ * the actions go flat in their own section when it is missing.
  */
 type Submenuable = { setSubmenu(): Menu };
 
-/** Groups the commands when this build of Obsidian has no submenus. */
+/** Names the submenu, and groups the actions when there is none. */
 const SECTION = 'keep-writing';
+
+/** One right-click action: what it says, its icon, what it runs. */
+export interface MenuAction {
+  title: string;
+  icon: string;
+  run: () => void;
+}
+
+/**
+ * Put the actions on the editor's context menu: under one `keep-writing`
+ * submenu where this build has submenus, flat in their own section where it
+ * does not. Flat on a phone even where submenus exist: a nested menu wants a
+ * hover and a second precise tap, and a touch screen has neither.
+ */
+export function addMenuActions(menu: Menu, actions: MenuAction[], mobile: boolean): void {
+  const [head, ...rest] = actions;
+  if (!head) return;
+  const nested: { menu?: Menu } = {};
+  // One item decides the layout: it becomes the submenu when there are
+  // submenus, and the first action itself when there are none, so the probe
+  // costs no empty row.
+  menu.addItem((item) => {
+    const nest = (item as Partial<Submenuable>).setSubmenu;
+    if (!mobile && typeof nest === 'function') {
+      item.setTitle(SECTION).setIcon('message-circle-question');
+      nested.menu = nest.call(item);
+    } else {
+      item.setTitle(head.title).setIcon(head.icon).setSection(SECTION).onClick(head.run);
+    }
+  });
+  if (nested.menu) {
+    for (const a of actions) nested.menu.addItem((i) => i.setTitle(a.title).setIcon(a.icon).onClick(a.run));
+  } else {
+    for (const a of rest) menu.addItem((i) => i.setTitle(a.title).setIcon(a.icon).setSection(SECTION).onClick(a.run));
+  }
+}
 
 export default class KeepWritingPlugin extends Plugin {
   override settings: KeepWritingSettings = { ...DEFAULT_SETTINGS };
-  index!: AnsweredIndex;
-  /** The Follow-ups the owner can come back to. Its rules are its own; this plugin persists it. */
-  offers!: SavedOffer;
-  private indexTimer?: number;
   model!: Model;
   interview!: Interview;
-  extraction = new ExtractionCache();
+  /** Set on unload. A modal or a model reply can outlive the plugin; neither may act after it. */
+  private unloaded = false;
 
   override async onload(): Promise<void> {
     await this.loadSettings();
-    this.index = new AnsweredIndex(this.app);
-    this.register(() => this.extraction.dispose());
+    this.register(() => { this.unloaded = true; });
     this.model = this.buildModel();
     this.interview = new Interview(this, {
       placeCursor: (file, line) => placeCursor(this.app, file, line),
@@ -79,33 +106,6 @@ export default class KeepWritingPlugin extends Plugin {
         new Notice(message);
       },
     });
-
-    // A note changed: answered-ness may have. Nothing else here follows the
-    // owner around any more, because nothing is drawn until they ask for it.
-    const schedule = () => {
-      if (this.indexTimer) window.clearTimeout(this.indexTimer);
-      this.indexTimer = window.setTimeout(() => {
-        const s = this.settings;
-        void this.index.jars(s.bankFolder, s.sittingsFolder, s.writingFolders, this.extraction).catch(error => { if (!(error instanceof ExtractionStopped)) console.warn('Keep Writing index:', error); });
-      }, 250);
-    };
-    const invalidate = (file: TFile) => {
-      this.extraction.invalidate(file.path);
-      this.index.invalidate(file);
-      schedule();
-    };
-    this.registerEvent(this.app.metadataCache.on('changed', invalidate));
-    this.registerEvent(this.app.metadataCache.on('resolve', file => this.index.resolve(file)));
-    this.registerEvent(this.app.metadataCache.on('deleted', file => { this.extraction.invalidate(file.path); this.index.remove(file.path); }));
-    this.registerEvent(this.app.vault.on('modify', file => { if (file instanceof TFile) invalidate(file); }));
-    this.registerEvent(this.app.vault.on('delete', file => { if (file instanceof TFile) { this.extraction.invalidate(file.path); this.index.remove(file.path); } }));
-    this.registerEvent(this.app.vault.on('rename', (file, oldPath) => {
-      this.extraction.invalidate(oldPath);
-      if (file instanceof TFile) { this.extraction.invalidate(file.path); this.index.rename(file, oldPath); }
-      else { this.extraction.clear(); this.index.invalidate(); }
-      schedule();
-    }));
-    this.register(() => { if (this.indexTimer) window.clearTimeout(this.indexTimer); this.index.dispose(); });
 
     // A Sitting nobody has written in yet is a blank page, and the blank page
     // is the failure mode the owner named. Whoever makes the note — this
@@ -133,10 +133,6 @@ export default class KeepWritingPlugin extends Plugin {
 
     this.addRibbonIcon('message-circle-question', 'Draw a question', () => this.run(() => this.drawQuestion()));
 
-    this.addCommand({ id: 'reopen-follow-ups', name: REOPEN, callback: () => this.reopenFollowUps() });
-    this.addCommand({ id: 'unmark-answer', name: UNMARK, editorCallback: (editor, view) => {
-      if (view instanceof MarkdownView) this.run(() => this.unmarkUnderCursor(view, editor.getCursor().line));
-    } });
     this.addCommand({ id: 'draw-question' , name: DRAW, callback: () => this.run(() => this.drawQuestion()) });
     this.addCommand({
       id: 'mark-answer-under-cursor',
@@ -146,7 +142,7 @@ export default class KeepWritingPlugin extends Plugin {
       },
     });
     this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => this.run(() => this.installStarterBank()) });
-    this.addCommand({ id: 'menu', name: MENU, callback: () => this.openMenu() });
+    this.addCommand({ id: 'graduate-threads', name: GRADUATE, callback: () => this.run(() => this.graduateThreads()) });
     this.addCommand({
       id: 'ask-about-selection',
       name: ASK_SELECTION,
@@ -156,105 +152,23 @@ export default class KeepWritingPlugin extends Plugin {
         }
       },
     });
-    // Everything the plugin does, under one submenu of the editor's own
-    // context menu. Right-clicking is how the owner reaches it without
-    // learning four command names.
+    // Everything the plugin does, on the editor's own context menu. The editor
+    // is read HERE, while it still holds what was right-clicked: by the time
+    // an item is clicked the menu has the focus.
     this.registerEvent(
       this.app.workspace.on('editor-menu', (menu, editor, view) => {
         if (!(view instanceof MarkdownView)) return;
-        // Read the editor HERE, while it still holds what was right-clicked.
-        // By the time an item is clicked the menu has the focus.
         const selected = editor.getSelection();
         const from = editor.getCursor('from').line;
         const at = editor.getCursor().line;
-        const ask = (target: Menu, flat: boolean) => {
-          for (const [title, run] of [[UNMARK, () => this.run(() => this.unmarkUnderCursor(view, at))], [REOPEN, () => this.reopenFollowUps()]] as const) {
-            target.addItem(item => { item.setTitle(title); if (flat) item.setSection(SECTION); item.onClick(run); });
-          }
-          if (selected.trim()) {
-            target.addItem((i) => {
-              i.setTitle(ASK_SELECTION).setIcon('message-circle-question');
-              if (flat) i.setSection(SECTION);
-              i.onClick(() => this.run(() => this.askAboutSelection(view, selected, from)));
-            });
-          }
-          target.addItem((i) => {
-            i.setTitle(MARK).setIcon('check');
-            if (flat) i.setSection(SECTION);
-            i.onClick(() => this.run(() => this.markUnderCursor(view, at)));
-          });
-        };
-
-        // Flat on mobile even where submenus exist: a nested menu wants a
-        // hover and a second precise tap, and a phone has neither. The
-        // fallback written for builds WITHOUT `setSubmenu` is the same shape
-        // touch wants, so mobile takes that branch rather than a second one.
-        let flat = Platform.isMobile;
-        menu.addItem((item) => {
-          const nest = (item as Partial<Submenuable>).setSubmenu;
-          if (flat || typeof nest !== 'function') {
-            // No submenus here. This item becomes the draw itself and the rest
-            // follow it, so nothing is lost and nothing throws.
-            flat = true;
-            item.setTitle(DRAW).setIcon('shuffle').setSection(SECTION).onClick(() => this.run(() => this.drawQuestion()));
-            return;
-          }
-          item.setTitle(SECTION).setIcon('message-circle-question');
-          const sub = nest.call(item);
-          sub.addItem((i) => i.setTitle(DRAW).setIcon('shuffle').onClick(() => this.run(() => this.drawQuestion())));
-          ask(sub, false);
-        });
-        if (flat) ask(menu, true);
+        const actions: MenuAction[] = [{ title: DRAW, icon: 'shuffle', run: () => this.run(() => this.drawQuestion()) }];
+        if (selected.trim()) actions.push({ title: ASK_SELECTION, icon: 'message-circle-question', run: () => this.run(() => this.askAboutSelection(view, selected, from)) });
+        actions.push({ title: MARK, icon: 'check', run: () => this.run(() => this.markUnderCursor(view, at)) });
+        if (isSitting(view.file, this.settings.sittingsFolder)) actions.push({ title: GRADUATE, icon: 'sprout', run: () => this.run(() => this.graduateThreads()) });
+        addMenuActions(menu, actions, Platform.isMobile);
       }),
     );
     this.addSettingTab(new KeepWritingSettingTab(this.app, this));
-  }
-
-  /**
-   * Everything the plugin does, as one chooser.
-   *
-   * The right-click submenu is the desktop way in, and a phone has no right
-   * click. Obsidian's own answer is the command palette and the mobile
-   * toolbar, and both reach ONE command at a time — so the four commands are
-   * all reachable and none of them is discoverable. This is the submenu as a
-   * single command: one toolbar slot, all of it.
-   *
-   * The editor is read HERE, before anything opens, because opening makes the
-   * new thing the active leaf. An action that needs an editor is offered only
-   * when there is one.
-   */
-  private openMenu(): void {
-    if (this.extraction?.isDisposed) return;
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    const selected = view?.editor.getSelection() ?? '';
-    const from = view?.editor.getCursor('from').line ?? 0;
-    const at = view?.editor.getCursor().line ?? 0;
-
-    const actions: Choice<() => void>[] = [
-      { value: () => this.run(() => this.drawQuestion()), title: DRAW, note: 'Three to pick from. Escape writes nothing.' },
-    ];
-    if (this.offers.current?.questions.length) actions.push({ title: REOPEN, value: () => this.reopenFollowUps() });
-    if (view && selected.trim()) {
-      actions.push({
-        value: () => this.run(() => this.askAboutSelection(view, selected, from)),
-        title: ASK_SELECTION,
-        note: 'Be asked about the words you highlighted.',
-      });
-    }
-    if (view) {
-      actions.push({ title: UNMARK, value: () => this.run(() => this.unmarkUnderCursor(view, at)), note: 'Remove the answer links; keep text and block IDs.' });
-      actions.push({
-        value: () => this.run(() => this.markUnderCursor(view, at)),
-        title: MARK,
-        note: 'Link the answer you are in, then offer what follows from it.',
-      });
-    }
-    actions.push({
-      value: () => this.run(() => this.installStarterBank()),
-      title: INSTALL,
-      note: 'Write the question notes into your bank folder. Safe to run twice.',
-    });
-    choose(this.app, actions, 'what would you like to do?', (run) => run());
   }
 
   // -------------------------------------------------------------------------
@@ -304,7 +218,6 @@ export default class KeepWritingPlugin extends Plugin {
     const { bankFolder } = this.settings;
     try {
       const result = await installBank(this.app, bankFolder, STARTER_BANK);
-      this.index.invalidate();
       new Notice(installedLine(result, bankFolder));
     } catch (e) {
       new Notice(`Could not write the question bank: ${e instanceof Error ? e.message : String(e)}`);
@@ -322,7 +235,7 @@ export default class KeepWritingPlugin extends Plugin {
   private async drawQuestion(): Promise<void> {
     const sitting = await this.openSitting();
     const { drawn, jars, target } = await this.interview.draw(sitting);
-    if (this.extraction?.isDisposed) return;
+    if (this.unloaded) return;
     if (drawn.length === 0) {
       new Notice('Nothing left to draw. Every source here is answered or already asked.');
       return;
@@ -354,7 +267,7 @@ export default class KeepWritingPlugin extends Plugin {
   /** bonsai's questions from a paragraph, as the second chooser. */
   private async offer(sitting: TFile, paragraph: Paragraph, reach: Reach): Promise<void> {
     const offer = await this.composing(() => this.interview.offerFrom(paragraph, reach));
-    if (this.extraction?.isDisposed) return;
+    if (this.unloaded) return;
     const lens = offer.lens ? ` · through the ${offer.lens} lens` : '';
     // The fallback below is indistinguishable from a composed question, so a
     // failure must say so. Silently substituting it told the owner the model
@@ -377,14 +290,14 @@ export default class KeepWritingPlugin extends Plugin {
    * The note and the line are read here, while the editor still holds focus.
    *
    * Run it again on the same answer to ask for another Follow-up: marking an
-   * answer twice writes nothing, and the questions are composed afresh. The latest offer
-   * is also saved and can be reopened without composing again.
+   * answer twice writes nothing, and the questions are composed afresh. That
+   * is the way back to a dismissed offer; nothing is kept between.
    */
   private async markUnderCursor(view: MarkdownView, line: number): Promise<void> {
     const file = view.file;
     if (!file) return;
     const answered = await this.composing(() => this.interview.markAt({ file, line }));
-    if (!answered || this.extraction?.isDisposed) return;
+    if (!answered || this.unloaded) return;
     if (answered.questions.length === 0) {
       // Never nothing: a silent command reads as a broken one. And never the
       // WRONG nothing: "nothing to follow up with" is the model declining, and
@@ -399,9 +312,44 @@ export default class KeepWritingPlugin extends Plugin {
       );
       return;
     }
-    try { await this.offers.replace({ sitting: file.path, ref: answered.ref, questions: answered.questions }); }
-    catch (error) { new Notice(`Follow-ups are kept for this session only: ${error instanceof Error ? error.message : String(error)}`); }
-    this.reopenFollowUps();
+    choose(this.app, answered.questions.map(question => ({ value: question, title: question })), 'Follow up · mark again for fresh ones', question => {
+      this.run(() => this.interview.acceptFollowUp(file, question, answered.ref));
+    });
+  }
+
+  /**
+   * Graduate threads of the Sitting the owner is looking at. The note is read
+   * here, before the form opens; everything the form offers and every write
+   * is the Interview's.
+   */
+  private async graduateThreads(): Promise<void> {
+    const sitting = this.app.workspace.getActiveFile();
+    if (!sitting || !isSitting(sitting, this.settings.sittingsFolder)) {
+      new Notice('Open a daily note to graduate its threads.');
+      return;
+    }
+    let graduation;
+    try {
+      graduation = await this.interview.graduation(sitting);
+    } catch (e) {
+      new Notice(refusalLine(e));
+      return;
+    }
+    if (this.unloaded) return;
+    const snapshot = graduation.snapshot;
+    new GraduateModal(this.app, {
+      graduation,
+      dayName: sittingName(sitting.basename).called,
+      modelAvailable: this.model.available,
+      summarize: (thread) => this.interview.summarize(snapshot, thread),
+      suggestHeadings: (thread) => this.interview.suggestHeadings(snapshot, thread),
+      graduate: async (choices) => {
+        const made = await this.interview.graduate(sitting, snapshot, choices);
+        new Notice(`Graduated to ${made.map((f) => f.basename).join(', ')}.`);
+        const first = made[0];
+        if (first) await this.app.workspace.getLeaf(false).openFile(first);
+      },
+    }).open();
   }
 
   /**
@@ -432,29 +380,10 @@ export default class KeepWritingPlugin extends Plugin {
     return sitting;
   }
 
-  private async unmarkUnderCursor(view: MarkdownView, line: number): Promise<void> {
-    const file = view.file;
-    if (!file || !isSitting(file, this.settings.sittingsFolder)) { new Notice('Open a daily note to unmark an answer.'); return; }
-    try { const message = await unmarkAt(this.app, file, line); this.index.invalidate(file); new Notice(message); }
-    catch (error) { new Notice(error instanceof Error ? error.message : String(error)); }
-  }
-
-  /** The chooser over the saved offer. Which question may be accepted, and when, is `SavedOffer`'s. */
-  private reopenFollowUps(): void {
-    if (this.extraction?.isDisposed) return;
-    const offer = this.offers.current;
-    if (!offer?.questions.length) { new Notice(NO_SAVED_OFFER); return; }
-    const sitting = offerSitting(this.app, offer);
-    if (typeof sitting === 'string') { new Notice(sitting); return; }
-    choose(this.app, offer.questions.map(question => ({ value: question, title: question })), 'Saved follow-ups · reopen from the command palette', question => {
-      this.run(() => this.offers.accept(offer, question, () => this.interview.acceptFollowUp(sitting, question, offer.ref)));
-    });
-  }
-
   private run(job: () => Promise<unknown>): void {
-    if (this.extraction?.isDisposed) return;
+    if (this.unloaded) return;
     void job().catch(error => {
-      if (error instanceof ExtractionStopped || this.extraction?.isDisposed) return;
+      if (this.unloaded) return;
       new Notice(error instanceof Error ? error.message : String(error));
     });
   }
@@ -466,8 +395,11 @@ export default class KeepWritingPlugin extends Plugin {
   async loadSettings(): Promise<void> {
     const loaded: unknown = await this.loadData();
     const data = loaded && typeof loaded === 'object' ? loaded as Partial<KeepWritingSettings> & { followUpOffer?: unknown } : {};
-    this.settings = { ...DEFAULT_SETTINGS, ...data };
-    this.offers = new SavedOffer(readOffer(data.followUpOffer), () => this.persistSettings());
+    // `followUpOffer` is 0.2.9's saved offer. Spreading `data` would carry it
+    // into every later write; it is dropped instead.
+    const { followUpOffer: _offer, ...stored } = data;
+    this.settings = { ...DEFAULT_SETTINGS, ...stored };
+    if (stored.writingFolders !== undefined) this.settings.writingFolders = readFolders(stored.writingFolders);
     const secret = this.app.secretStorage.getSecret('keep-writing-api-key');
     const legacy = typeof data.apiKey === 'string' ? data.apiKey : '';
     if (!secret && legacy) this.app.secretStorage.setSecret('keep-writing-api-key', legacy);
@@ -478,7 +410,7 @@ export default class KeepWritingPlugin extends Plugin {
   }
   private async persistSettings(): Promise<void> {
     const { apiKey: _apiKey, ...settings } = this.settings;
-    await this.saveData({ ...settings, followUpOffer: this.offers.current });
+    await this.saveData(settings);
   }
   async saveSettings(): Promise<void> {
     this.app.secretStorage.setSecret('keep-writing-api-key', this.settings.apiKey);

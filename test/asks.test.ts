@@ -208,16 +208,15 @@ const markVault = () =>
   });
 
 describe('marking an answer done', () => {
-  const opts = { bankFolder: 'Bank' };
   const asksIn = (v: ReturnType<typeof markVault>) => parseAsks(v.text('Sittings/2026-09-15.md'));
   /** The answer block's ref, failing loudly if marking refused. */
   const mark = async (v: ReturnType<typeof markVault>, ask: Ask) => {
-    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), ask, opts);
+    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), ask);
     if (marked.kind !== 'ok') throw new Error(`refused: ${marked.reason}`);
     return marked.ref;
   };
 
-  test('the answer gets a block id and both ends of `answers` are written', async () => {
+  test('the answer gets a block id and its `answers` link', async () => {
     const v = markVault();
     const ref = await mark(v, asksIn(v)[0] as Ask);
     expect(ref.path).toBe('Sittings/2026-09-15');
@@ -234,7 +233,7 @@ describe('marking an answer done', () => {
     expect(lines[marked]).toContain('I rigged a walk cycle');
   });
 
-  test('the source is in Bank/, so it gains no inverse', async () => {
+  test('the source note is not written', async () => {
     const v = markVault();
     await mark(v, asksIn(v)[0] as Ask);
     expect(v.frontmatter('Bank/craft.md')).toEqual({ kind: 'bank' });
@@ -261,7 +260,7 @@ describe('marking an answer done', () => {
   test('an Ask with no answer under it refuses with a reason, and writes nothing', async () => {
     const v = markVault();
     const before = v.text('Sittings/2026-09-15.md');
-    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), asksIn(v)[2] as Ask, opts);
+    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), asksIn(v)[2] as Ask);
     expect(marked).toEqual({ kind: 'refused', reason: 'No answer under this Ask yet.' });
     expect(v.text('Sittings/2026-09-15.md')).toBe(before);
     expect(v.writes).toHaveLength(0);
@@ -270,57 +269,19 @@ describe('marking an answer done', () => {
   test('an Ask with no source link is malformed, and writes nothing', async () => {
     const v = markVault();
     const [ask] = parseAsks('> [!ask] a question with no from-line\n\nan answer');
-    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), ask as Ask, opts);
+    const marked = await markAnswered(v.app, v.file('Sittings/2026-09-15.md'), ask as Ask);
     expect(marked).toEqual({ kind: 'refused', reason: 'This Ask has no source link; it is malformed.' });
     expect(v.writes).toHaveLength(0);
   });
 });
 
-// The kind of question a day held, kept on the day.
-//
-// The register was legible only on the QUESTION until 2026-09-18, and the
-// question lives in the Bank — where about 70% of all answer-links converge,
-// since seven draws in ten come from there. So the graph view showed a
-// four-pointed star around the starter bank's four notes, and nothing about
-// what kind of thinking a Sitting held was visible on the Sitting at all.
-//
-// An attribute, not a relation: no edge, no inverse, nothing added to the
-// table CONTEXT.md cut to one row on 2026-09-17.
-describe('the register of what was answered', () => {
-  const opts = { bankFolder: 'Bank' };
+// The register of a Bank question was copied onto the answering note as
+// `registers` from 2026-09-18 to 2026-09-24. Nothing in the plugin read it;
+// the question it came from still carries it.
+test('marking writes no registers', async () => {
+  const v = markVault();
   const SITTING = 'Sittings/2026-09-15.md';
-  const asksIn = (v: ReturnType<typeof markVault>) => parseAsks(v.text(SITTING));
-
-  test('lands on the note that answered it', async () => {
-    const v = markVault();
-    await markAnswered(v.app, v.file(SITTING), asksIn(v)[0] as Ask, opts);
-    expect(v.frontmatter(SITTING)['registers']).toEqual(['episode']);
-  });
-
-  test('a day that answered two kinds carries both, in order', async () => {
-    const v = markVault();
-    await markAnswered(v.app, v.file(SITTING), asksIn(v)[0] as Ask, opts);
-    // Re-read: processFrontMatter re-serialises the block and moves every line
-    // below it, so the ranges parsed a moment ago are stale.
-    await markAnswered(v.app, v.file(SITTING), asksIn(v)[1] as Ask, opts);
-    expect(v.frontmatter(SITTING)['registers']).toEqual(['episode', 'intention']);
-  });
-
-  test('marking twice records the register once', async () => {
-    const v = markVault();
-    await markAnswered(v.app, v.file(SITTING), asksIn(v)[0] as Ask, opts);
-    await markAnswered(v.app, v.file(SITTING), asksIn(v)[0] as Ask, opts);
-    expect(v.frontmatter(SITTING)['registers']).toEqual(['episode']);
-  });
-
-  // A paragraph of the owner's own writing is not a Bank entry and has no
-  // register. Nothing to record, and no empty property left behind.
-  test('answering your own paragraph records nothing', async () => {
-    const v = fakeVault({
-      [SITTING]: ['---', '---', '', '## Asked', '', '> [!ask] what broke?', '> from [[Domains/Blender#^r1]]', '', 'The hips.', ''].join('\n'),
-      'Domains/Blender.md': '---\ngathers: [blender]\n---\n\nI rig badly. ^r1\n',
-    });
-    await markAnswered(v.app, v.file(SITTING), parseAsks(v.text(SITTING))[0] as Ask, opts);
-    expect(v.frontmatter(SITTING)['registers']).toBeUndefined();
-  });
+  await markAnswered(v.app, v.file(SITTING), parseAsks(v.text(SITTING))[0] as Ask);
+  expect(v.frontmatter(SITTING)['answers']).toBeDefined();
+  expect(v.frontmatter(SITTING)['registers']).toBeUndefined();
 });

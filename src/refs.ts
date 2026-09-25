@@ -2,7 +2,6 @@
 // text go through metadataCache; nothing here parses markdown.
 
 import type { App, CachedMetadata, FrontmatterLinkCache, TFile } from 'obsidian';
-import { WorkBudget } from './work';
 
 export interface Ref {
   /** Link path as written, without `.md`: `Sittings/2026-09-13`. */
@@ -124,29 +123,16 @@ export interface BlockText {
  * Accept — split about 7 MB of text to produce 1115 strings. A block whose
  * text is empty once stripped is dropped, which is what both callers did.
  */
-export async function blockTexts(app: App, file: TFile, budget = new WorkBudget()): Promise<BlockText[]> {
+export async function blockTexts(app: App, file: TFile): Promise<BlockText[]> {
   // Entries rather than keys: indexing a Record back by its own key is three
   // lookups the compiler cannot prove safe, so it took three `!` to say what
   // Object.entries already knows.
   const entries = Object.entries(app.metadataCache.getFileCache(file)?.blocks ?? {});
   if (entries.length === 0) return [];
-  await budget.checkpoint();
   entries.sort(([, a], [, b]) => a.position.start.line - b.position.start.line);
-  await budget.checkpoint();
-  const content = await app.vault.cachedRead(file);
-  const lines: string[] = [];
-  let from = 0;
-  for (;;) {
-    const end = content.indexOf('\n', from);
-    if (end < 0) { lines.push(content.slice(from)); break; }
-    lines.push(content.slice(from, end));
-    from = end + 1;
-    await budget.step();
-  }
+  const lines = (await app.vault.cachedRead(file)).split('\n');
   const out: BlockText[] = [];
-  for (let i = 0; i < entries.length; i++) {
-    await budget.step();
-    const [id, block] = entries[i];
+  for (const [id, block] of entries) {
     const { start, end } = block.position;
     const text = stripBlockDecoration(lines.slice(start.line, end.line + 1).join('\n'));
     if (text) out.push({ id, line: start.line, text });

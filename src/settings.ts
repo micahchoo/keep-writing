@@ -1,7 +1,7 @@
 // Plugin settings and the settings tab.
 
 import { BANK_SHARE } from './bank';
-import { PluginSettingTab } from 'obsidian';
+import { DropdownComponent, ExtraButtonComponent, PluginSettingTab } from 'obsidian';
 import type { App, Plugin, Setting, SettingDefinitionItem } from 'obsidian';
 
 export interface KeepWritingSettings {
@@ -78,9 +78,14 @@ export interface SettingsHost extends Plugin {
  * search reads — one description of each setting, not two. It arrived in
  * 1.13.0, which is why `minAppVersion` is 1.13.0.
  *
- * The two folder fields are real folder pickers now. That is the change worth
- * having: naming folders is most of what this tab does, and a free-text field
- * takes a name no folder has and says nothing.
+ * Every folder is chosen from a dropdown of the vault's folders. Naming
+ * folders is most of what this tab does, and anything typed can name a folder
+ * that is not there and say nothing: a textarea once held `Pieces` twice and
+ * no daily notes folder, and nothing on the tab showed it.
+ *
+ * The writing folders are a list, and no declarative control holds a list, so
+ * that one row is drawn by hand like the API key. Each chosen folder shows with
+ * a button to take it out, and one dropdown adds another.
  */
 export class KeepWritingSettingTab extends PluginSettingTab {
   constructor(app: App, private host: SettingsHost) {
@@ -88,6 +93,8 @@ export class KeepWritingSettingTab extends PluginSettingTab {
   }
 
   override getSettingDefinitions(): SettingDefinitionItem<ControlKey>[] {
+    const s = this.host.settings;
+    const folders = this.app.vault.getAllFolders(false).map((f) => f.path);
     return [
       {
         type: 'group',
@@ -98,27 +105,22 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             name: 'Daily notes folder',
             desc: "Where your daily notes are. Questions go into today's note.",
             aliases: ['sittings', 'journal', 'diary'],
-            control: { type: 'folder', key: 'sittingsFolder', defaultValue: DEFAULT_SETTINGS.sittingsFolder },
+            control: { type: 'dropdown', key: 'sittingsFolder', defaultValue: DEFAULT_SETTINGS.sittingsFolder, options: folderOptions(folders, [s.sittingsFolder, DEFAULT_SETTINGS.sittingsFolder]) },
           },
           {
             name: 'Question bank folder',
             desc: 'Where the questions are kept. They are ordinary notes — edit them, delete them, add your own.',
             aliases: ['bank'],
-            control: { type: 'folder', key: 'bankFolder', defaultValue: DEFAULT_SETTINGS.bankFolder },
+            control: { type: 'dropdown', key: 'bankFolder', defaultValue: DEFAULT_SETTINGS.bankFolder, options: folderOptions(folders, [s.bankFolder, DEFAULT_SETTINGS.bankFolder]) },
           },
           {
             name: 'Ask about writing in',
             desc:
-              'One folder per line. The plugin reads what you wrote there and asks you about it. ' +
-              'Your daily notes are included already; add a folder of finished writing for ' +
-              'questions about that. Nothing outside these folders is read.',
-            aliases: ['pieces', 'corpus', 'paragraphs', 'draw'],
-            control: {
-              type: 'textarea',
-              key: 'writingFolders',
-              rows: 4,
-              defaultValue: DEFAULT_SETTINGS.writingFolders.join('\n'),
-            },
+              'The plugin reads what you wrote in these folders and asks you about it. ' +
+              'Your daily notes are included at first; add a folder of finished writing for ' +
+              'questions about that. A graduated piece goes into one of them. Nothing outside these folders is read.',
+            aliases: ['pieces', 'corpus', 'paragraphs', 'draw', 'writing folders'],
+            render: (setting: Setting) => this.writingFolders(setting, folders),
           },
         ],
       },
@@ -196,17 +198,42 @@ export class KeepWritingSettingTab extends PluginSettingTab {
     ];
   }
 
+  /** The chosen writing folders, each removable, and one dropdown to add another. */
+  private writingFolders(setting: Setting, folders: string[]): void {
+    const draw = () => {
+      const chosen = this.host.settings.writingFolders;
+      setting.controlEl.empty();
+      const list = setting.controlEl.createDiv({ cls: 'kw-folders' });
+      for (const folder of chosen) {
+        const row = list.createDiv({ cls: 'kw-folder' });
+        row.createSpan({ text: folder });
+        new ExtraButtonComponent(row).setIcon('x').setTooltip(`Stop reading ${folder}`).onClick(() => {
+          void this.setControlValue('writingFolders', withoutFolder(this.host.settings.writingFolders, folder)).then(draw);
+        });
+      }
+      const addable = Object.keys(folderOptions(folders, [])).filter((f) => !chosen.includes(f));
+      if (addable.length === 0) return;
+      new DropdownComponent(list)
+        .addOption('', 'Add a folder…')
+        .addOptions(Object.fromEntries(addable.map((f) => [f, f])))
+        .onChange((folder) => {
+          if (folder) void this.setControlValue('writingFolders', withFolder(this.host.settings.writingFolders, folder)).then(draw);
+        });
+    };
+    draw();
+  }
+
   /**
    * Both halves of the binding, written out rather than inherited, because two
    * of these keys are not what they look like: `writingFolders` is a list
-   * behind a textarea, and a folder field that the owner empties must fall
-   * back to the default rather than storing '' and reaching nothing.
+   * drawn by hand, and a folder the owner somehow empties must fall back to
+   * the default rather than storing '' and reaching nothing.
    */
   override getControlValue(key: string): unknown {
     const s = this.host.settings;
     switch (key as ControlKey) {
       case 'writingFolders':
-        return s.writingFolders.join('\n');
+        return s.writingFolders;
       case 'sittingsFolder':
         return s.sittingsFolder;
       case 'bankFolder':
@@ -231,7 +258,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
     const text = typeof value === 'string' ? value : '';
     switch (key as ControlKey) {
       case 'writingFolders':
-        s.writingFolders = parseFolders(text);
+        s.writingFolders = readFolders(value);
         break;
       case 'sittingsFolder':
         s.sittingsFolder = stripSlashes(text) || DEFAULT_SETTINGS.sittingsFolder;
@@ -278,9 +305,36 @@ function stripSlashes(v: string): string {
   return v.trim().replace(/^\/+|\/+$/g, '');
 }
 
-/** Pure: one folder per line, blank lines and stray slashes dropped. */
-export function parseFolders(v: string): string[] {
-  return [...new Set(v.split('\n').map(stripSlashes).filter(Boolean))];
+/**
+ * Pure: a stored list of folders, cleaned. Blank entries and stray slashes are
+ * dropped and a folder named twice is named once, because an older version's
+ * textarea or a hand edit to data.json can leave any of them, and a trailing
+ * slash makes the draw reach nothing.
+ */
+export function readFolders(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return [...new Set(v.filter((f): f is string => typeof f === 'string').map(stripSlashes).filter(Boolean))];
+}
+
+/**
+ * Pure: a folder dropdown's options, every vault folder sorted, the root left
+ * out. `keep` is offered even when no such folder exists yet — the Bank
+ * folder is not there until the starter bank is written, and a dropdown that
+ * cannot show the current value shows a wrong one.
+ */
+export function folderOptions(folders: string[], keep: string[]): Record<string, string> {
+  const all = [...new Set([...folders, ...keep].map(stripSlashes).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  return Object.fromEntries(all.map((f) => [f, f]));
+}
+
+/** Pure: the list with this folder in it, once. */
+export function withFolder(list: string[], folder: string): string[] {
+  return list.includes(folder) ? list : [...list, folder];
+}
+
+/** Pure: the list without this folder. */
+export function withoutFolder(list: string[], folder: string): string[] {
+  return list.filter((f) => f !== folder);
 }
 
 /** Pure: something the endpoint call can actually be made against. */

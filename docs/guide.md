@@ -79,27 +79,21 @@ Every answer is linked, so after a few months the graph is a picture of the inte
 -path:Bank
 ```
 
-What is left is the part worth looking at: each day's writing tied to the older paragraphs that provoked it. A piece you keep returning to grows visible edges, because the plugin writes `answered-by` back onto whatever a question came from. The biggest node is the writing that keeps paying out.
-
-**Colour by what you were asked.** Marking an answer records the kind of question on the note that answered it:
-
-```yaml
-registers:
-  - episode
-  - belief
-```
-
-In graph view → Groups → New group, one query per colour:
-
-| Query | Shows |
-|---|---|
-| `["registers","episode"]` | days spent on things that happened |
-| `["registers","belief"]` | days spent on what you hold true |
-| `["registers","value"]` | days spent on what you hold worth it |
-
-Then the shape of your attention is visible without reading a word — a season of retrieving episodes, a turn toward testing beliefs.
+What is left is the part worth looking at: each day's writing tied to the older paragraphs that provoked it. A piece you keep returning to grows visible edges, because every answer's `answers` property links to what provoked it. The biggest node is the writing that keeps paying out.
 
 One thing the graph cannot show: follow-up chains. A follow-up cites the answer it came from in the same note, and Obsidian draws no link from a note to itself.
+
+## Grow a piece out of a day
+
+A daily note holds threads: a question you drew, and the follow-ups that came from answering it. A new draw is a new thread. When one of them is turning into writing, run **Graduate threads to pieces** in that note.
+
+1. Tick the threads to graduate. Each becomes its own piece.
+2. Give each piece a title. With the model on, three lines beside the field say what you wrote about, so you have something to name it by. They are not saved.
+3. Leave **Suggest headings** off, and each question becomes its section's heading. Tick it to get a suggested heading per section, which you can keep, edit, or put back to the question.
+
+Your paragraphs move as you wrote them, block ids and all, into the folder you chose. Every link to them, in any note, is pointed at their new place. The daily note keeps the rest of the day and lists the pieces under `graduated`.
+
+A graduated piece has no `status`, so it is drawn as the piece you are writing, and questions about it name it by its title.
 
 ## What it will not do
 
@@ -112,28 +106,17 @@ The plugin never writes a sentence into your notes. Its entire write surface is 
 There is no code path that inserts, edits or rewords prose. The body of a note is yours. Nothing is written without you picking it first, and Escape always means no.
 
 
-## Recover follow-ups and correct a mark
+## Ask for follow-ups again
 
-**Reopen latest follow-ups** restores the most recent offer, even after restarting Obsidian.
-The offer is saved before its chooser opens. Dismissing the chooser keeps it.
-Choosing a question removes it from the saved offer after insertion succeeds.
-Composing another successful offer replaces the previous one. Saved offers live in plugin data and can sync with that file.
-Missing or renamed source notes are reported instead of inserting a broken reference.
+Follow-ups live in the chooser that shows them. Press Escape and they are gone. To get new ones, put the cursor back in the answer and run **Mark this answer done, and follow up** again. The link is already there, so nothing is written twice, and the model composes fresh questions.
 
-**Unmark this answer** removes the selected source from the daily note's `answers` property and the corresponding inverse link.
-A `next` bookmark is cleared only when it still points to this answer.
-The answer text, native block ID, register tags, and existing follow-ups remain.
-The command reports notes that still cite the answer.
-If several asks in the same note share one source, their property is ambiguous and the command refuses without writing.
-Writes across several notes are not atomic; if a write fails, retry after resolving the error.
+To take back a mark, delete the entry from the note's `answers` property. The source then comes back into the draw.
 
-## Draw settings and indexing
+## Draw settings
 
 **Bank share** ranges from 0 (writing) to 1 (bank), with a default of 0.7.
 When one jar is empty, draws use the other. A target still restricts draws to that note's paragraphs.
-After the initial index, draws reuse parsed questions and paragraphs.
-Changed files refresh after a short debounce; a draw waits for pending updates.
-File renames refresh the renamed file and answer resolution. Folder renames or folder-setting changes rebuild the relevant index.
+A draw reads Obsidian's own index of links and block ids, then reads only the notes it chose. The plugin does no work on your notes between draws.
 
 ## API key storage
 

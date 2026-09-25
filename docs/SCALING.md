@@ -1,18 +1,25 @@
-# 0.2.8 correctness and scaling checks
+# Draw scaling
 
-On2026-09-20,298 tests passed and8 live-model tests were skipped. Lint and the production build passed. The release preserves the published0.2.7 secret storage, saved follow-ups, unmark and draw settings.
+A draw keeps nothing between runs. It lists block ids and `answers` links from
+Obsidian's metadata cache, chooses, and reads only the notes it chose. The
+plugin registers no listener on ordinary notes; the one event it answers is
+the creation of a Sitting.
 
-Tests cover changes to a captured answer, its Ask question and its source relationship; ambiguous sources; cache invalidation and unload; and full index invalidation during a yielded draw. Refusals preserve the note body.
+Measured 2026-09-24 over synthetic vaults of one paragraph per note:
 
-At250k synthetic notes, a cold roaming draw fell from11.33s without timer callbacks to6.08s total with a16ms maximum timer gap. Warm draws fell from203ms to22ms with zero content reads. Each changed-file draw reads one file; aggregate rebuilds still take roughly230ms while yielding. A50k-block note yields with about11ms maximum timer gaps.
+| notes | cold draw of three | notes read |
+| --- | --- | --- |
+| 20,000 | 5 ms | 3 |
+| 250,000 | 58 ms | 3 |
 
-Twenty edit/draw rounds showed a stable post-collection JSC heap around594MB plus287MB extra memory. Disposal dropped those values to32MB and6MB while the synthetic file fixture remained. Large caches still require substantial memory. These synthetic results exclude real filesystem, Obsidian and model latency; mobile performance is unverified.
-
-Run portable probes from this directory:
+The same 250,000-note draw took 6.08 s in 0.2.8, and an index then rebuilt the
+jars 250 ms after every save of every note to keep later draws warm. The draw is
+now one synchronous pass over the metadata cache, so 58 ms is also the longest
+the interface waits. These figures exclude Obsidian itself, the filesystem and
+the model; mobile is unmeasured.
 
 ```sh
 bun --preload ./test/setup.ts scripts/probe-scale.ts 250000
-bun --preload ./test/setup.ts scripts/probe-memory.ts 250000
 ```
 
-Detailed evidence: `ledgers/ROUND2-KW.md`.
+Earlier evidence, for the index this replaced: `ledgers/ROUND2-KW.md`.

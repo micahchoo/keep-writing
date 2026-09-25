@@ -23,29 +23,30 @@ import type { App, TFile } from 'obsidian';
 import { normalizePath } from 'obsidian';
 import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
-import { bankJar, drawMany, parseDue, pickOne } from './bank';
+import { bankJar, drawMany, parseDue, pickOne, questionAt } from './bank';
 import type { Drawn, JarCounts } from './bank';
-import type { AnsweredIndex } from './answered';
+import { answeredInVault } from './links';
 import { ensureSourceBlockId } from './blocks';
 import { readBookmark, runClosing } from './closing';
 import { CRAFT, INVITATION, lensFor } from './lens';
-import type { Composed, Model, RevisitCandidate } from './model';
+import { graduate } from './graduation';
+import type { PieceChoice } from './graduation';
+import type { Composed, Model, RevisitCandidate, SectionText } from './model';
 import { paragraphAt } from './paragraphs';
 import type { Paragraph } from './paragraphs';
-import { refusalLine } from './refusal';
+import { Refused, refusalLine } from './refusal';
 import { keyOfRef, parseRef } from './refs';
 import type { Ref } from './refs';
 import { selectionParagraph } from './selection';
 import type { KeepWritingSettings } from './settings';
 import { ME_BASENAME, isSitting, readTarget } from './target';
-import type { ExtractionCache } from './extraction-cache';
+import { threadSections, threadsOf } from './threads';
+import type { Thread } from './threads';
 
 /** What the Interview reads the vault and the model through. The plugin is one. */
 export interface InterviewHost {
-  extraction?: ExtractionCache;
   app: App;
   settings: KeepWritingSettings;
-  index: AnsweredIndex;
   model: Model;
 }
 
@@ -119,6 +120,20 @@ export interface Answered {
 }
 
 /** The one fixed Revisit form, for when the model is off or offers nothing. A paragraph is never a dead end. */
+/**
+ * What graduating a Sitting starts from: the note as read, its threads, and
+ * the folders a Piece may go to. The modal holds this until the owner picks or
+ * presses Escape; `graduate` refuses if the note no longer reads as `snapshot`.
+ */
+export interface Graduation {
+  snapshot: string;
+  threads: Thread[];
+  folders: string[];
+}
+
+const NO_PIECE_FOLDER = 'Add a folder for your writing in settings first. A Piece goes into one of them.';
+const NO_THREAD = 'Nothing here is answered yet, so there is no thread to graduate.';
+
 export const REVISIT_FALLBACK = 'what would you write under this now?';
 
 /**
@@ -158,7 +173,6 @@ export class Interview {
    * anything already answered.
    */
   async draw(sitting: TFile, count: number = DRAW_COUNT): Promise<Drawing> {
-    await this.host.index.prepare();
     const target = readTarget(this.app, sitting);
     const ctx = await this.context(sitting);
     // The pick-up takes the first of the `count` rows, never an extra one:
@@ -181,7 +195,7 @@ export class Interview {
    * anywhere:
    *
    * - **Followed.** Accepting a question from it and answering that question
-   *   links an `answers` to the block, so the index calls it answered.
+   *   links an `answers` to the block, so it is answered.
    * - **Replaced.** Answering tonight's Bookmark overwrites `next`.
    * - **Written today.** A Bookmark answered THIS Sitting points into this
    *   Sitting, and the edge it names is not behind the owner yet. The jar
@@ -192,8 +206,7 @@ export class Interview {
     if (!ref) return null;
     const paragraph = await paragraphAt(this.app, ref, this.host.settings.sittingsFolder);
     if (!paragraph || paragraph.file.path === sitting.path) return null;
-    await this.host.index.prepare();
-    if (this.host.index.has(paragraph.key) || placed.has(paragraph.key)) return null;
+    if (answeredInVault(this.app).has(paragraph.key) || placed.has(paragraph.key)) return null;
     return paragraph;
   }
 
@@ -229,7 +242,7 @@ export class Interview {
       const key = ref && keyOfRef(this.app, ref, sitting.path);
       if (key) placed.add(key);
     }
-    return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankShare: this.host.settings.bankShare, index: this.host.index, skipped: placed, sitting, extraction: this.host.extraction };
+    return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankShare: this.host.settings.bankShare, skipped: placed, sitting };
   }
 
   /** Write a drawn Bank question as an Ask, and put the cursor under it. */
@@ -321,7 +334,6 @@ export class Interview {
     candidate: RevisitCandidate,
     reach: Reach,
   ): Promise<void> {
-    this.host.extraction?.assertActive();
     let ref: Ref;
     try {
       ref = await ensureSourceBlockId(this.app, source);
@@ -329,7 +341,6 @@ export class Interview {
       this.surface.notice(refusalLine(e));
       return;
     }
-    this.host.extraction?.assertActive();
     const opts: AskOptions = REACHES[reach].embed ? { embed: true } : {};
     const due = candidate.dueDays !== undefined ? parseDue(`+${candidate.dueDays}d`, new Date()) : null;
     if (due) opts.due = due;
@@ -369,7 +380,7 @@ export class Interview {
     }
 
     const { bankFolder } = this.host.settings;
-    const marked = await markAnswered(this.app, file, ask, { bankFolder });
+    const marked = await markAnswered(this.app, file, ask);
     if (marked.kind === 'refused') {
       this.surface.notice(marked.reason);
       return null;
@@ -413,6 +424,45 @@ export class Interview {
   /** Write one of the offered Follow-ups as an Ask, cited to the answer it came from. */
   async acceptFollowUp(sitting: TFile, question: string, sourceRef: Ref): Promise<void> {
     this.landed(sitting, await insertAsk(this.app, sitting, question, sourceRef));
+  }
+
+  // -------------------------------------------------------------------------
+  // Graduation
+
+  /**
+   * The threads of a Sitting that may become Pieces, and where they may go.
+   * The Bookmark is read off the Bank by its Role and left out: its answer is
+   * where to pick up, and belongs to no piece.
+   */
+  async graduation(sitting: TFile): Promise<Graduation> {
+    const { sittingsFolder, bankFolder, writingFolders } = this.host.settings;
+    const folders = writingFolders.filter((f) => f && f !== sittingsFolder);
+    if (folders.length === 0) throw new Refused(NO_PIECE_FOLDER);
+    const snapshot = await this.app.vault.read(sitting);
+    const bookmarks = new Set<string>();
+    for (const ask of parseAsks(snapshot)) {
+      const ref = parseRef(ask.sourceRef);
+      if (ref && (await questionAt(this.app, ref, sitting.path, bankFolder))?.role === 'bookmark') bookmarks.add(ask.sourceRef);
+    }
+    const isHere = (path: string) => this.app.metadataCache.getFirstLinkpathDest(path, sitting.path)?.path === sitting.path;
+    const threads = threadsOf(snapshot, isHere, (ref) => bookmarks.has(ref));
+    if (threads.length === 0) throw new Refused(NO_THREAD);
+    return { snapshot, threads, folders };
+  }
+
+  /** Up to three lines on what a thread is about, to name its Piece by. Shown, never written. */
+  summarize(snapshot: string, thread: Thread): Promise<Composed<string>> {
+    return this.host.model.summarize(forModel(snapshot, thread));
+  }
+
+  /** One heading per section, offered. Written only if the owner picks it. */
+  suggestHeadings(snapshot: string, thread: Thread): Promise<Composed<string>> {
+    return this.host.model.suggestHeadings(forModel(snapshot, thread));
+  }
+
+  /** Make the Pieces. See graduation.ts for the order of writes and what refuses. */
+  graduate(sitting: TFile, snapshot: string, choices: PieceChoice[]): Promise<TFile[]> {
+    return graduate(this.app, sitting, snapshot, choices);
   }
 
   /**
@@ -465,4 +515,12 @@ export function jarsLine(jars: JarCounts): string {
   const q = `${jars.questions} question${jars.questions === 1 ? '' : 's'}`;
   const p = `${jars.paragraphs} paragraph${jars.paragraphs === 1 ? '' : 's'}`;
   return `roaming · ${q} · ${p}`;
+}
+
+/** Pure: a thread's sections as the model reads them, block ids taken off. */
+function forModel(snapshot: string, thread: Thread): SectionText[] {
+  return threadSections(snapshot, thread).map((s) => ({
+    question: s.question,
+    answer: s.answer.split('\n').map((l) => l.replace(/\s+\^[A-Za-z0-9-]+\s*$/, '')).join('\n').trim(),
+  }));
 }

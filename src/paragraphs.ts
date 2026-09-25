@@ -29,10 +29,8 @@
 import type { App, TFile } from 'obsidian';
 import { headingAbove, readsAsParagraph } from './furniture';
 import { blockTexts, refOf, resolveRef } from './refs';
-import type { Ref } from './refs';
+import type { BlockText, Ref } from './refs';
 import { isSitting } from './target';
-import type { ExtractionCache } from './extraction-cache';
-import { WorkBudget } from './work';
 
 /** The register a paragraph counts as. */
 const REVISIT_REGISTER = 'revisit';
@@ -243,7 +241,7 @@ export interface ParagraphBlock {
  * (`facts`) and what this block is.
  *
  * The key is the one thing every path here must agree on, because
- * answered-ness is keyed by it (answered.ts#AnsweredIndex): a block with an id is
+ * answered-ness is keyed by it (links.ts#answeredInVault): a block with an id is
  * addressed by the id, one without is addressed by its line and gets a real
  * id when the Ask is accepted (blocks.ts#ensureSourceBlockId). Before 2026-09-17
  * this literal was written in four places — the two block shelves, the Well
@@ -280,92 +278,61 @@ export async function paragraphAt(app: App, ref: Ref, sittingsFolder: string): P
 }
 
 /**
- * The paragraphs of a note whose blocks already carry ids: a finished Piece,
- * or a Sitting. The two shelves differ only in the facts their note lends.
+ * A block id the draw may choose, before a word of it is read. The paragraph
+ * jar is a list of these: Obsidian's metadata cache already knows every block
+ * id in the vault, so listing them reads no file.
  */
-async function blockParagraphs(app: App, file: TFile, facts: ParagraphFacts, budget: WorkBudget): Promise<Paragraph[]> {
-  const blocks = await blockTexts(app, file, budget);
-  const result: Paragraph[] = [];
-  for (let i = 0; i < blocks.length; i++) {
-    await budget.step();
-    result.push(paragraphOf(file, facts, blocks[i]));
-  }
-  return result;
+export interface UnreadBlock {
+  kind: 'block';
+  file: TFile;
+  id: string;
+  key: string;
 }
 
 /**
- * The whole paragraph jar, before answered-ness: every id'd block of every
- * note in the folders the owner named. Furniture is strained out here, and so
- * is a second telling of the same words, in the one place every paragraph
- * passes through, so no caller can forget either.
- */
-export async function paragraphJar(
-  app: App,
-  sittingsFolder: string,
-  writingFolders: string[],
-  target: TFile | null = null,
-  extraction?: ExtractionCache,
-  budget = new WorkBudget(),
-): Promise<Paragraph[]> {
-  const jar: Paragraph[] = [];
-  for (const file of target ? [target] : app.vault.getMarkdownFiles()) {
-    await budget.step();
-    extraction?.assertActive();
-    if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
-    const extract = async () => {
-      const blocks = await blockParagraphs(app, file, fileFacts(app, file, sittingsFolder), budget);
-      const paragraphs: Paragraph[] = [];
-      const metadata = app.metadataCache.getFileCache(file);
-      for (let i = 0; i < blocks.length; i++) {
-        await budget.step();
-        extraction?.assertActive();
-        const paragraph = blocks[i];
-        if (readsAsParagraph(paragraph.text, headingAbove(metadata, paragraph.line))) paragraphs.push(paragraph);
-      }
-      return paragraphs;
-    };
-    const paragraphs = extraction
-      ? await extraction.get(file, `paragraphs:${sittingsFolder}`, extract)
-      : await extract();
-    if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
-    for (const paragraph of paragraphs) jar.push(paragraph);
-  }
-  return oneTellingEachAsync(jar, budget);
-}
-
-/**
- * One paragraph per distinct text. The corpus keeps every telling of a
- * Piece (CONTEXT.md, "Piece"), so the same words reach the jar under two
- * refs: 186 of 722 Piece paragraphs on 2026-09-16, 86 of them from a single
- * pair of tellings. To the draw two tellings are one paragraph. Left alone
- * they carry double weight, and because answered-ness is keyed by ref
- * (answered.ts#AnsweredIndex), answering one telling never retires the other,
- * so the owner can be asked about the same words twice.
+ * The paragraph jar, unread: every block id of every note in the folders the
+ * owner named, or of the Target alone. Furniture is still in it; the draw
+ * finds out by reading the one it chose (`readBlock`).
  *
- * The telling kept is the finished one (published over set-down), then the
- * shortest path, so the choice cannot move between runs. Cooperative, because
- * a jar can hold hundreds of thousands of blocks. One implementation: a
- * synchronous twin carried the tests and had no caller until 2026-09-21.
+ * It read and split every note in the jar until 2026-09-24, on every draw, and
+ * an index rebuilt it after every save of every note so that a draw would not
+ * have to. Measured over 250,000 synthetic notes: a cold draw took six seconds.
+ * A draw now reads the notes it chose, which is three.
+ *
+ * Two tellings of one Piece are two blocks here. They were collapsed to one
+ * until 2026-09-24, which needed every block read to compare their words; the
+ * duplicates were one corpus import in one vault.
  */
-export async function oneTellingEachAsync(paragraphs: Iterable<Paragraph>, budget = new WorkBudget()): Promise<Paragraph[]> {
-  const best = new Map<string, Paragraph>();
-  for (const paragraph of paragraphs) {
-    await budget.step();
-    const seen = best.get(paragraph.text);
-    if (!seen || (paragraph.status === 'published' && seen.status !== 'published') ||
-        ((paragraph.status === 'published') === (seen.status === 'published') && paragraph.file.path < seen.file.path)) {
-      best.set(paragraph.text, paragraph);
+export function paragraphJar(app: App, writingFolders: string[], target: TFile | null = null): UnreadBlock[] {
+  const jar: UnreadBlock[] = [];
+  for (const file of target ? [target] : app.vault.getMarkdownFiles()) {
+    if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
+    for (const id of Object.keys(app.metadataCache.getFileCache(file)?.blocks ?? {})) {
+      jar.push({ kind: 'block', file, id, key: `${file.path}#^${id}` });
     }
   }
-  const result: Paragraph[] = [];
-  for (const paragraph of best.values()) {
-    await budget.step();
-    result.push(paragraph);
-  }
-  return result;
+  return jar;
 }
 
-/** Parse only one changed file; global duplicate selection stays in the jar. */
-export async function paragraphsForFile(app: App, file: TFile, sittingsFolder: string, writingFolders: string[], extraction?: ExtractionCache, budget = new WorkBudget()): Promise<Paragraph[]> {
-  return paragraphJar(app, sittingsFolder, writingFolders, file, extraction, budget);
+/**
+ * The paragraph an unread block turns out to be, or null when it is Furniture
+ * or has gone. `reads` holds each note read during one draw, so two blocks of
+ * one note cost one read.
+ */
+export async function readBlock(
+  app: App,
+  sittingsFolder: string,
+  block: UnreadBlock,
+  reads: Map<string, Promise<BlockText[]>> = new Map(),
+): Promise<Paragraph | null> {
+  let texts = reads.get(block.file.path);
+  if (!texts) {
+    texts = blockTexts(app, block.file);
+    reads.set(block.file.path, texts);
+  }
+  const text = (await texts).find((b) => b.id === block.id);
+  if (!text) return null;
+  const heading = headingAbove(app.metadataCache.getFileCache(block.file), text.line);
+  if (!readsAsParagraph(text.text, heading)) return null;
+  return paragraphOf(block.file, fileFacts(app, block.file, sittingsFolder), text);
 }

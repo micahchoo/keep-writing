@@ -2,12 +2,11 @@ import { describe, expect, test } from 'bun:test';
 import {
   framingOf,
   noteFraming,
-  oneTellingEachAsync,
   paragraphJar,
+  readBlock,
   sittingFraming,
   sittingName,
 } from '../src/paragraphs';
-import type { Paragraph } from '../src/paragraphs';
 import { blockTexts } from '../src/refs';
 import { fakeVault } from './fake-vault';
 
@@ -52,42 +51,6 @@ describe('framing', () => {
   });
 });
 
-describe('oneTellingEach', () => {
-  const para = (path: string, text: string, status: string, wells: string[]) =>
-    ({
-      kind: 'paragraph', file: { path } as never, ref: { path }, key: `${path}#^x`,
-      register: 'revisit', text, origin: 'piece', wells, framing: '', title: path, meta: [],
-      line: 0, status,
-    }) as never as Paragraph;
-
-  // The real pair, 86 blocks deep, measured 2026-09-16.
-  const PUB = 'Pieces/2020-03-01-carefull-collectives.md';
-  const MIRROR = 'Pieces/0000-00-00-careful-collectives-micah-alex.md';
-  const TEXT = 'In Bidar, there is a community called the Valmiki Samaj who had been doing this for years.';
-
-  test('two tellings of one paragraph become one, and the finished telling is kept', async () => {
-    const out = await oneTellingEachAsync([para(MIRROR, TEXT, 'set-down', ['me']), para(PUB, TEXT, 'published', ['Cities'])]);
-    expect(out.length).toBe(1);
-    expect(out[0]!.file.path).toBe(PUB);
-  });
-
-  test('order does not decide the winner, so the draw cannot shift between runs', async () => {
-    const a = await oneTellingEachAsync([para(MIRROR, TEXT, 'set-down', []), para(PUB, TEXT, 'published', [])]);
-    const b = await oneTellingEachAsync([para(PUB, TEXT, 'published', []), para(MIRROR, TEXT, 'set-down', [])]);
-    expect(a[0]!.file.path).toBe(b[0]!.file.path);
-  });
-
-  test('two set-down tellings tie-break on path, never at random', async () => {
-    const out = await oneTellingEachAsync([para('Pieces/z.md', TEXT, 'set-down', []), para('Pieces/a.md', TEXT, 'set-down', [])]);
-    expect(out[0]!.file.path).toBe('Pieces/a.md');
-  });
-
-  test('different paragraphs are all kept, in the order they came', async () => {
-    const out = await oneTellingEachAsync([para(PUB, 'one paragraph', 'published', []), para(PUB, 'another paragraph', 'published', [])]);
-    expect(out.map((p) => p.text)).toEqual(['one paragraph', 'another paragraph']);
-  });
-});
-
 describe('paragraphJar', () => {
   const vault = fakeVault({
     'Domains/Cities.md': '---\nkind: domain\ngathers:\n- cities\n---\n\nI walk to think, and the city gives back a different thought each morning. ^w1\n\nEvery city I lived in for a week has a poem I never finished writing down.\n',
@@ -128,7 +91,11 @@ describe('paragraphJar', () => {
 
   /** What the owner named in settings. `Domains/` and `me.md` are in neither. */
   const FOLDERS = ['Sittings', 'Pieces'];
-  const jarOf = (folders = FOLDERS) => paragraphJar(vault.app, 'Sittings', folders);
+  // Every block of the jar, read the way a draw reads the one it chose.
+  const jarOf = async (folders = FOLDERS) => {
+    const read = await Promise.all(paragraphJar(vault.app, folders).map((b) => readBlock(vault.app, 'Sittings', b)));
+    return read.filter((p) => p !== null);
+  };
 
   // The jar was `Pieces/` and `Sittings/` by path, and a Piece also needed a
   // `status`, until 2026-09-17. One rule now: an id'd block in a folder the

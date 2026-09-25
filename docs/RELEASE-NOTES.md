@@ -1,3 +1,13 @@
+# 0.3.0
+
+- A draw reads only the notes it chooses. Over 250,000 synthetic notes a draw takes 58 ms, where it took 6 s. The plugin no longer does work each time any note is saved.
+- Marking an answer writes `answers` on the answer only. It no longer writes `answered-by` on the source, or `registers` on the answer. Properties already in your notes are not changed.
+- Removed: **Reopen latest follow-ups**, **Unmark this answer** and **Open the menu**. The right-click submenu stays, and offers **Graduate threads to pieces** in a daily note. To get follow-ups again, mark the answer again. To take back a mark, delete it from `answers`.
+- New: **Graduate threads to pieces**. A question and its follow-ups move out of a daily note into a new piece, word for word, with the questions as headings. Every link to a moved paragraph follows it. The model can summarize a thread to help you name it, and suggest headings when you ask; neither is written unless you pick it.
+- The chooser's paragraph count includes blocks it has not read yet, so it can be higher than before. Two tellings of one paragraph are now two blocks.
+
+Requires Obsidian 1.13.0 or later. A saved follow-up offer from 0.2.9 is dropped from plugin data on the next settings write.
+
 # 0.2.9
 
 - Accepting a saved follow-up no longer writes the paragraph's block id a second time when it already has one. The one body edit the plugin makes is now covered by tests that drive the writer that ships; until now they drove a twin nothing called.

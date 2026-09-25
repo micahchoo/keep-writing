@@ -108,7 +108,7 @@ const paragraphs = (prefix: string, n: number) =>
   Array.from({ length: n }, (_, i) => paragraph(`${prefix}-${i}`));
 
 describe('pickFromJars', () => {
-  const jars: Jars = {
+  const jars: Jars<Paragraph> = {
     bank: [question('b1', 'episode'), question('b2', 'value')],
     paragraphs: paragraphs('p', 6),
   };
@@ -135,9 +135,9 @@ describe('pickFromJars', () => {
   });
 
   test('an empty jar hands the draw to the other, whatever the coin says', () => {
-    const onlyBank: Jars = { bank: jars.bank, paragraphs: [] };
+    const onlyBank: Jars<Paragraph> = { bank: jars.bank, paragraphs: [] };
     expect(pickFromJars(onlyBank, sequence([0.9, 0.0]))?.source.kind).toBe('question');
-    const onlyParagraphs: Jars = { bank: [], paragraphs: jars.paragraphs };
+    const onlyParagraphs: Jars<Paragraph> = { bank: [], paragraphs: jars.paragraphs };
     expect(pickFromJars(onlyParagraphs, sequence([0.1, 0.0]))?.source.kind).toBe('paragraph');
     expect(pickFromJars({ bank: [], paragraphs: [] }, sequence([0.5]))).toBeNull();
   });
@@ -147,7 +147,7 @@ describe('pickFromJars', () => {
   // of 100. Measured over the real corpus that day: the self held 36.5% of the
   // jar and took 12.5% of the picks; one Domain held 1.5% and took the same.
   test('a paragraph is a paragraph: 100 from one note and 2 from another draw by weight', () => {
-    const skewed: Jars = { bank: [], paragraphs: [...paragraphs('big', 100), ...paragraphs('small', 2)] };
+    const skewed: Jars<Paragraph> = { bank: [], paragraphs: [...paragraphs('big', 100), ...paragraphs('small', 2)] };
     const random = mulberry32(5);
     let small = 0;
     const n = 4000;
@@ -165,7 +165,7 @@ describe('pickFromJars', () => {
 
 describe('jarCounts', () => {
   test('counts what is left in each jar', () => {
-    const jars: Jars = {
+    const jars: Jars<Paragraph> = {
       bank: [question('b1', 'episode')],
       paragraphs: [paragraph('Pieces/x.md#^p-001'), paragraph('Pieces/y.md#^p-001')],
     };

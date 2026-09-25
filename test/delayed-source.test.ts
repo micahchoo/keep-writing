@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test';
 import { Interview } from '../src/interview';
-import { AnsweredIndex } from '../src/answered';
 import { DEFAULT_SETTINGS } from '../src/settings';
 import { createModel } from '../src/model';
 import { fakeVault } from './fake-vault';
@@ -10,7 +9,7 @@ function fixture(id = '') {
   const v = fakeVault({ 'Notes/source.md': `${original}${id}\n`, 'Sittings/today.md': '## Asked\n' });
   const file = v.file('Notes/source.md');
   const notices: string[] = [];
-  const interview = new Interview({ app: v.app, settings: DEFAULT_SETTINGS, index: new AnsweredIndex(v.app), model: createModel({ ...DEFAULT_SETTINGS, enableModel: false }) }, { notice: s => notices.push(s), placeCursor: () => true });
+  const interview = new Interview({ app: v.app, settings: DEFAULT_SETTINGS, model: createModel({ ...DEFAULT_SETTINGS, enableModel: false }) }, { notice: s => notices.push(s), placeCursor: () => true });
   const source = interview.selection({ file, selected: original, line: 0, document: v.text(file.path) })!;
   const accept = () => interview.acceptFrom(v.file('Sittings/today.md'), source, { question: 'What changed?' }, 'pointed');
   return { v, file, source, notices, accept };

@@ -23,7 +23,7 @@ export type Fetcher = (
 ) => Promise<{ status: number; text: string }>;
 
 export interface CallLog {
-  job: 'follow-up' | 'revisit' | 'invitation';
+  job: 'follow-up' | 'revisit' | 'invitation' | 'summary' | 'headings';
   attempt: number;
   ms: number;
   outcome: 'ok' | 'abstain' | 'invalid' | 'error';
@@ -586,4 +586,77 @@ export async function composeInvitation(
   const system = lens.trim() ? `${INVITATION_SYSTEM}\n\n${lens.trim()}` : INVITATION_SYSTEM;
   const user = `Something they wrote some time ago:\n\n${paragraph}`;
   return valueOrNull(await runJob(cfg, 'invitation', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Graduation: a summary to name a Piece by, and headings to offer it
+//
+// Neither job writes anything. The summary is shown beside the title field and
+// thrown away; a suggested heading reaches the Piece only if the owner picks it
+// (CONTEXT.md, "Graduation"). So the checks guard the shape and nothing else,
+// and a failure costs the owner a suggestion, never a Piece.
+
+/** A section as the model reads it: the question, and the owner's answer. */
+export interface SectionText {
+  question: string;
+  answer: string;
+}
+
+const MAX_SUMMARY_LINES = 3;
+const MAX_HEADING_WORDS = 8;
+
+export const SUMMARY_SYSTEM = `A person answered questions in their notebook, and is about to turn the answers into a piece of writing. They need to name it. You are shown the questions and what they wrote.
+
+Say what they wrote about, in at most three short lines, so they can see it at a glance while choosing a title. Use their own words and images where you can. Do not add anything they did not write, do not advise, and do not propose a title.
+
+Reply with JSON only: {"lines": ["...", "..."]}`;
+
+export const HEADINGS_SYSTEM = `A person answered questions in their notebook, and is turning the answers into a piece of writing. Each answer becomes one section. You are shown the sections in order.
+
+Give each section a short heading, two to six words, naming what the writing in it is about. Use their own words where you can. Not a question, and no heading marks.
+
+Reply with JSON only: {"headings": ["...", "..."]}, one per section, in order.`;
+
+function sectionsText(sections: SectionText[]): string {
+  return sections.map((s, i) => `Section ${i + 1}\nQuestion: ${s.question}\nAnswer:\n${s.answer}`).join('\n\n');
+}
+
+function stringList(obj: unknown, key: string): string[] | null {
+  const list = typeof obj === 'object' && obj !== null ? (obj as Record<string, unknown>)[key] : undefined;
+  return Array.isArray(list) && list.every((x) => typeof x === 'string') ? list : null;
+}
+
+/**
+ * Pure: up to three lines. A summary is shown and thrown away, so a reply
+ * that runs long is cut to size, never refused: refusing it cost the owner the
+ * whole summary, and a thread with follow-ups draws the longer lines.
+ */
+export function checkSummary(obj: unknown): Verdict<string[]> {
+  const lines = stringList(obj, 'lines')?.map((l) => l.trim()).filter(Boolean);
+  if (!lines) return { kind: 'invalid', reason: 'expected {"lines": [string]}' };
+  if (lines.length === 0) return { kind: 'invalid', reason: 'give at least one line' };
+  return { kind: 'ok', value: lines.slice(0, MAX_SUMMARY_LINES) };
+}
+
+/** Pure: exactly one heading per section, each a short single line. A leading `#` is taken off. */
+export function checkHeadings(obj: unknown, count: number): Verdict<string[]> {
+  const raw = stringList(obj, 'headings');
+  if (!raw) return { kind: 'invalid', reason: 'expected {"headings": [string]}' };
+  if (raw.length !== count) return { kind: 'invalid', reason: `give exactly ${count} headings, one per section` };
+  if (raw.some((h) => h.includes('\n'))) return { kind: 'invalid', reason: 'each heading is one line' };
+  const headings = raw.map((h) => h.replace(/^#+\s*/, '').trim());
+  if (headings.some((h) => !h)) return { kind: 'invalid', reason: 'no heading may be empty' };
+  if (headings.some((h) => wordCount(h) > MAX_HEADING_WORDS)) return { kind: 'invalid', reason: `keep each heading under ${MAX_HEADING_WORDS} words` };
+  return { kind: 'ok', value: headings };
+}
+
+/** Up to three lines on what a thread is about. Empty when the model declines or fails. */
+export async function summarizeThread(cfg: BonsaiConfig, sections: SectionText[]): Promise<string[]> {
+  return valueOrNull(await runJob(cfg, 'summary', SUMMARY_SYSTEM, sectionsText(sections), checkSummary)) ?? [];
+}
+
+/** One heading per section, in order. Empty when the model declines or fails. */
+export async function suggestHeadings(cfg: BonsaiConfig, sections: SectionText[]): Promise<string[]> {
+  const check = (obj: unknown) => checkHeadings(obj, sections.length);
+  return valueOrNull(await runJob(cfg, 'headings', HEADINGS_SYSTEM, sectionsText(sections), check)) ?? [];
 }

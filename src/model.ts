@@ -8,11 +8,11 @@
 // had produced one link in the vault's life.
 
 import { requestUrl } from 'obsidian';
-import { composeFollowUps, composeInvitation, composeRevisit } from './bonsai';
-import type { BonsaiConfig, CallLog, RevisitCandidate } from './bonsai';
+import { composeFollowUps, composeInvitation, composeRevisit, suggestHeadings, summarizeThread } from './bonsai';
+import type { BonsaiConfig, CallLog, RevisitCandidate, SectionText } from './bonsai';
 import type { KeepWritingSettings } from './settings';
 
-export type { CallLog, RevisitCandidate };
+export type { CallLog, RevisitCandidate, SectionText };
 
 /**
  * What one compose call produced.
@@ -44,6 +44,10 @@ export interface Model {
   composeRevisit(paragraph: string, framing: string, asked: string[], lens: string): Promise<Composed<RevisitCandidate>>;
   /** Up to three invitations SEEDED by a paragraph the draw found, aimed at the owner's present. No framing: see INVITATION_SYSTEM. */
   composeInvitation(paragraph: string, asked: string[], lens: string): Promise<Composed<RevisitCandidate>>;
+  /** Up to three lines on what a thread is about, to name a Piece by. Shown, never written. */
+  summarize(sections: SectionText[]): Promise<Composed<string>>;
+  /** One heading per section, in order, offered to the owner. Written only if they pick it. */
+  suggestHeadings(sections: SectionText[]): Promise<Composed<string>>;
 }
 
 /**
@@ -68,6 +72,8 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
       composeFollowUps: async () => nothing(),
       composeRevisit: async () => nothing(),
       composeInvitation: async () => nothing(),
+      summarize: async () => nothing(),
+      suggestHeadings: async () => nothing(),
     };
   }
   const base: BonsaiConfig = { baseUrl: settings.baseUrl, model: settings.model, fetcher, maxTokens: settings.maxTokens };
@@ -109,5 +115,7 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
     composeRevisit: (paragraph, framing, asked, lens) =>
       composing((cfg) => composeRevisit(cfg, paragraph, framing, asked, lens)),
     composeInvitation: (paragraph, asked, lens) => composing((cfg) => composeInvitation(cfg, paragraph, asked, lens)),
+    summarize: (sections) => composing((cfg) => summarizeThread(cfg, sections)),
+    suggestHeadings: (sections) => composing((cfg) => suggestHeadings(cfg, sections)),
   };
 }

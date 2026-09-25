@@ -138,7 +138,17 @@ function cacheOf(markdown: string) {
     sections.push(section);
     i++;
   }
-  return { frontmatter, frontmatterLinks, sections, headings, listItems, blocks, tags };
+  // Body wikilinks, as Obsidian caches them: `links` for `[[x]]`, `embeds` for `![[x]]`.
+  const links: { link: string; original: string; displayText: string; position: Pos }[] = [];
+  const embeds: { link: string; original: string; displayText: string; position: Pos }[] = [];
+  lines.forEach((line, n) => {
+    if (n <= end) return;
+    for (const m of line.matchAll(/(!?)\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g)) {
+      const entry = { link: m[2] as string, original: m[0], displayText: m[3] ?? (m[2] as string), position: pos(n, n) };
+      (m[1] ? embeds : links).push(entry);
+    }
+  });
+  return { frontmatter, frontmatterLinks, sections, headings, listItems, blocks, tags, links, embeds };
 }
 
 export interface FakeVault {
@@ -197,7 +207,9 @@ export function fakeVault(notes: Record<string, string>, hooks: VaultHooks = {})
       createFolder: async (path: string) => {
         folders.add(path);
       },
+      // Obsidian refuses to create over a note that exists.
       create: async (path: string, data: string) => {
+        if (byPath.has(path)) throw new Error('File already exists.');
         const f = fileOf(path);
         files.push(f);
         byPath.set(path, f);
@@ -218,6 +230,13 @@ export function fakeVault(notes: Record<string, string>, hooks: VaultHooks = {})
         const { frontmatter } = parseFrontmatter(data.split('\n'));
         fn(frontmatter);
         record(f.path, writeFrontmatter(data, frontmatter));
+      },
+      // Gone from the vault, as far as anything here can see.
+      trashFile: async (f: TFile) => {
+        bodies.delete(f.path);
+        byPath.delete(f.path);
+        const at = files.findIndex((x) => x.path === f.path);
+        if (at >= 0) files.splice(at, 1);
       },
     },
     metadataCache: {

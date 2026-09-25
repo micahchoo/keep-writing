@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test';
-import { AnsweredIndex } from '../src/answered';
 import { fillJars, jarCounts } from '../src/bank';
 import type { DrawContext } from '../src/bank';
 import { readTarget } from '../src/target';
@@ -33,7 +32,6 @@ const ctx = (skipped: string[] = []): DrawContext => ({
   bankFolder: 'Bank',
   sittingsFolder: 'Sittings',
   writingFolders: ['Sittings', 'Pieces'],
-  index: new AnsweredIndex(app),
   skipped: new Set(skipped),
 });
 

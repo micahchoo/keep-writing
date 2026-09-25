@@ -6,9 +6,9 @@
 
 import { describe, expect, test } from 'bun:test';
 import { parseAsks } from '../src/asks';
+import { Refused } from '../src/refusal';
 import type { Ask } from '../src/asks';
-import { AnsweredIndex } from '../src/answered';
-import type { Composed, Model, RevisitCandidate } from '../src/model';
+import type { Composed, Model, RevisitCandidate, SectionText } from '../src/model';
 import { Interview, dayStamp } from '../src/interview';
 import type { InterviewHost } from '../src/interview';
 import type { Paragraph } from '../src/paragraphs';
@@ -23,6 +23,8 @@ interface Plan {
   revisit?: RevisitCandidate[];
   invitation?: RevisitCandidate[];
   followUps?: string[];
+  summary?: string[];
+  headings?: string[];
   /**
    * What the call failed with. A model that is AVAILABLE and reached, whose
    * exchange did not happen — a 404 on the model id, a timeout, a reply cut
@@ -37,6 +39,8 @@ function recordingModel(plan: Plan = {}) {
     revisit: [] as { paragraph: string; framing: string; asked: string[]; lens: string }[],
     invitation: [] as { paragraph: string; asked: string[]; lens: string }[],
     followUp: [] as { question: string; answer: string; asked: string[]; target: string }[],
+    summary: [] as SectionText[][],
+    headings: [] as SectionText[][],
   };
   // Mirrors createModel: a call that composed something has no error, whatever
   // failed on the way.
@@ -59,6 +63,14 @@ function recordingModel(plan: Plan = {}) {
       seen.followUp.push({ question, answer, asked, target });
       return composed(plan.followUps ?? []);
     },
+    summarize: async (sections) => {
+      seen.summary.push(sections);
+      return composed(plan.summary ?? []);
+    },
+    suggestHeadings: async (sections) => {
+      seen.headings.push(sections);
+      return composed(plan.headings ?? []);
+    },
   };
   return { model, seen };
 }
@@ -69,6 +81,8 @@ const OFF: Model = {
   composeRevisit: async () => ({ questions: [], error: null }),
   composeInvitation: async () => ({ questions: [], error: null }),
   composeFollowUps: async () => ({ questions: [], error: null }),
+  summarize: async () => ({ questions: [], error: null }),
+  suggestHeadings: async () => ({ questions: [], error: null }),
 };
 
 function open(notes: Record<string, string>, model: Model = OFF, hooks: VaultHooks = {}) {
@@ -84,7 +98,6 @@ function open(notes: Record<string, string>, model: Model = OFF, hooks: VaultHoo
     // The folders this test vault keeps writing in. The shipped default names
     // only the Sittings folder; every fixture here that holds a Piece says so.
     settings: { ...DEFAULT_SETTINGS, writingFolders: ['Sittings', 'Pieces'] },
-    index: new AnsweredIndex(v.app),
     model,
   };
   const interview = new Interview(host, {
@@ -95,9 +108,7 @@ function open(notes: Record<string, string>, model: Model = OFF, hooks: VaultHoo
     },
     notice: (message) => surface.notices.push(message),
   });
-  // In the vault the plugin invalidates on every metadataCache event; here the
-  // test says when the index should notice a write.
-  return { v, interview, surface, host, refresh: () => host.index.invalidate() };
+  return { v, interview, surface, host };
 }
 
 const asksIn = (v: ReturnType<typeof fakeVault>, path: string): Ask[] => parseAsks(v.text(path));
@@ -817,5 +828,64 @@ describe('why nothing was composed', () => {
     const marked = await interview.markAt({ file: v.file(TODAY), line: 8 });
     expect(marked?.questions).toEqual([]);
     expect(marked?.error).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Graduation: what the Interview hands the modal, and what the model reads.
+// What the write does is test/graduation.test.ts.
+
+describe('graduation', () => {
+  const GRAD = {
+    'Bank/q.md': '---\nkind: bank\n---\n- what are you saving up for? #register/intention ^b1\n',
+    'Bank/closing.md': '---\nkind: bank\n---\n- where should we pick up? #register/intention #role/bookmark ^x-005\n',
+    'Sittings/2026-09-15.md': [
+      '## Asked', '',
+      '> [!ask] what are you saving up for?', '> from [[Bank/q#^b1]]', '',
+      'A house by the river. ^a1', '',
+      '> [!ask] why the river?', '> from [[Sittings/2026-09-15#^a1]]', '',
+      'Because it keeps moving. ^a3', '',
+      '## Closing', '',
+      '> [!ask] where should we pick up?', '> from [[Bank/closing#^x-005]]', '',
+      'The river, again. ^a5', '',
+    ].join('\n'),
+    'Sittings/2026-09-16.md': '## Asked\n\n> [!ask] what are you saving up for?\n> from [[Bank/q#^b1]]\n\n',
+  };
+
+  test('the threads of a Sitting, with the Bookmark read off the Bank and left out', async () => {
+    const { v, interview } = open(GRAD);
+    const g = await interview.graduation(v.file('Sittings/2026-09-15.md'));
+    expect(g.threads.map((t) => t.asks.map((a) => a.question))).toEqual([['what are you saving up for?', 'why the river?']]);
+    expect(g.snapshot).toBe(v.text('Sittings/2026-09-15.md'));
+  });
+
+  test('a Piece may go to any Writing folder but the Sittings folder', async () => {
+    const { v, interview } = open(GRAD);
+    expect((await interview.graduation(v.file('Sittings/2026-09-15.md'))).folders).toEqual(['Pieces']);
+  });
+
+  test('with no folder to graduate into, it says where to add one', async () => {
+    const { v, interview, host } = open(GRAD);
+    host.settings = { ...host.settings, writingFolders: ['Sittings'] };
+    await expect(interview.graduation(v.file('Sittings/2026-09-15.md'))).rejects.toThrow('Add a folder for your writing');
+  });
+
+  test('a Sitting with nothing answered has no thread to graduate', async () => {
+    const { v, interview } = open(GRAD);
+    await expect(interview.graduation(v.file('Sittings/2026-09-16.md'))).rejects.toBeInstanceOf(Refused);
+  });
+
+  test('the model reads the sections without their block ids', async () => {
+    const { model, seen } = recordingModel({ summary: ['A river that moves.'] });
+    const { v, interview } = open(GRAD, model);
+    const g = await interview.graduation(v.file('Sittings/2026-09-15.md'));
+    expect((await interview.summarize(g.snapshot, g.threads[0]!)).questions).toEqual(['A river that moves.']);
+    await interview.suggestHeadings(g.snapshot, g.threads[0]!);
+    const expected = [
+      { question: 'what are you saving up for?', answer: 'A house by the river.' },
+      { question: 'why the river?', answer: 'Because it keeps moving.' },
+    ];
+    expect(seen.summary).toEqual([expected]);
+    expect(seen.headings).toEqual([expected]);
   });
 });

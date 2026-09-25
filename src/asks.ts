@@ -16,8 +16,7 @@
 
 import type { App, TFile } from 'obsidian';
 import { ensureSourceBlockId } from './blocks';
-import { NO_REGISTER, questionAt } from './bank';
-import { REGISTERS, addToStringList, answeredKeys, linkAnswer } from './links';
+import { answeredKeys, linkAnswer } from './links';
 import { refusalLine } from './refusal';
 import { formatRef, keyOfRef, parseRef, refOf, stripBlockDecoration } from './refs';
 import type { Ref } from './refs';
@@ -158,11 +157,11 @@ export function questionsAbout(
  * property.
  *
  * That is narrower than the canon — "a source is answered when any block
- * carries an `answers` link to it", which is what `answered.ts#AnsweredIndex`
+ * carries an `answers` link to it", which is what `links.ts#answeredInVault`
  * reads — and it is deliberate. An answer to an Ask lands in the Sitting that
  * holds the Ask, so the two readings agree; widening this one would mean a
  * vault scan on every keystroke in a Sitting, for a case that cannot arise.
- * Do not "fix" it into the index.
+ * Do not "fix" it into the vault-wide reading.
  */
 export async function asksOf(app: App, file: TFile): Promise<Ask[]> {
   const content = await app.vault.cachedRead(file);
@@ -287,10 +286,6 @@ export async function insertFirstAsk(
   return wrote;
 }
 
-export interface MarkOptions {
-  bankFolder: string;
-}
-
 /**
  * What marking did: the answer block's ref, or the one line to tell the owner
  * why it refused. Every refusal writes nothing at all.
@@ -303,7 +298,7 @@ export type Marked = { kind: 'ok'; ref: Ref } | { kind: 'refused'; reason: strin
  * this, in the Interview (closing.ts#runClosing), beside the other thing that
  * happens once an answer is linked.
  */
-export async function markAnswered(app: App, file: TFile, ask: Ask, opts: MarkOptions): Promise<Marked> {
+export async function markAnswered(app: App, file: TFile, ask: Ask): Promise<Marked> {
   if (!ask.firstParagraph) return { kind: 'refused', reason: 'No answer under this Ask yet.' };
   const source = parseRef(ask.sourceRef);
   if (!source) return { kind: 'refused', reason: 'This Ask has no source link; it is malformed.' };
@@ -321,13 +316,6 @@ export async function markAnswered(app: App, file: TFile, ask: Ask, opts: MarkOp
   } catch (e) {
     return { kind: 'refused', reason: refusalLine(e) };
   }
-  await linkAnswer(app, ref, source, opts);
-  // What KIND of question this was, kept on the note that answered it. Only a
-  // Bank entry carries a register; a paragraph of the owner's own writing has
-  // none, and an untagged entry reports the sentinel rather than a register.
-  const question = await questionAt(app, source, file.path, opts.bankFolder);
-  if (question && question.register !== NO_REGISTER) {
-    await addToStringList(app, file, REGISTERS, question.register);
-  }
+  await linkAnswer(app, ref, source);
   return { kind: 'ok', ref };
 }

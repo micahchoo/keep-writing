@@ -33,6 +33,8 @@ mock.module('obsidian', () => ({
   Plugin: class {},
   PluginSettingTab: class {},
   Setting: class {},
+  DropdownComponent: class {},
+  ExtraButtonComponent: class {},
   MarkdownView: class {},
   // Desktop unless a test says otherwise; main.ts reads this to go flat.
   Platform: { isDesktop: true, isMobile: false, isDesktopApp: true, isMobileApp: false, isPhone: false, isTablet: false },
