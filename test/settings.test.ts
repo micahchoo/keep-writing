@@ -102,3 +102,69 @@ describe('the folder options stay fresh', () => {
     expect(w.registered).toEqual(['create', 'delete', 'rename']);
   });
 });
+
+// The percentage shown in settings must not change the persisted 0–1 scale.
+test('the saved-question percentage is bound to the existing share setting', async () => {
+  const { KeepWritingSettingTab, DEFAULT_SETTINGS } = await import('../src/settings');
+  const tab = Object.create(KeepWritingSettingTab.prototype) as InstanceType<typeof KeepWritingSettingTab>;
+  const host = { settings: { ...DEFAULT_SETTINGS, bankShare: 0.7 }, saveSettings: async () => {} };
+  Object.assign(tab, { host });
+  expect(tab.getControlValue('bankShare')).toBe(70);
+  await tab.setControlValue('bankShare', 25);
+  expect(host.settings.bankShare).toBe(0.25);
+  await tab.setControlValue('bankShare', 0);
+  expect(host.settings.bankShare).toBe(0);
+  await tab.setControlValue('bankShare', 100);
+  expect(host.settings.bankShare).toBe(1);
+});
+
+test('imported banks appear after indexing without scanning on unrelated note edits', async () => {
+  const { keepBanksFresh, DEFAULT_SETTINGS } = await import('../src/settings');
+  const { fakeVault } = await import('./fake-vault');
+  const v = fakeVault({ 'Journal/day.md': 'A day.' });
+  const handlers: Record<string, (...args: never[]) => void> = {};
+  let ready = () => {};
+  let updates = 0;
+  let scans = 0;
+  const getFiles = v.app.vault.getMarkdownFiles;
+  Object.assign(v.app.vault, {
+    getMarkdownFiles: () => { scans++; return getFiles(); },
+    on: (name: string, handler: (...args: never[]) => void) => { handlers[`vault:${name}`] = handler; return name; },
+  });
+  Object.assign(v.app.metadataCache, {
+    on: (name: string, handler: (...args: never[]) => void) => { handlers[`cache:${name}`] = handler; return name; },
+  });
+  Object.assign(v.app, { workspace: { onLayoutReady: (handler: () => void) => { ready = handler; } } });
+  const host = { settings: { ...DEFAULT_SETTINGS, bankWeights: {} }, saveSettings: async () => {} };
+  keepBanksFresh(v.app, host as never, { update: () => updates++ }, () => {});
+  ready();
+  const initialScans = scans;
+  handlers['cache:changed']!(v.file('Journal/day.md') as never);
+  handlers['vault:rename']!(v.file('Journal/day.md') as never, 'Journal/old.md' as never);
+  expect(scans).toBe(initialScans);
+  const imported = await v.app.vault.create('Bank/Garden.md', '---\nkind: bank\n---\n\n- what grew here? #register/episode ^garden-001\n');
+  handlers['cache:changed']!(imported as never);
+  expect(updates).toBe(1);
+  handlers['cache:changed']!(imported as never);
+  expect(updates).toBe(1);
+  await v.app.vault.process(imported, () => 'An ordinary note now.');
+  handlers['cache:changed']!(imported as never);
+  expect(updates).toBe(2);
+});
+
+test('renaming a bank preserves its paused setting', async () => {
+  const { keepBanksFresh, DEFAULT_SETTINGS } = await import('../src/settings');
+  const { fakeVault } = await import('./fake-vault');
+  const v = fakeVault({ 'Bank/New name.md': '---\nkind: bank\n---\n' });
+  const handlers: Record<string, (...args: never[]) => void> = {};
+  Object.assign(v.app.vault, { on: (name: string, handler: (...args: never[]) => void) => { handlers[name] = handler; return name; } });
+  Object.assign(v.app.metadataCache, { on: () => 'changed' });
+  Object.assign(v.app, { workspace: { onLayoutReady: () => {} } });
+  let saves = 0;
+  const weights: Record<string, number> = { 'Old name.md': 0 };
+  const host = { settings: { ...DEFAULT_SETTINGS, bankWeights: weights }, saveSettings: async () => { saves++; } };
+  keepBanksFresh(v.app, host as never, { update: () => {} }, () => {});
+  handlers.rename!(v.file('Bank/New name.md') as never, 'Bank/Old name.md' as never);
+  expect(host.settings.bankWeights).toEqual({ 'New name.md': 0 });
+  expect(saves).toBe(1);
+});

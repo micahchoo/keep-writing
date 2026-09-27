@@ -11,16 +11,17 @@ Two jars. Seven draws in ten come from the first.
 | **The bank** | Questions other people wrote — every list item with a block id in a note in your bank folder whose frontmatter says `kind: bank` | As written |
 | **Your writing** | Every block with an id, in the folders you name in settings | The model builds a question about it |
 
-The starter bank is 2,274 questions across 22 kinds, in four notes grouped by what the *answer* is:
+The bundled banks hold 2,374 questions across 22 answer registers. Choose which of these five notes to install:
 
 | Note | Questions | What it asks for |
 |---|---|---|
+| `ordinary-life.md` | 100 | Familiar places, small encounters, objects, meals, and things you notice; no project needed |
 | `autobiographical.md` | 918 | A life you already lived — one occasion, a thing that happened again and again, a stretch of years, a plain fact, what you take yourself to be, what you mean to do, what you hold worth it, why you think it happened, what you hold true, how it felt, what a change left behind |
 | `autoethnographic.md` | 1,023 | The same life read as a culture, and an account of the telling |
 | `learning.md` | 282 | What you understand, what your hands can do, and what you would have to go and find out |
 | `invention.md` | 51 | Not retrieval at all: a prompt, whose answer does not exist until you write it |
 
-None can be closed in a sentence, and none can be answered by a stranger. That last one is the whole test: 249 candidates were cut against it by eight independent judges before any of this shipped.
+Personal questions pass the Bank test: a stranger cannot supply your actual answer. A brief answer is welcome when its particulars belong to you. The ordinary-life bank was reviewed against that same test. Invention prompts use a separate rubric for distinctive focus, depth, openness, freedom of form, and clear wording.
 
 They arrive as notes, not as data inside the plugin, and that is load-bearing. A question is answered when a block links to it, so a question with no address in your vault could never be retired. Once written they are yours — edit them, delete them, add your own.
 
@@ -36,6 +37,51 @@ kind: bank
 ```
 
 A question is *answered* when any block in the vault carries an `answers` link to it. Answered questions leave the jar, as do ones already asked in the note you are writing in.
+
+## Choose, import, or create a bank
+
+Open **Settings → keep-writing → Question banks**.
+
+![Open Installed banks from the compact settings page, change a frequency, then return with Back.](img/banks.gif)
+
+- **Install banks** lists the included banks with descriptions and question counts. Select the ones you want, then choose **Install selected**. Existing notes are never overwritten.
+- To import a bank from elsewhere, put its `.md` file in the **Question bank folder** (default `Bank`). It needs `kind: bank` in its frontmatter and the question syntax shown above. It appears under **Installed banks** after Obsidian indexes the note. Subfolders work too.
+- **Create a bank** lets you name a subject and **Copy instructions** for your AI assistant or coding agent. The instructions include the file location, syntax, stable IDs, and both rubrics. **Create and open note** makes an empty bank containing those instructions. Ask your agent to replace that scaffold with its reviewed questions. Reopen the dialog to get the instructions again.
+
+A ready-to-import personal bank looks like this:
+
+```markdown
+---
+kind: bank
+title: Garden
+---
+
+- what have you grown from something someone gave you? #register/episode ^garden-001
+- which tool do you always reach for first? #register/artifact ^garden-002
+```
+
+Use a different filename and ID prefix for each bank. Keep IDs stable after you start answering: saved answers link to those IDs. An ordinary Markdown note without `kind: bank` is not a question bank.
+
+## Choose how often each bank appears
+
+Open **Question banks → Installed banks** to see the individual controls. The main settings page shows only the bank count until you open this page.
+
+Each installed bank has a frequency from 0 to 100. A bank set to 20 appears twice as often as one set to 10, independent of bank size. Setting 0 pauses a bank without deleting its note. Within the chosen bank, each available question has the same chance.
+
+The defaults give ordinary life a little more room:
+
+| Bank | Default frequency |
+|---|---|
+| Ordinary life | 30 |
+| Autobiographical | 25 |
+| Autoethnographic | 20 |
+| Learning | 15 |
+| Invention | 10 |
+| Each custom bank | 10 |
+
+With all five included banks available, these numbers are also percentages of saved questions. If you install fewer banks, pause one, or answer all its questions, the remaining banks share the draws. The percentages in settings assume all installed banks have unanswered questions. **Restore default frequencies** restores this mix.
+
+**Use saved questions (%)** separately controls saved questions versus questions about your own writing, with a default of 70%. If every bank is paused or exhausted, draws can still use your writing. An automatic opening question needs an available bank question.
 
 ## Spending a day on one thing
 
@@ -73,7 +119,7 @@ The model abstaining is a legal answer and is never worked around. Calls are log
 
 Every answer is linked, so after a few months the graph is a picture of the interview. One thing spoils it out of the box, and one filter fixes it.
 
-**Filter the bank out.** Seven draws in ten come from your question bank, and the starter bank is four notes — so most links converge on four dots and the graph becomes a four-pointed star. In graph view's filter box:
+**Filter the bank out.** Seven draws in ten come from your question bank, and bank questions live in a small group of notes, so many links converge on those notes. In graph view's filter box:
 
 ```
 -path:Bank
@@ -114,9 +160,9 @@ To take back a mark, delete the entry from the note's `answers` property. The so
 
 ## Draw settings
 
-**Bank share** ranges from 0 (writing) to 1 (bank), with a default of 0.7.
+**Use saved questions (%)** ranges from 0 (questions about your writing) to 100 (saved questions), with a default of 70.
 When one jar is empty, draws use the other. A target still restricts draws to that note's paragraphs.
-A draw reads Obsidian's own index of links and block ids, then reads only the notes it chose. The plugin does no work on your notes between draws.
+A draw reads Obsidian's own index of links and block ids, then reads only the notes it chose. Editing ordinary writing does not trigger a vault scan. Changes to bank notes refresh the bank list in settings.
 
 ## API key storage
 

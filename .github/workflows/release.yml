@@ -9,7 +9,7 @@
 # from a laptop. It signs main.js against this repository and this commit, so
 # anyone can check that the file they installed was built from the source they
 # can read — which matters more here than for most plugins, because main.js
-# carries 2,274 questions nobody can diff by eye.
+# carries 2,374 questions nobody can diff by eye.
 
 name: Release
 

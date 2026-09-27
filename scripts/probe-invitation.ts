@@ -31,7 +31,7 @@ const fetcher: Fetcher = async (url, init) => {
 
 const cfg: BonsaiConfig = {
   baseUrl: 'http://127.0.0.1:8088/v1',
-  model: 'bonsai-2-27b',
+  model: 'qwen3.8-27b',
   fetcher,
   timeoutMs: 120_000,
 };

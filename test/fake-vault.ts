@@ -203,6 +203,7 @@ export function fakeVault(notes: Record<string, string>, hooks: VaultHooks = {})
         return bodies.get(f.path) ?? '';
       },
       getFileByPath: (path: string) => byPath.get(path) ?? null,
+      getAbstractFileByPath: (path: string) => byPath.get(path) ?? (folders.has(path) ? { path } : null),
       getFolderByPath: (path: string) => (folders.has(path) ? { path } : null),
       createFolder: async (path: string) => {
         folders.add(path);

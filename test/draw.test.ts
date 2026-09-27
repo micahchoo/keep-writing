@@ -70,3 +70,41 @@ describe('answered-ness is read at draw time', () => {
     expect((await fillJars(ctx(v.app), null)).paragraphs).toEqual([]);
   });
 });
+
+describe('bank proportions in the vault', () => {
+  test('disabled banks are absent from the counts and their notes are not read', async () => {
+    const reads: string[] = [];
+    const v = fakeVault({
+      'Questions/ordinary-life.md': '---\nkind: bank\n---\n- what was lunch? #register/episode ^o1\n',
+      'Questions/local/custom.md': '---\nkind: bank\n---\n- what was on your mind? #register/value ^c1\n',
+    }, { beforeRead: (path) => { reads.push(path); } });
+    const { drawn, jars } = await drawMany(ctx(v.app, {
+      bankFolder: 'Questions', bankWeights: { 'ordinary-life.md': 0, 'local/custom.md': 5 }, random: sequence([0]),
+    }), null, 3);
+    expect(jars.questions).toBe(1);
+    expect(drawn.map((d) => d.source.key)).toEqual(['Questions/local/custom.md#^c1']);
+    expect(reads).toEqual(['Questions/local/custom.md']);
+  });
+
+  test('after a bank runs out, draws continue through the remaining banks without repeats', async () => {
+    const v = fakeVault({
+      'Bank/ordinary-life.md': '---\nkind: bank\n---\n- what was lunch? #register/episode ^o1\n',
+      'Bank/invention.md': '---\nkind: bank\n---\n- what might be next? #register/possibility ^i1\n- what could change? #register/possibility ^i2\n',
+      'Bank/learning.md': '---\nkind: bank\n---\n- what did you learn? #register/knowledge ^l1\n',
+      'Sittings/answered.md': '---\nanswers: ["[[Bank/learning#^l1]]"]\n---\n',
+    });
+    const { drawn, jars } = await drawMany(ctx(v.app, { random: sequence([0]) }), null, 5);
+    expect(jars.questions).toBe(3);
+    expect(drawn.map((d) => d.source.key)).toEqual(['Bank/ordinary-life.md#^o1', 'Bank/invention.md#^i1', 'Bank/invention.md#^i2']);
+  });
+
+  test('paragraph exhaustion never re-enables a disabled bank', async () => {
+    const v = fakeVault({
+      'Bank/q.md': '---\nkind: bank\n---\n- a question? #register/value ^b1\n',
+      'Pieces/fig.md': 'Fig 4: The auto stand at Koramangala, photographed the next morning ^f\n',
+      'Pieces/real.md': `${prose(1)} ^r\n`,
+    });
+    const { drawn } = await drawMany(ctx(v.app, { bankWeights: { 'q.md': 0 }, random: sequence([0]) }), null, 3);
+    expect(drawn.map((d) => d.source.key)).toEqual(['Pieces/real.md#^r']);
+  });
+});

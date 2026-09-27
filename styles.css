@@ -83,3 +83,13 @@
   align-items: center;
   gap: var(--size-4-1);
 }
+
+/* Copyable bank instructions remain readable in desktop and mobile modals. */
+.kw-bank-spec {
+  width: 100%;
+  min-height: 12rem;
+  resize: vertical;
+  font-family: var(--font-monospace);
+  font-size: var(--font-smallest);
+  line-height: 1.5;
+}

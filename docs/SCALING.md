@@ -2,8 +2,8 @@
 
 A draw keeps nothing between runs. It lists block ids and `answers` links from
 Obsidian's metadata cache, chooses, and reads only the notes it chose. The
-plugin registers no listener on ordinary notes; the one event it answers is
-the creation of a Sitting.
+plugin does not scan ordinary notes when they change; its writing event is
+the creation of a Sitting. Bank-note changes refresh the settings list; edits to other notes skip that refresh.
 
 Measured 2026-09-24 over synthetic vaults of one paragraph per note:
 

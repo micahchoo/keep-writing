@@ -1,6 +1,14 @@
-# Unreleased
+# 0.4.0
 
+- The bank list starts closed behind **Installed banks**, with a count. Open that page to adjust frequencies or open a bank note.
+- Rewrote settings descriptions to explain what each control changes. Opening a bank note now closes Settings so the note is visible.
+- Added 100 ordinary-life questions, reviewed against the personal Bank test. Short, particular answers are welcome; no project is needed.
+- Settings now let you choose bundled banks, copy agent instructions for a new bank, and set draw weights per bank. Imported Markdown banks appear automatically. Weights apply to both opening questions and manual draws; 0 pauses a bank.
+- The default bank mix is ordinary life 30, autobiographical 25, autoethnographic 20, learning 15, and invention 10. Custom banks start at 10. Empty and fully answered banks yield their share to the others.
 - The folder dropdowns in settings list every folder in the vault, including folders made or renamed while Obsidian is open. In 0.3.0 they offered only the folder already chosen, and no **Add a folder** list, until the plugin was reloaded.
+- The default model name is now `qwen3.8-27b`. Existing configured model names are kept.
+
+Requires Obsidian 1.13.0 or later. Existing bank notes are preserved; install the ordinary-life bank from settings.
 
 # 0.3.0
 

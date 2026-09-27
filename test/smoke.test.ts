@@ -40,7 +40,7 @@ describe('the starter bank parses', () => {
   const lines = STARTER_BANK.flatMap((n) => n.markdown.split('\n').filter((l) => l.startsWith('- ')));
 
   test('every shipped entry parses to text, a register and no debris', () => {
-    expect(lines.length).toBe(2274);
+    expect(lines.length).toBe(2374);
     for (const line of lines) {
       const p = parseBankLine(line);
       expect(p.text).not.toBe('');

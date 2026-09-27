@@ -10,7 +10,7 @@ A blank page stops you; a question doesn't. keep-writing puts one into your dail
 
 ## What it does
 
-- **Starts the day for you.** A new daily note is born holding a question, whoever made the note. No model call on that path, so it cannot fail.
+- **Starts the day for you.** Adds an opening question to a new daily note when a bank has unanswered questions. Works without AI.
 - **Draws a question** into today's note. Three to choose from — pick one, or press Escape and nothing is written.
 - **Turns your old writing into new questions.** Highlight a paragraph and you are asked about *that paragraph*. Let the draw find one and you get a question about your life *now* — most of what it can reach is years old, and a question about 2020 is a question for whoever you were then.
 - **Follows up.** Mark an answer done and the model reads it, then offers the next question. Run it again next week and it writes fresh ones.
@@ -21,7 +21,7 @@ A blank page stops you; a question doesn't. keep-writing puts one into your dail
 
 ## Getting started
 
-On first run it offers to fill your question bank: 2,274 questions written for this, as four plain Markdown notes you can edit or delete.
+On first run it offers to fill your question bank: 2,374 questions written for this, across five plain Markdown notes you can choose, edit, or delete. The ordinary-life bank starts from familiar places, small encounters, and things you notice.
 
 1. Open today's daily note.
 2. Run **Draw a question** — ribbon icon, command palette, or right-click.
@@ -51,7 +51,7 @@ On the editor's right-click menu under **keep-writing**, and in the command pale
 | **Draw a question** | Three to choose from. A bank question is written straight in; a paragraph of yours goes to the model first. |
 | **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers what follows from it. Run it again for fresh follow-ups. |
 | **Ask about the selection** | Highlight text in **any** note and be asked about it. The question lands in today's note. |
-| **Install the starter question bank** | Writes the question notes into your bank folder. Skips anything already there. |
+| **Choose question banks to install** | Choose which banks to add. Existing notes keep your edits. |
 | **Graduate threads to pieces** | In a daily note, turns a question and its follow-ups into a piece of writing of its own: your words moved as written, the questions as headings. |
 
 ![Graduating a daily note's thread: "Graduate threads to pieces" from the right-click menu; a form with three lines on what the thread is about, a title typed in, and suggested headings filled in; then the new piece, with its title, date, headings and the answers as they were written.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/graduate.gif)
@@ -64,21 +64,24 @@ Where the editor menu opens on a phone, its keep-writing actions are listed flat
 
 ## Settings
 
-Findable from Obsidian's own settings search: type "bank folder" or "endpoint" anywhere in Settings.
+Findable from Obsidian's own settings search: type "bank folder" or "server address" anywhere in Settings.
 
 | Setting | |
 |---|---|
 | **Daily notes folder** | Where your daily notes are, chosen from your folders. Default `Sittings`. |
 | **Question bank folder** | Where the questions are kept, chosen from your folders. Default `Bank`. |
-| **Ask about writing in** | The folders the plugin reads and asks about, added from a dropdown. Your daily notes are there at first; add a folder of finished writing, which is also where graduated pieces go. |
-| **Bank share** | Default 70%. Choose how often to draw a bank question instead of your writing. An empty jar falls back to the other. |
-| **Use a model** | Off makes it bank-only, with no network call at all. |
-| **Endpoint** | Any OpenAI-compatible server. Default is one on your own computer. For Ollama: `http://localhost:11434/v1` |
-| **Model** | Must name a model your server has. |
-| **Reply budget** | Raise it if you get no questions and no error. Default `2048`. |
+| **Ask about writing in** | Choose the folders you want questions about. Your daily notes are included by default. |
+| **Use saved questions (%)** | Default 70%. Choose how often to draw a bank question instead of your writing. If one source has nothing available, the other is used. |
+| **Question banks** | Install selected banks, get authoring instructions for your agent, and open **Installed banks** to choose how often each appears. Zero pauses it. |
+| **Generate questions with AI** | Off makes it bank-only, with no network call at all. |
+| **Server address** | An OpenAI-compatible server. The default expects one already running on your device. For Ollama: `http://localhost:11434/v1` |
+| **Model name** | Must name a model your server has. |
+| **Response length limit** | Maximum AI response size in tokens. Raise it if responses are cut short. Default `2048`. |
 | **API key** | Only if your server needs one. Saved in Obsidian secret storage on this device; existing plaintext settings migrate automatically. |
 
-![The plugin's settings, in two groups. Vault: the bank share, the daily notes and question bank folders chosen from dropdowns, and the folders it reads your writing from, with an Add a folder dropdown. Model: a switch, the endpoint, the model name, the reply budget and an API key.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/settings.png)
+![Open Installed banks to adjust a frequency, then return to the compact main settings page.](docs/img/banks.gif)
+
+To import a finished bank or get instructions for your agent, see [Choose, import, or create a bank](docs/guide.md#choose-import-or-create-a-bank).
 
 **Nothing you write leaves your computer** unless you point the endpoint somewhere else. That is the whole of what changes.
 
@@ -106,7 +109,7 @@ npm run build   # typecheck, then bundle
 
 `test/fake-vault.ts` stands in for Obsidian's `App` — reads and the whole write surface — so the interview runs and is tested with no Obsidian and no DOM. Tests needing a live model are skipped unless `KW_LIVE=1`.
 
-Releases are not cut by hand. Pushing a bare semver tag (`0.2.0`, never `v0.2.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which checks the tag against `manifest.json` and `versions.json`, tests, builds, attests the assets and publishes them. Every release is signed against the commit it was built from, which matters here because `main.js` carries all 2,274 questions and nobody can diff those by eye:
+Releases are not cut by hand. Pushing a bare semver tag (`0.2.0`, never `v0.2.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which checks the tag against `manifest.json` and `versions.json`, tests, builds, attests the assets and publishes them. Every release is signed against the commit it was built from, which matters here because `main.js` carries all 2,374 questions and nobody can diff those by eye:
 
 ```bash
 gh attestation verify main.js --repo micahchoo/keep-writing

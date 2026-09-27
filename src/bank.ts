@@ -6,6 +6,8 @@
 // The draw pulls from one jar or the other, seven draws in ten from the Bank.
 
 import type { App, TFile } from 'obsidian';
+import { bankKey, bankWeight } from './bank-mix';
+import type { BankWeights } from './bank-mix';
 import { answeredInVault } from './links';
 import { refOf, resolveRef, stripBlockDecoration } from './refs';
 import type { BlockText, Ref } from './refs';
@@ -141,6 +143,45 @@ export function pickOne<T>(items: T[], random: () => number = Math.random): T | 
   return items[Math.floor(random() * items.length)] ?? null;
 }
 
+interface EligibleBank {
+  questions: BankQuestion[];
+  weight: number;
+}
+
+/** Only banks that still have drawable questions participate in the proportions. */
+function eligibleBanks(questions: BankQuestion[], bankFolder: string, weights: BankWeights): EligibleBank[] {
+  const banks = new Map<string, EligibleBank>();
+  for (const question of questions) {
+    const key = bankKey(question.bankPath, bankFolder);
+    let bank = banks.get(key);
+    if (!bank) {
+      const weight = bankWeight(key, weights);
+      if (weight <= 0) continue;
+      bank = { questions: [], weight };
+      banks.set(key, bank);
+    }
+    bank.questions.push(question);
+  }
+  return [...banks.values()];
+}
+
+function pickFromBanks(banks: EligibleBank[], random: () => number): BankQuestion | null {
+  if (banks.length === 0) return null;
+  // With one eligible bank there is no bank choice to make.
+  if (banks.length === 1) return pickOne(banks[0].questions, random);
+  let roll = random() * banks.reduce((sum, bank) => sum + bank.weight, 0);
+  for (const bank of banks) {
+    if (roll < bank.weight) return pickOne(bank.questions, random);
+    roll -= bank.weight;
+  }
+  return null;
+}
+
+/** Choose a bank by its proportion, then a question uniformly within that bank. */
+export function pickBankQuestion(questions: BankQuestion[], bankFolder: string, weights: BankWeights = {}, random: () => number = Math.random): BankQuestion | null {
+  return pickFromBanks(eligibleBanks(questions, bankFolder, weights), random);
+}
+
 export interface Drawn {
   /** `source.kind` tells a paragraph from a question. */
   source: Source;
@@ -168,6 +209,7 @@ export interface DrawContext {
   random?: () => number;
   today?: Date;
   bankShare?: number;
+  bankWeights?: BankWeights;
 }
 
 /**
@@ -226,6 +268,7 @@ export async function bankJar(ctx: DrawContext, target: TFile | null, answered =
   if (target) return [];
   const out: BankQuestion[] = [];
   for (const f of bankNotes(ctx.app, ctx.bankFolder)) {
+    if (bankWeight(bankKey(f.path, ctx.bankFolder), ctx.bankWeights ?? {}) <= 0) continue;
     for (const q of await loadBank(ctx.app, f)) {
       if (q.role === null && !answered.has(q.key) && !ctx.skipped.has(q.key)) out.push(q);
     }
@@ -235,8 +278,9 @@ export async function bankJar(ctx: DrawContext, target: TFile | null, answered =
 
 /**
  * Pure: the Draw. Flip a coin between the jars; if one is empty, use the
- * other. Then one uniformly from whichever jar the coin chose. Null when both
- * jars are empty.
+ * other. Bank proportions choose a note, then a question uniformly within it;
+ * paragraphs stay uniform across the jar. Null when both jars are empty or
+ * disabled.
  *
  * The paragraph side picked a Well uniformly and THEN a paragraph inside it
  * until 2026-09-17, to make an untouched Well surface. Measured that day over
@@ -247,12 +291,13 @@ export async function bankJar(ctx: DrawContext, target: TFile | null, answered =
  * not a share at all. Coverage is a real goal and this was the wrong
  * instrument for it; a filter that retires itself would be the right one.
  */
-export function pickFromJars<P>(jars: Jars<P>, random: () => number = Math.random, today: Date = new Date(), bankShare = BANK_SHARE): { source: BankQuestion | P; due?: string } | null {
-  const hasBank = jars.bank.length > 0;
+export function pickFromJars<P>(jars: Jars<P>, random: () => number = Math.random, today: Date = new Date(), bankShare = BANK_SHARE, bankFolder = 'Bank', bankWeights: BankWeights = {}): { source: BankQuestion | P; due?: string } | null {
+  const banks = eligibleBanks(jars.bank, bankFolder, bankWeights);
+  const hasBank = banks.length > 0;
   const hasParagraphs = jars.paragraphs.length > 0;
   if (!hasBank && !hasParagraphs) return null;
   if (hasBank && (!hasParagraphs || random() < bankShare)) {
-    const question = pickOne(jars.bank, random);
+    const question = pickFromBanks(banks, random);
     if (!question) return null;
     const drawn: { source: BankQuestion; due?: string } = { source: question };
     const due = question.due ? parseDue(question.due, today) : null;
@@ -295,7 +340,7 @@ export async function drawMany(ctx: DrawContext, target: TFile | null, count: nu
   const reads = new Map<string, Promise<BlockText[]>>();
   const drawn: Drawn[] = [];
   while (drawn.length < count) {
-    const pick = pickFromJars(jars, random, today, ctx.bankShare);
+    const pick = pickFromJars(jars, random, today, ctx.bankShare, ctx.bankFolder, ctx.bankWeights);
     if (!pick) break;
     if (pick.source.kind === 'question') {
       take(jars.bank, pick.source);

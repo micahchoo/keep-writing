@@ -1,8 +1,11 @@
 // Plugin settings and the settings tab.
 
-import { BANK_SHARE } from './bank';
-import { DropdownComponent, ExtraButtonComponent, PluginSettingTab, TFolder } from 'obsidian';
-import type { App, EventRef, Plugin, Setting, SettingDefinitionItem, TAbstractFile } from 'obsidian';
+import { BANK_SHARE, bankNotes } from './bank';
+import { bankKey, bankWeight } from './bank-mix';
+import type { BankWeights } from './bank-mix';
+import { BankInstallModal, NewBankModal, openBankNote } from './bank-modals';
+import { DropdownComponent, ExtraButtonComponent, Notice, PluginSettingTab, TFolder } from 'obsidian';
+import type { App, EventRef, Plugin, Setting, SettingDefinitionItem, SettingGroupItem, TAbstractFile } from 'obsidian';
 
 export interface KeepWritingSettings {
   /** OpenAI-compatible endpoint base URL for bonsai. */
@@ -16,6 +19,8 @@ export interface KeepWritingSettings {
    */
   apiKey: string;
   bankShare: number;
+  /** Relative weights by bank note path, inside bankFolder. Zero pauses a bank. */
+  bankWeights: BankWeights;
   /**
    * Ceiling on the model's reply, in tokens. A ceiling and not a target: a
    * model that stops early costs what it generated. See BonsaiConfig#maxTokens
@@ -52,9 +57,10 @@ export function normalizeBankShare(value: unknown): number {
 
 export const DEFAULT_SETTINGS: KeepWritingSettings = {
   baseUrl: 'http://127.0.0.1:8088/v1',
-  model: 'bonsai-2-27b',
+  model: 'qwen3.8-27b',
   apiKey: '',
   bankShare: BANK_SHARE,
+  bankWeights: {},
   maxTokens: 2048,
   enableModel: true,
   sittingsFolder: 'Sittings',
@@ -88,19 +94,22 @@ export interface SettingsHost extends Plugin {
  * a button to take it out, and one dropdown adds another.
  */
 export class KeepWritingSettingTab extends PluginSettingTab {
+  private bankRows = new Map<string, Setting>();
   constructor(app: App, private host: SettingsHost) {
     super(app, host);
   }
 
   override getSettingDefinitions(): SettingDefinitionItem<ControlKey>[] {
+    this.bankRows.clear();
     const s = this.host.settings;
     const folders = this.app.vault.getAllFolders(false).map((f) => f.path);
+    const bankCount = bankNotes(this.app, s.bankFolder).length;
     return [
       {
         type: 'group',
         heading: 'Vault',
         items: [
-          { name: 'Bank share', desc: 'Share of draws from the question bank: 0 means writing only, 1 means bank only. An empty jar falls back to the other.', control: { type: 'slider', key: 'bankShare', defaultValue: DEFAULT_SETTINGS.bankShare, min: 0, max: 1, step: 0.05 } },
+          { name: 'Use saved questions (%)', desc: 'How often to choose a saved question instead of asking about your writing. At 70, about seven out of ten choices come from your banks. If one source has nothing available, the other is used.', aliases: ['bank share', 'frequency'], control: { type: 'slider', key: 'bankShare', defaultValue: DEFAULT_SETTINGS.bankShare * 100, min: 0, max: 100, step: 5 } },
           {
             name: 'Daily notes folder',
             desc: "Where your daily notes are. Questions go into today's note.",
@@ -109,16 +118,14 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           },
           {
             name: 'Question bank folder',
-            desc: 'Where the questions are kept. They are ordinary notes — edit them, delete them, add your own.',
+            desc: 'Where your collections of saved questions live. Each bank is a note you can open and edit.',
             aliases: ['bank'],
             control: { type: 'dropdown', key: 'bankFolder', defaultValue: DEFAULT_SETTINGS.bankFolder, options: folderOptions(folders, [s.bankFolder, DEFAULT_SETTINGS.bankFolder]) },
           },
           {
             name: 'Ask about writing in',
             desc:
-              'The plugin reads what you wrote in these folders and asks you about it. ' +
-              'Your daily notes are included at first; add a folder of finished writing for ' +
-              'questions about that. A graduated piece goes into one of them. Nothing outside these folders is read.',
+              'Choose the notes you want questions about. Your daily notes are included by default. Add other folders to include more of your writing.',
             aliases: ['pieces', 'corpus', 'paragraphs', 'draw', 'writing folders'],
             render: (setting: Setting) => this.writingFolders(setting, folders),
           },
@@ -126,34 +133,74 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'Model',
+        heading: 'Question banks',
         items: [
           {
-            name: 'Use a model',
+            name: 'Install or create banks',
+            desc: `A bank is a collection of saved questions. Choose from the included banks, or get instructions to make your own. To import a finished bank, put its .md file in ${s.bankFolder}.`,
+            aliases: ['import', 'prompts', 'ordinary life', 'rubric', 'agent instructions'],
+            render: (setting: Setting) => {
+              setting.addButton(button => button.setButtonText('Install banks').onClick(() => {
+                new BankInstallModal(this.app, s.bankFolder, () => this.update()).open();
+              }));
+              setting.addButton(button => button.setButtonText('Create a bank').onClick(() => {
+                new NewBankModal(this.app, s.bankFolder, () => this.update()).open();
+              }));
+            },
+          },
+          {
+            type: 'page',
+            name: 'Installed banks',
+            desc: `${bankCount} ${bankCount === 1 ? 'bank' : 'banks'}. Choose how often each one appears, pause a bank, or open its note.`,
+            items: [
+              {
+                type: 'group',
+                items: [
+                  {
+                    name: 'How often each bank appears',
+                    desc: 'Higher numbers make a bank appear more often: 20 is twice as often as 10. Set 0 to pause it. Percentages assume every bank has unanswered questions; when one runs out, the others take its place.',
+                    aliases: ['ratio', 'frequency', 'weight', 'defaults'],
+                    render: (setting: Setting) => {
+                      setting.addButton(button => button.setButtonText('Restore default frequencies').onClick(() => {
+                        this.host.settings.bankWeights = {};
+                        void this.host.saveSettings().then(() => this.update()).catch(showSettingsError);
+                      }));
+                    },
+                  },
+                  ...this.bankSettings(),
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'group',
+        heading: 'AI questions',
+        items: [
+          {
+            name: 'Generate questions with AI',
             desc:
-              'Turning this off keeps the question bank working and stops all network use. ' +
-              'You lose only the questions written about your own writing.',
+              'Create follow-up questions and questions about your notes. Requires an AI server connection below. Saved questions still work when this is off.',
             control: { type: 'toggle', key: 'enableModel', defaultValue: DEFAULT_SETTINGS.enableModel },
           },
           {
-            name: 'Endpoint',
+            name: 'Server address',
             desc:
-              'The server that writes those questions. The default runs on your own computer, so ' +
-              'nothing you write leaves it. For Ollama: http://localhost:11434/v1',
+              'Connect to a server with an OpenAI-compatible API. The default address looks for one running on this device. The writing used for a question is sent to this server.',
             aliases: ['url', 'ollama', 'openai', 'server'],
             control: {
               type: 'text',
               key: 'baseUrl',
               defaultValue: DEFAULT_SETTINGS.baseUrl,
-              validate: (v) => (isEndpoint(v) ? undefined : 'Not a URL. Expected something like http://127.0.0.1:8088/v1'),
+              validate: (v) => (isEndpoint(v) ? undefined : 'Enter a full address starting with http:// or https://, such as http://localhost:11434/v1.'),
               disabled: () => !this.host.settings.enableModel,
             },
           },
           {
-            name: 'Model',
+            name: 'Model name',
             desc:
-              'Which model to use. It must be one your server already has — `ollama list` shows ' +
-              'them. A wrong name means no questions appear.',
+              'Enter the exact name of a model available on your server. Check your server’s model list if you are unsure.',
             control: {
               type: 'text',
               key: 'model',
@@ -162,8 +209,8 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             },
           },
           {
-            name: 'Reply budget',
-            desc: 'How much the model may write at once. If no questions appear, raise it.',
+            name: 'Response length limit',
+            desc: 'Maximum AI response size, measured in tokens (parts of words). Raise this if responses are cut short.',
             aliases: ['tokens', 'max tokens', 'length', 'empty', 'nothing happens'],
             control: {
               type: 'number',
@@ -178,8 +225,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           {
             name: 'API key',
             desc:
-              'Only if your server needs one; a server on your own computer does not. Saved as ' +
-              "Obsidian secret storage on this device.",
+              'Enter a key if your server requires one. Saved in Obsidian’s secret storage on this device.',
             aliases: ['token', 'bearer', 'secret'],
             // Rendered by hand, not declared: no declarative control masks its
             // input, and a key legible over a shoulder is worse than a setting
@@ -196,6 +242,41 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         ],
       },
     ];
+  }
+
+  private bankSettings(): SettingGroupItem<ControlKey>[] {
+    const { bankFolder } = this.host.settings;
+    const notes = bankNotes(this.app, bankFolder).sort((a, b) => a.path.localeCompare(b.path));
+    if (notes.length === 0) return [{ name: 'No banks installed', desc: 'Go back to install a bank, or add a bank note to your question bank folder.' }];
+    return notes.map(file => {
+      const key = bankKey(file.path, bankFolder);
+      return {
+        name: file.basename,
+        desc: this.bankDescription(key, notes.map(note => bankKey(note.path, bankFolder))),
+        aliases: [key, 'bank weight', 'draw ratio'],
+        render: (setting: Setting) => {
+          this.bankRows.set(key, setting);
+          setting.addSlider(slider => slider.setLimits(0, 100, 5)
+            .setValue(bankWeight(key, this.host.settings.bankWeights)).onChange(value => {
+              this.host.settings.bankWeights = { ...this.host.settings.bankWeights, [key]: value };
+              const keys = notes.map(note => bankKey(note.path, bankFolder));
+              for (const [rowKey, row] of this.bankRows) row.setDesc(this.bankDescription(rowKey, keys));
+              void this.host.saveSettings().catch(showSettingsError);
+            }));
+          setting.addExtraButton(button => button.setIcon('file-text').setTooltip('Open bank note').onClick(() => {
+            void openBankNote(this.app, file).catch(showSettingsError);
+          }));
+        },
+      };
+    });
+  }
+
+  private bankDescription(key: string, keys: string[]): string {
+    const weights = this.host.settings.bankWeights;
+    const weight = bankWeight(key, weights);
+    const total = keys.reduce((sum, name) => sum + bankWeight(name, weights), 0);
+    if (total === 0) return `${key} · Paused. All banks are paused; draws can still use your writing.`;
+    return `${key} · ${weight === 0 ? 'Paused' : `${Math.round(weight / total * 100)}% of saved questions`}.`;
   }
 
   /** The chosen writing folders, each removable, and one dropdown to add another. */
@@ -247,7 +328,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       case 'maxTokens':
         return s.maxTokens;
       case 'bankShare':
-        return s.bankShare;
+        return Math.round(s.bankShare * 100);
       case 'apiKey':
         return s.apiKey;
     }
@@ -265,6 +346,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         break;
       case 'bankFolder':
         s.bankFolder = stripSlashes(text) || DEFAULT_SETTINGS.bankFolder;
+        this.update();
         break;
       case 'enableModel':
         s.enableModel = value === true;
@@ -280,7 +362,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         s.maxTokens = typeof value === 'number' && value > 0 ? Math.floor(value) : DEFAULT_SETTINGS.maxTokens;
         break;
       case 'bankShare':
-        s.bankShare = normalizeBankShare(value);
+        s.bankShare = normalizeBankShare(typeof value === 'number' ? value / 100 : value);
         break;
       case 'apiKey':
         s.apiKey = text.trim();
@@ -288,6 +370,10 @@ export class KeepWritingSettingTab extends PluginSettingTab {
     }
     return this.host.saveSettings();
   }
+}
+
+function showSettingsError(error: unknown): void {
+  new Notice(error instanceof Error ? error.message : String(error));
 }
 
 /** Every setting the tab binds. `starterOffered` is not one: nothing shows it. */
@@ -355,6 +441,37 @@ export function keepFoldersFresh(app: App, tab: { update(): void }, register: (r
     register(app.vault.on('delete', refresh));
     register(app.vault.on('rename', refresh));
   });
+}
+
+/** Imported notes become selectable as soon as Obsidian indexes their frontmatter. */
+export function keepBanksFresh(app: App, host: SettingsHost, tab: { update(): void }, register: (ref: EventRef) => void): void {
+  let known = '';
+  const refresh = () => {
+    const paths = bankNotes(app, host.settings.bankFolder).map(file => file.path).sort().join('\n');
+    if (paths === known) return;
+    known = paths;
+    tab.update();
+  };
+  app.workspace.onLayoutReady(refresh);
+  register(app.metadataCache.on('changed', file => {
+    if (bankKey(file.path, host.settings.bankFolder)) refresh();
+  }));
+  register(app.vault.on('delete', file => {
+    if (file instanceof TFolder || bankKey(file.path, host.settings.bankFolder)) refresh();
+  }));
+  register(app.vault.on('rename', (file, oldPath) => {
+    const { bankFolder, bankWeights } = host.settings;
+    const oldKey = bankKey(oldPath, bankFolder);
+    const newKey = bankKey(file.path, bankFolder);
+    if (!oldKey && !newKey && !(file instanceof TFolder)) return;
+    if (oldKey && newKey && (Object.hasOwn(bankWeights, oldKey) || bankNotes(app, bankFolder).some(note => note.path === file.path))) {
+      const next = { ...bankWeights, [newKey]: bankWeight(oldKey, bankWeights) };
+      delete next[oldKey];
+      host.settings.bankWeights = next;
+      void host.saveSettings().catch(showSettingsError);
+    }
+    refresh();
+  }));
 }
 
 /** Pure: something the endpoint call can actually be made against. */

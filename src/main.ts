@@ -16,7 +16,9 @@ import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
 import type { Reach } from './interview';
 import { createModel } from './model';
 import type { Model, RevisitCandidate } from './model';
-import { installBank, installedLine, questionCount } from './install';
+import { questionCount } from './install';
+import { BankInstallModal } from './bank-modals';
+import { normalizeBankWeights } from './bank-mix';
 import { GraduateModal } from './graduate-modal';
 import { OfferModal, choose } from './modals';
 import type { Choice } from './modals';
@@ -24,7 +26,7 @@ import { sittingName } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
 import { modelFailureLine, refusalLine } from './refusal';
-import { DEFAULT_SETTINGS, KeepWritingSettingTab, keepFoldersFresh, normalizeBankShare, readFolders } from './settings';
+import { DEFAULT_SETTINGS, KeepWritingSettingTab, keepBanksFresh, keepFoldersFresh, normalizeBankShare, readFolders } from './settings';
 import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
 import { isSitting } from './target';
@@ -33,7 +35,7 @@ import { isSitting } from './target';
 const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
 const MARK = 'Mark this answer done, and follow up';
-const INSTALL = 'Install the starter question bank';
+const INSTALL = 'Choose question banks to install';
 const GRADUATE = 'Graduate threads to pieces';
 
 /**
@@ -141,7 +143,7 @@ export default class KeepWritingPlugin extends Plugin {
         if (view instanceof MarkdownView) this.run(() => this.markUnderCursor(view, editor.getCursor().line));
       },
     });
-    this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => this.run(() => this.installStarterBank()) });
+    this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => this.installStarterBank() });
     this.addCommand({ id: 'graduate-threads', name: GRADUATE, callback: () => this.run(() => this.graduateThreads()) });
     this.addCommand({
       id: 'ask-about-selection',
@@ -171,6 +173,7 @@ export default class KeepWritingPlugin extends Plugin {
     const settingsTab = new KeepWritingSettingTab(this.app, this);
     this.addSettingTab(settingsTab);
     keepFoldersFresh(this.app, settingsTab, (ref) => this.registerEvent(ref));
+    keepBanksFresh(this.app, this, settingsTab, (ref) => this.registerEvent(ref));
   }
 
   // -------------------------------------------------------------------------
@@ -201,29 +204,23 @@ export default class KeepWritingPlugin extends Plugin {
         title: 'Fill the question bank?',
         body: [
           `keep-writing draws from questions kept as ordinary notes. Your ${this.settings.bankFolder} folder is empty, so there is nothing to draw.`,
-          `This writes ${STARTER_BANK.length === 1 ? 'one note' : `${STARTER_BANK.length} notes`} holding ${questionCount(STARTER_BANK).toLocaleString()} questions into ${this.settings.bankFolder}. They are plain Markdown, one question per line: edit them, delete them, add your own. Nothing is sent anywhere and no existing note is touched.`,
+          `Choose from ${STARTER_BANK.length} banks holding ${questionCount(STARTER_BANK).toLocaleString()} questions. Each selected bank becomes a plain Markdown note in ${this.settings.bankFolder}. You can edit the questions and adjust the draw mix in settings. Existing notes keep your edits.`,
           'You can do this later from the command palette instead.',
         ],
-        confirm: 'Write the notes',
+        confirm: 'Choose banks',
         dismiss: 'Not now',
       },
       () => {
         answered();
-        this.run(() => this.installStarterBank());
+        this.installStarterBank();
       },
       answered,
     ).open();
   }
 
-  /** Write the shipped question notes, skipping any that are already there. */
-  private async installStarterBank(): Promise<void> {
-    const { bankFolder } = this.settings;
-    try {
-      const result = await installBank(this.app, bankFolder, STARTER_BANK);
-      new Notice(installedLine(result, bankFolder));
-    } catch (e) {
-      new Notice(`Could not write the question bank: ${e instanceof Error ? e.message : String(e)}`);
-    }
+  /** Let the owner choose which shipped question notes to add. */
+  private installStarterBank(): void {
+    new BankInstallModal(this.app, this.settings.bankFolder, () => {}).open();
   }
 
   // -------------------------------------------------------------------------
@@ -408,6 +405,7 @@ export default class KeepWritingPlugin extends Plugin {
     this.settings.apiKey = this.app.secretStorage.getSecret('keep-writing-api-key') ?? '';
     if (legacy && !secret && this.settings.apiKey !== legacy) throw new Error('API key migration failed. The existing settings were preserved.');
     this.settings.bankShare = normalizeBankShare(data.bankShare);
+    this.settings.bankWeights = normalizeBankWeights(data.bankWeights);
     if ('apiKey' in data) await this.persistSettings();
   }
   private async persistSettings(): Promise<void> {

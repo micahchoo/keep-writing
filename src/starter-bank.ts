@@ -9,19 +9,19 @@ import autobiographical from '../starter/autobiographical.md';
 import autoethnographic from '../starter/autoethnographic.md';
 import invention from '../starter/invention.md';
 import learning from '../starter/learning.md';
+import ordinaryLife from '../starter/ordinary-life.md';
 import type { StarterNote } from './install';
 
-/**
- * Four notes, grouped by what the ANSWER is rather than by subject. Retrieval
- * of a life already lived; reading a culture through it; what the owner knows
- * and can do; and the prompt, whose answer does not exist until it is
- * written. The last one is kept apart because its rubric contradicts the other
- * three on purpose — a Bank question must be unguessable about one life, a
- * prompt must be open to many readings.
- */
-export const STARTER_BANK: StarterNote[] = [
-  { name: 'autoethnographic.md', markdown: autoethnographic },
-  { name: 'autobiographical.md', markdown: autobiographical },
-  { name: 'learning.md', markdown: learning },
-  { name: 'invention.md', markdown: invention },
+export interface StarterBank extends StarterNote {
+  title: string;
+  description: string;
+}
+
+/** Each bank is installed independently. The owner's installed copy is never overwritten. */
+export const STARTER_BANK: StarterBank[] = [
+  { name: 'ordinary-life.md', title: 'Ordinary life', description: 'Familiar places, small encounters, things you handle, and whatever holds your attention.', markdown: ordinaryLife },
+  { name: 'autobiographical.md', title: 'Autobiographical', description: 'Your experiences, memories, choices, and the ways you have changed.', markdown: autobiographical },
+  { name: 'autoethnographic.md', title: 'Autoethnographic', description: 'The customs, relationships, and surroundings that shape your life.', markdown: autoethnographic },
+  { name: 'learning.md', title: 'Learning', description: 'What you understand, what you can do, and what you want to find out.', markdown: learning },
+  { name: 'invention.md', title: 'Invention', description: 'Open invitations for a story, argument, list, or poem.', markdown: invention },
 ];

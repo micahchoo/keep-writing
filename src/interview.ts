@@ -23,7 +23,7 @@ import type { App, TFile } from 'obsidian';
 import { normalizePath } from 'obsidian';
 import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
-import { bankJar, drawMany, parseDue, pickOne, questionAt } from './bank';
+import { bankJar, drawMany, parseDue, pickBankQuestion, questionAt } from './bank';
 import type { Drawn, JarCounts } from './bank';
 import { answeredInVault } from './links';
 import { ensureSourceBlockId } from './blocks';
@@ -227,7 +227,8 @@ export class Interview {
    */
   async seed(sitting: TFile): Promise<boolean> {
     const target = readTarget(this.app, sitting);
-    const question = pickOne(await bankJar(await this.context(sitting), target));
+    const ctx = await this.context(sitting);
+    const question = pickBankQuestion(await bankJar(ctx, target), ctx.bankFolder, ctx.bankWeights);
     if (!question) return false;
     const due = question.due ? parseDue(question.due, new Date()) : null;
     return insertFirstAsk(this.app, sitting, question.text, question.ref, due ? { due } : {});
@@ -235,14 +236,14 @@ export class Interview {
 
   /** What the Draw reads the vault through, with this Sitting's Asks already placed. */
   private async context(sitting: TFile) {
-    const { sittingsFolder, bankFolder, writingFolders } = this.host.settings;
+    const { sittingsFolder, bankFolder, writingFolders, bankWeights } = this.host.settings;
     const placed = new Set<string>();
     for (const a of await asksOf(this.app, sitting)) {
       const ref = parseRef(a.sourceRef);
       const key = ref && keyOfRef(this.app, ref, sitting.path);
       if (key) placed.add(key);
     }
-    return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankShare: this.host.settings.bankShare, skipped: placed, sitting };
+    return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankWeights, bankShare: this.host.settings.bankShare, skipped: placed, sitting };
   }
 
   /** Write a drawn Bank question as an Ask, and put the cursor under it. */

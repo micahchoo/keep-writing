@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { BANK_SHARE, jarCounts, parseBankLine, parseDue, pickOne, pickFromJars } from '../src/bank';
+import { BANK_SHARE, jarCounts, parseBankLine, parseDue, pickBankQuestion, pickOne, pickFromJars } from '../src/bank';
 import type { BankQuestion, Jars } from '../src/bank';
 import type { Paragraph } from '../src/paragraphs';
 import { mulberry32, sequence } from './fake-vault';
@@ -107,6 +107,70 @@ const paragraph = (key: string): Paragraph => ({
 const paragraphs = (prefix: string, n: number) =>
   Array.from({ length: n }, (_, i) => paragraph(`${prefix}-${i}`));
 
+const bankQuestions = (bank: string, count: number) => Array.from({ length: count }, (_, i) => ({
+  ...question(`b${i}`, 'episode'),
+  ref: { path: `Bank/${bank}`, blockId: `b${i}` },
+  bankPath: `Bank/${bank}.md`,
+  key: `Bank/${bank}.md#^b${i}`,
+}));
+
+describe('pickBankQuestion', () => {
+  test('bank proportions are independent of question counts; each question within a bank is equally reachable', () => {
+    const pool = [...bankQuestions('small', 1), ...bankQuestions('large', 100)];
+    const weights = { 'small.md': 25, 'large.md': 75 };
+    const seen = new Map<string, number>();
+    for (let bankRoll = 0; bankRoll < 100; bankRoll++) {
+      for (let questionRoll = 0; questionRoll < 100; questionRoll++) {
+        const chosen = pickBankQuestion(pool, 'Bank', weights, sequence([(bankRoll + 0.5) / 100, (questionRoll + 0.5) / 100]))!;
+        seen.set(chosen.key, (seen.get(chosen.key) ?? 0) + 1);
+      }
+    }
+    expect(seen.get('Bank/small.md#^b0')).toBe(2500);
+    for (const q of pool.slice(1)) expect(seen.get(q.key)).toBe(75);
+  });
+
+  test('defaults choose ordinary life for the first 30% regardless of bank size', () => {
+    const pool = [
+      ...bankQuestions('ordinary-life', 1),
+      ...bankQuestions('autobiographical', 50),
+      ...bankQuestions('autoethnographic', 30),
+      ...bankQuestions('learning', 20),
+      ...bankQuestions('invention', 10),
+    ];
+    const counts: Record<string, number> = {};
+    for (let i = 0; i < 100; i++) {
+      const chosen = pickBankQuestion(pool, 'Bank', {}, sequence([(i + 0.5) / 100, 0]))!;
+      counts[chosen.bankPath] = (counts[chosen.bankPath] ?? 0) + 1;
+    }
+    expect(counts).toEqual({
+      'Bank/ordinary-life.md': 30,
+      'Bank/autobiographical.md': 25,
+      'Bank/autoethnographic.md': 20,
+      'Bank/learning.md': 15,
+      'Bank/invention.md': 10,
+    });
+  });
+
+  test('depleted and disabled banks leave their share to those still eligible', () => {
+    const pool = [...bankQuestions('ordinary-life', 0), ...bankQuestions('learning', 2), ...bankQuestions('invention', 1)];
+    const weights = { 'invention.md': 0 };
+    expect(pickBankQuestion(pool, 'Bank', weights, sequence([0]))?.key).toBe('Bank/learning.md#^b0');
+    expect(pickBankQuestion(pool, 'Bank', weights, sequence([0.99]))?.key).toBe('Bank/learning.md#^b1');
+    expect(pickBankQuestion(pool, 'Bank', { ...weights, 'learning.md': 0 })).toBeNull();
+  });
+
+  test('the positive weights of remaining banks are renormalized after other banks run out', () => {
+    const pool = [...bankQuestions('learning', 1), ...bankQuestions('invention', 10)];
+    let learning = 0;
+    for (let i = 0; i < 100; i++) {
+      const chosen = pickBankQuestion(pool, 'Bank', {}, sequence([(i + 0.5) / 100, 0]));
+      if (chosen?.bankPath === 'Bank/learning.md') learning++;
+    }
+    // Their default weights are 15 and 10: learning gets 15 / 25 of draws.
+    expect(learning).toBe(60);
+  });
+});
+
 describe('pickFromJars', () => {
   const jars: Jars<Paragraph> = {
     bank: [question('b1', 'episode'), question('b2', 'value')],
@@ -114,8 +178,7 @@ describe('pickFromJars', () => {
   };
 
   test('the toss: under BANK_SHARE is the Bank jar, at or over it is the paragraph jar', () => {
-    // toss, pick | toss, pick. Two rolls a draw. It was three until
-    // 2026-09-17: a register first on the Bank side, a Well first on the other.
+    // With only one eligible bank, the only rolls are the jar toss and item.
     const random = sequence([0.1, 0.0, 0.9, 0.5]);
     const first = pickFromJars(jars, random);
     expect(first?.source.kind).toBe('question');
@@ -140,6 +203,12 @@ describe('pickFromJars', () => {
     const onlyParagraphs: Jars<Paragraph> = { bank: [], paragraphs: jars.paragraphs };
     expect(pickFromJars(onlyParagraphs, sequence([0.1, 0.0]))?.source.kind).toBe('paragraph');
     expect(pickFromJars({ bank: [], paragraphs: [] }, sequence([0.5]))).toBeNull();
+  });
+
+  test('a disabled bank cannot return through the fallback when paragraphs are absent', () => {
+    const weights = { 'q.md': 0 };
+    expect(pickFromJars(jars, sequence([0]), undefined, 1, 'Bank', weights)?.source.kind).toBe('paragraph');
+    expect(pickFromJars({ bank: jars.bank, paragraphs: [] }, sequence([0]), undefined, 1, 'Bank', weights)).toBeNull();
   });
 
   // The 8x skew, gone. The draw picked a Well uniformly and THEN a paragraph

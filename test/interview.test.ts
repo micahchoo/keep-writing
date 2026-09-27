@@ -4,7 +4,7 @@
 // about several, so a draw is deterministic without the Interview having to
 // take a random seam it would never use in the vault.
 
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { parseAsks } from '../src/asks';
 import { Refused } from '../src/refusal';
 import type { Ask } from '../src/asks';
@@ -13,7 +13,7 @@ import { Interview, dayStamp } from '../src/interview';
 import type { InterviewHost } from '../src/interview';
 import type { Paragraph } from '../src/paragraphs';
 import { DEFAULT_SETTINGS } from '../src/settings';
-import { fakeVault } from './fake-vault';
+import { fakeVault, sequence } from './fake-vault';
 import type { VaultHooks } from './fake-vault';
 
 // ---------------------------------------------------------------------------
@@ -357,6 +357,35 @@ describe('the pick-up', () => {
 // ---------------------------------------------------------------------------
 
 describe('the seed — a Sitting is never born blank', () => {
+  test('the seed uses the configured bank proportions before choosing a question', async () => {
+    const { v, interview, host } = open({
+      [TODAY]: EMPTY_SITTING,
+      'Bank/ordinary-life.md': '---\nkind: bank\n---\n- what was lunch? #register/episode ^o1\n',
+      'Bank/invention.md': '---\nkind: bank\n---\n- what might be next? #register/possibility ^i1\n- what could change? #register/possibility ^i2\n',
+    });
+    host.settings = { ...host.settings, bankWeights: { 'ordinary-life.md': 90, 'invention.md': 10 } };
+    const random = spyOn(Math, 'random').mockImplementation(sequence([0.85, 0]));
+    try {
+      expect(await interview.seed(v.file(TODAY))).toBe(true);
+      expect(asksIn(v, TODAY)[0]?.sourceRef).toBe('Bank/ordinary-life#^o1');
+    } finally {
+      random.mockRestore();
+    }
+  });
+
+  test('disabled banks stay disabled for the seed and a manual draw can still use paragraphs', async () => {
+    const { v, interview, host } = open({
+      ...bankOnly(),
+      'Pieces/rigging.md': `---\ntitle: Rigging\nstatus: published\n---\n\n${PARAGRAPH} ^p1\n`,
+    });
+    host.settings = { ...host.settings, bankWeights: { 'craft.md': 0 } };
+    expect(await interview.seed(v.file(TODAY))).toBe(false);
+    expect(v.text(TODAY)).toBe(EMPTY_SITTING);
+    const drawing = await interview.draw(v.file(TODAY));
+    expect(drawing.jars.questions).toBe(0);
+    expect(drawing.drawn.map((d) => d.source.key)).toEqual(['Pieces/rigging.md#^p1']);
+  });
+
   test('one Bank question, and no model call on the way', async () => {
     const { model, seen } = recordingModel({ followUps: ['never asked'] });
     const { v, interview } = open(bankOnly(), model);

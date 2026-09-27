@@ -82,12 +82,12 @@ describe('the shipped bank', () => {
     }
   });
 
-  test('it holds 2,274 questions, every one with an id', () => {
-    expect(questionCount(STARTER_BANK)).toBe(2274);
+  test('it holds 2,374 questions, every one with an id', () => {
+    expect(questionCount(STARTER_BANK)).toBe(2374);
   });
 
   // The registers are not one taxonomy, and the prompt rubric contradicts the
-  // Bank test on purpose. 22 registers across four notes.
+  // Bank test on purpose. 22 registers across five notes.
   //
   // The floor is 40, not 100, because the 2026-09-17 judge pass was not even:
   // `belief` lost 52 of 100 and `invention` 49 of 100, while `fact` lost

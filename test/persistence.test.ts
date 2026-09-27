@@ -68,3 +68,21 @@ test('a stored folder list is read clean: a folder named twice is one folder', a
   await h.plugin.loadSettings();
   expect(h.plugin.settings.writingFolders).toEqual(['Pieces']);
 });
+
+test('bank weights survive saving and loading, including a paused custom bank', async () => {
+  const h = host({ bankWeights: { 'ordinary-life.md': 60, 'garden.md': 0, 'broken.md': '25' } });
+  await h.plugin.loadSettings();
+  expect(h.plugin.settings.bankWeights).toEqual({ 'ordinary-life.md': 60, 'garden.md': 0 });
+  await h.plugin.saveSettings();
+  const reopened = host(h.writes.at(-1));
+  await reopened.plugin.loadSettings();
+  expect(reopened.plugin.settings.bankWeights).toEqual(h.plugin.settings.bankWeights);
+});
+
+test('older settings acquire the default mix without a settings write', async () => {
+  const h = host({ bankShare: 0.25 });
+  await h.plugin.loadSettings();
+  expect(h.plugin.settings.bankWeights).toEqual({});
+  expect(h.plugin.settings.bankShare).toBe(0.25);
+  expect(h.writes).toEqual([]);
+});
