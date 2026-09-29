@@ -11,15 +11,15 @@ Two jars. Seven draws in ten come from the first.
 | **The bank** | Questions other people wrote — every list item with a block id in a note in your bank folder whose frontmatter says `kind: bank` | As written |
 | **Your writing** | Every block with an id, in the folders you name in settings | The model builds a question about it |
 
-The bundled banks hold 2,374 questions across 22 answer registers. Choose which of these five notes to install:
+The bundled banks hold 3,576 questions across 22 answer registers. Choose which of these five notes to install:
 
 | Note | Questions | What it asks for |
 |---|---|---|
 | `ordinary-life.md` | 100 | Familiar places, small encounters, objects, meals, and things you notice; no project needed |
-| `autobiographical.md` | 918 | A life you already lived — one occasion, a thing that happened again and again, a stretch of years, a plain fact, what you take yourself to be, what you mean to do, what you hold worth it, why you think it happened, what you hold true, how it felt, what a change left behind |
+| `autobiographical.md` | 1,685 | A life you already lived — one occasion, a thing that happened again and again, a stretch of years, a plain fact, what you take yourself to be, what you mean to do, what you hold worth it, why you think it happened, what you hold true, how it felt, what a change left behind |
 | `autoethnographic.md` | 1,023 | The same life read as a culture, and an account of the telling |
-| `learning.md` | 282 | What you understand, what your hands can do, and what you would have to go and find out |
-| `invention.md` | 51 | Not retrieval at all: a prompt, whose answer does not exist until you write it |
+| `learning.md` | 342 | What you understand, what your hands can do, and what you would have to go and find out |
+| `invention.md` | 426 | Not retrieval at all: a prompt, whose answer does not exist until you write it |
 
 Personal questions pass the Bank test: a stranger cannot supply your actual answer. A brief answer is welcome when its particulars belong to you. The ordinary-life bank was reviewed against that same test. Invention prompts use a separate rubric for distinctive focus, depth, openness, freedom of form, and clear wording.
 
@@ -45,6 +45,7 @@ Open **Settings → keep-writing → Question banks**.
 ![Open Installed banks from the compact settings page, change a frequency, then return with Back.](img/banks.gif)
 
 - **Install banks** lists the included banks with descriptions and question counts. Select the ones you want, then choose **Install selected**. Existing notes are never overwritten.
+- **Add new questions** brings a later version's questions into the banks you already installed. It shows how many each bank would gain and adds nothing until you agree. New questions go into the section of their register. Nothing you wrote or changed is edited, and a question you deleted does not come back. The first time Obsidian loads a version that has new questions, it offers this once by itself; the command **Add new questions to installed banks** is there any time after.
 - To import a bank from elsewhere, put its `.md` file in the **Question bank folder** (default `Bank`). It needs `kind: bank` in its frontmatter and the question syntax shown above. It appears under **Installed banks** after Obsidian indexes the note. Subfolders work too.
 - **Create a bank** lets you name a subject and **Copy instructions** for your AI assistant or coding agent. The instructions include the file location, syntax, stable IDs, and both rubrics. **Create and open note** makes an empty bank containing those instructions. Ask your agent to replace that scaffold with its reviewed questions. Reopen the dialog to get the instructions again.
 
@@ -101,7 +102,7 @@ On `me.md`, or on the note your day was `about`. The next day's draw offers that
 
 ## The three model jobs
 
-One call each, temperature 0, JSON out, one retry, then it gives up quietly.
+One call each, JSON out, one retry, then it gives up quietly. Every call runs at temperature 0 except the Follow-up, which is sampled so that marking again finds other questions.
 
 - **Follow-up** — reads the question and your whole answer, offers up to three next questions. Candidates that hand your answer back, re-ask what you just answered, or refer to the conversation are dropped in code before you see them.
 - **Revisit** — for a paragraph you pointed at. Reads it with one line of framing (`in 2021, in "Koramangala"`) and asks about it.
@@ -113,7 +114,7 @@ Given the same list about georeferencing a map in QGIS, the Revisit asked *"what
 
 The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]` — the job, how long it took and how it ended, never the request or your key.
 
-`Lenses/craft.md` and `Lenses/invitation.md` are prose notes whose bodies are appended to the prompt verbatim, one per composer. Edit them to change how the model asks: it is the interviewer's technique as a page you control, not a string in the source.
+Settings → **What the AI looks for** holds two boxes, one per composer: **When you ask about a paragraph** steers the Revisit, and **When a paragraph is drawn** steers the Invitation. Each box's text, up to 100 words, is added to the end of the AI's instructions. Edit it to change how the model asks: it is the interviewer's technique as text you control, not a string in the source. Clear a box to go back to the default.
 
 ## Reading your vault in graph view
 

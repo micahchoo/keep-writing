@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'fs';
 import { composeRevisit } from '../src/bonsai';
-import { bodyOf } from '../src/lens';
+import { CRAFT_LENS } from '../src/lens';
 
 const BASE = 'http://127.0.0.1:8088/v1';
 const up = await fetch(`${BASE}/models`, { signal: AbortSignal.timeout(3000) }).then((r) => r.ok).catch(() => false);
@@ -22,13 +22,6 @@ const fetcher = async (url: string, init: { method: string; headers: Record<stri
   return { status: r.status, text: await r.text() };
 };
 const cfg = { baseUrl: BASE, model: 'qwen3.8-27b', fetcher };
-const lens = (name: string) => {
-  try {
-    return bodyOf(readFileSync(`${VAULT}/Lenses/${name}.md`, 'utf8'));
-  } catch {
-    return '';
-  }
-};
 const show = (label: string, p: string, qs: { question: string; dueDays?: number }[]) =>
   console.log(`\n[${label}]\n` + p + '\n' + qs.map((q) => '  Q: ' + q.question + (q.dueDays ? ` (due +${q.dueDays}d)` : '')).join('\n'));
 
@@ -41,7 +34,7 @@ describe.skipIf(!live)('Revisit on real corpus paragraphs', () => {
   }, 60_000);
   test('an essay paragraph, published', async () => {
     const p = paragraph('Pieces/2021-08-01-jingle-tales.md', 'p-002');
-    const qs = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', [], lens('craft'));
+    const qs = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', [], CRAFT_LENS);
     show('essay, craft lens', p, qs);
     expect(qs.length).toBeGreaterThan(0);
   }, 60_000);

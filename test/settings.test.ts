@@ -118,6 +118,46 @@ test('the saved-question percentage is bound to the existing share setting', asy
   expect(host.settings.bankShare).toBe(1);
 });
 
+// The box shows the Lens in use, so the owner edits the real text and not a
+// blank. Only their own text is stored: a box left at the shipped Lens, or
+// cleared, stores '' and follows the shipped Lens when a release improves it.
+describe('the Lens boxes', () => {
+  const tabWith = async (settings: Record<string, unknown> = {}) => {
+    const { KeepWritingSettingTab, DEFAULT_SETTINGS } = await import('../src/settings');
+    const tab = Object.create(KeepWritingSettingTab.prototype) as InstanceType<typeof KeepWritingSettingTab>;
+    const host = { settings: { ...DEFAULT_SETTINGS, ...settings }, saveSettings: async () => {} };
+    Object.assign(tab, { host });
+    return { tab, host };
+  };
+
+  test('an empty setting shows the shipped Lens', async () => {
+    const { CRAFT_LENS, INVITATION_LENS } = await import('../src/lens');
+    const { tab } = await tabWith();
+    expect(tab.getControlValue('craftLens')).toBe(CRAFT_LENS);
+    expect(tab.getControlValue('invitationLens')).toBe(INVITATION_LENS);
+  });
+
+  test('the owner’s text is stored; the shipped text or an empty box stores nothing', async () => {
+    const { CRAFT_LENS } = await import('../src/lens');
+    const { tab, host } = await tabWith();
+    await tab.setControlValue('craftLens', '  Ask about the tools.  ');
+    expect(host.settings.craftLens).toBe('Ask about the tools.');
+    await tab.setControlValue('craftLens', CRAFT_LENS);
+    expect(host.settings.craftLens).toBe('');
+    await tab.setControlValue('craftLens', 'Mine again.');
+    await tab.setControlValue('craftLens', '   ');
+    expect(host.settings.craftLens).toBe('');
+  });
+
+  // `validate` stops the box first; this is the second lock, for any caller.
+  test('a Lens over the limit is refused and the last one stays', async () => {
+    const { MAX_LENS_WORDS } = await import('../src/lens');
+    const { tab, host } = await tabWith({ invitationLens: 'Ask about now.' });
+    await tab.setControlValue('invitationLens', Array.from({ length: MAX_LENS_WORDS + 1 }, () => 'w').join(' '));
+    expect(host.settings.invitationLens).toBe('Ask about now.');
+  });
+});
+
 test('imported banks appear after indexing without scanning on unrelated note edits', async () => {
   const { keepBanksFresh, DEFAULT_SETTINGS } = await import('../src/settings');
   const { fakeVault } = await import('./fake-vault');

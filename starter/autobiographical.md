@@ -96,6 +96,105 @@ guess the answer. None of them can be closed in a sentence.
 - what did you leave behind on purpose? #register/episode ^ep-097
 - what was the worst thing you ate and why did you eat it? #register/episode ^ep-098
 - who was asleep in the next room? #register/episode ^ep-099
+- where did you spend your first night away from family, and who was still awake? #register/episode ^ep-101
+- what did you order the first time you ate alone in a restaurant? #register/episode ^ep-102
+- what question from a job interview caught you out, and how did you answer? #register/episode ^ep-103
+- who drove you home from a hospital, and what did they talk about? #register/episode ^ep-104
+- what word did you mispronounce out loud in a classroom, and who laughed? #register/episode ^ep-105
+- what was on your feet the first time you saw the sea? #register/episode ^ep-106
+- who handed you a newborn to hold for the first time, and where were you sitting? #register/episode ^ep-107
+- what did you say the first time you lost your temper at a parent? #register/episode ^ep-108
+- how did you spend the first evening you lived with nobody else? #register/episode ^ep-109
+- what did you say on your final visit to a grandparent's house? #register/episode ^ep-110
+- where were you sitting during your final conversation with someone who has since died? #register/episode ^ep-111
+- what was the final thing you took from a home you had shared with a partner? #register/episode ^ep-112
+- which room did you stand in last before you handed back the keys to a place? #register/episode ^ep-113
+- how did you spend your final day at a job you had held for years? #register/episode ^ep-114
+- what could you smell while you waited to hear whether someone would live? #register/episode ^ep-115
+- what song was stuck in your head on a day you would rather forget? #register/episode ^ep-116
+- what were you holding when you heard that someone you loved had died? #register/episode ^ep-117
+- what was the light like in a room where someone told you a secret? #register/episode ^ep-118
+- where did you swim in water so cold it hurt, and who dared you? #register/episode ^ep-119
+- what did a teacher write in the margin of your work that you still remember? #register/episode ^ep-120
+- what did a stranger say to you on a train that you repeated to someone that night? #register/episode ^ep-121
+- what did a parent say to you in a car, eyes on the road, that you still hear? #register/episode ^ep-122
+- who told you to your face that you had let them down, and where were you both standing? #register/episode ^ep-123
+- what did a boss say to you in a corridor that changed how you did the job? #register/episode ^ep-124
+- what did a child say to you that stopped you in the middle of a sentence? #register/episode ^ep-125
+- what had you just done when someone gave you a nickname that stuck? #register/episode ^ep-126
+- what did you find in a coat pocket that brought back one particular day? #register/episode ^ep-127
+- what did you buy in an airport because you were afraid? #register/episode ^ep-128
+- what did you break in someone else's house, and did you tell them? #register/episode ^ep-129
+- what gift did you open in front of the giver without managing to hide your face? #register/episode ^ep-130
+- which object did you carry out of a building in an emergency? #register/episode ^ep-131
+- what did you sell or trade on a day you needed money fast? #register/episode ^ep-132
+- where did you sleep on a floor, and whose floor was it? #register/episode ^ep-133
+- which bathroom did you lock yourself in to get away from a party? #register/episode ^ep-134
+- where did you get lost in a city, and how did you find your way out? #register/episode ^ep-135
+- where did you pull over to cry while driving? #register/episode ^ep-136
+- where did you sit the last time you had to decide something big? #register/episode ^ep-137
+- which hospital corridor do you remember best, and why were you in it? #register/episode ^ep-138
+- what did you read in a waiting room while you waited for news that could go either way? #register/episode ^ep-139
+- how long did you wait for someone who never came, and where? #register/episode ^ep-140
+- what did you do at a station the night your train home was cancelled? #register/episode ^ep-141
+- what did you steal as a child, and where did you hide it? #register/episode ^ep-142
+- who took the blame for something you did, and did you ever tell anyone? #register/episode ^ep-143
+- what did you lie about in a job interview? #register/episode ^ep-144
+- which message did you send to the wrong person, and what happened next? #register/episode ^ep-145
+- who caught you doing something you should not have been doing, and what did they say? #register/episode ^ep-146
+- what did you break and blame on the wind, the cat or a sibling? #register/episode ^ep-147
+- who gave you a lift when you were stranded, and what did they talk about? #register/episode ^ep-148
+- what did a stranger lend you that you never gave back? #register/episode ^ep-149
+- who stopped to help you after a fall, and what did they say? #register/episode ^ep-150
+- what did a neighbour bring to your door during a hard week? #register/episode ^ep-151
+- what did you get wrong on your first shift that someone else had to fix? #register/episode ^ep-152
+- what did you do in a workplace toilet to get through a bad day? #register/episode ^ep-153
+- who did you have to give bad news to at work, and what did they say back? #register/episode ^ep-154
+- what did you finish at work at three in the morning, and who else was there? #register/episode ^ep-155
+- what did you build in a garden or on a bedroom floor that took a whole summer? #register/episode ^ep-156
+- where did you hide from an adult as a child, and how long did you stay? #register/episode ^ep-157
+- what did you learn about your family by listening through a wall or a door? #register/episode ^ep-158
+- which birthday party went wrong, and what went wrong at it? #register/episode ^ep-159
+- where did you get separated from your family as a child, and who noticed first? #register/episode ^ep-160
+- what did you eat at a stranger's table in another country? #register/episode ^ep-161
+- what did someone cook for you in the days after a loss? #register/episode ^ep-162
+- what meal did you ruin while cooking for someone you wanted to impress? #register/episode ^ep-163
+- what did you eat in a car park, and why there? #register/episode ^ep-164
+- what did you see from a train window that you have never found again? #register/episode ^ep-165
+- which border crossing do you remember, and what did the officer ask you? #register/episode ^ep-166
+- where did you arrive after dark with nowhere booked to sleep? #register/episode ^ep-167
+- what did you forget to pack on a trip where it mattered? #register/episode ^ep-168
+- what were you doing at four in the morning on the longest night you remember? #register/episode ^ep-169
+- who did you walk home with at night, and what did you leave unsaid? #register/episode ^ep-170
+- what woke you in a house that was not yours? #register/episode ^ep-171
+- where were you caught out in a storm, and what did you shelter under? #register/episode ^ep-172
+- where did you go on a day when snow closed everything? #register/episode ^ep-173
+- what did you do in a heatwave that you would not do in any other weather? #register/episode ^ep-174
+- what did you pay for in coins because nothing else was left? #register/episode ^ep-175
+- what did you spend too much on in a single afternoon, and did you keep it? #register/episode ^ep-176
+- who lent you money, and in which room did you ask? #register/episode ^ep-177
+- who did you shout at in public, and where? #register/episode ^ep-178
+- what did you throw during a fight, and where did it land? #register/episode ^ep-179
+- who walked out of a room on you, and what had you just said? #register/episode ^ep-180
+- what did you say on a doorstep when you went to apologise? #register/episode ^ep-181
+- what made you laugh so hard that you had to leave a room? #register/episode ^ep-182
+- where were you dancing when you forgot anyone could see you? #register/episode ^ep-183
+- what did you do in the seconds after a near miss on a road? #register/episode ^ep-184
+- where did you think, for a second, that you might drown, fall or be hit? #register/episode ^ep-185
+- which animal frightened you, and where did you meet it? #register/episode ^ep-186
+- what did you overhear this week that you are still turning over? #register/episode ^ep-187
+- who did you watch through a window this week, and what were they doing? #register/episode ^ep-188
+- what did you lose yesterday, and where? #register/episode ^ep-189
+- what did you hear through a hotel wall? #register/episode ^ep-190
+- how did you break a bone, and who got you to a doctor? #register/episode ^ep-191
+- what did a doctor say to you that you wrote down afterwards? #register/episode ^ep-192
+- what did you see in a mirror after a haircut you had not asked for? #register/episode ^ep-193
+- what did you do at a wedding that you would not do at any other? #register/episode ^ep-194
+- who did you sit next to at a funeral, and what did they whisper? #register/episode ^ep-195
+- which line of a speech you gave did the room not expect? #register/episode ^ep-196
+- how did you spend a birthday that nobody else marked? #register/episode ^ep-197
+- where were you at midnight on a new year you would rather have spent elsewhere? #register/episode ^ep-198
+- which words did you speak to an animal while it was dying? #register/episode ^ep-199
 
 ## General event — what happened again and again
 
@@ -191,6 +290,95 @@ guess the answer. None of them can be closed in a sentence.
 - what do you always leave until you are alone? #register/general-event ^ge-098
 - what happened at every single one of those family meals? #register/general-event ^ge-099
 - what did the good years look like on an ordinary Tuesday? #register/general-event ^ge-100
+- what did your mother or father do every time they came home from work? #register/general-event ^ge-101
+- what sound meant the adults in your house had started arguing? #register/general-event ^ge-102
+- what chore did you dodge every week as a child, and how? #register/general-event ^ge-103
+- which dish appeared on your childhood table so often you stopped tasting it? #register/general-event ^ge-104
+- what happened on bath night when you were small? #register/general-event ^ge-105
+- what did a long car journey with your family sound like after the first hour? #register/general-event ^ge-106
+- what did you do every time you were sent to your room? #register/general-event ^ge-107
+- what did the grown-ups talk about at family gatherings once the children were sent outside? #register/general-event ^ge-108
+- what did your grandparents always keep in the cupboard for you? #register/general-event ^ge-109
+- who in your family always arrived late, and what happened when they did? #register/general-event ^ge-110
+- where did you eat lunch at school most days, and with whom? #register/general-event ^ge-111
+- what did you do on the way home from school every afternoon? #register/general-event ^ge-112
+- what excuse did you give teachers more than once? #register/general-event ^ge-113
+- which lesson did you dread every week, and how did you get through it? #register/general-event ^ge-114
+- what did you and your friends do every Friday night at sixteen? #register/general-event ^ge-115
+- what game did the children on your street play until someone was called in? #register/general-event ^ge-116
+- what did you do in the minutes before every exam? #register/general-event ^ge-117
+- what did you spend pocket money on, week after week? #register/general-event ^ge-118
+- what did you do every summer as a child that you have never done since? #register/general-event ^ge-119
+- what did a sleepover at your best friend's house always involve? #register/general-event ^ge-120
+- what do you do in the first ten minutes of every working day? #register/general-event ^ge-121
+- what joke did your colleagues repeat until it stopped being a joke? #register/general-event ^ge-122
+- what did you do on your breaks at a job you hated? #register/general-event ^ge-123
+- what task at work do you always do by hand when a machine could do it? #register/general-event ^ge-124
+- which meeting did you attend for years without ever speaking? #register/general-event ^ge-125
+- what did you eat at your desk most days in your first proper job? #register/general-event ^ge-126
+- what did customers ask you over and over at a job serving the public? #register/general-event ^ge-127
+- what did you do on the way home to leave a job behind for the night? #register/general-event ^ge-128
+- what do you always do the night before a new job starts? #register/general-event ^ge-129
+- what mistake have you made at work more than once? #register/general-event ^ge-130
+- what do you always eat standing up? #register/general-event ^ge-132
+- where does your mind go every time you are in the shower? #register/general-event ^ge-133
+- what route do you always take, even though a shorter one exists? #register/general-event ^ge-136
+- which song do you put on when you need to get something done? #register/general-event ^ge-138
+- what do you do every time you feel a cold coming on? #register/general-event ^ge-139
+- what do you buy every time you are in a supermarket, whether you need it or not? #register/general-event ^ge-140
+- what argument have you and a partner had so often you could both recite it? #register/general-event ^ge-141
+- what do you and the person you live with do every evening without discussing it? #register/general-event ^ge-142
+- what did your parents do every year on their anniversary? #register/general-event ^ge-143
+- what do you always do after a fight to show it is over? #register/general-event ^ge-144
+- what did you and a former partner do every weekend? #register/general-event ^ge-145
+- what does one friend always ask when you meet, and what do you always answer? #register/general-event ^ge-146
+- what do you always cook for someone who is sad? #register/general-event ^ge-148
+- what did you and your oldest friend do every time one of you had a birthday? #register/general-event ^ge-149
+- which friend always calls at the worst moment, and what do you do about it? #register/general-event ^ge-150
+- what happens each time you go back to the town you grew up in? #register/general-event ^ge-152
+- which table in which café did you return to for years, and why that one? #register/general-event ^ge-153
+- what happens to you on the second day of every holiday? #register/general-event ^ge-154
+- what do you always do when you are introduced to a baby? #register/general-event ^ge-155
+- which walk have you taken so often you could do it with your eyes shut? #register/general-event ^ge-156
+- what happens to you at every airport you pass through? #register/general-event ^ge-157
+- what do you do every time you visit your parents' house as an adult? #register/general-event ^ge-158
+- what did your neighbours do every weekend that you could hear through the wall? #register/general-event ^ge-159
+- what do you always do on the first night in a borrowed bed? #register/general-event ^ge-160
+- what does the first cold morning of the year always make you do? #register/general-event ^ge-161
+- what happens in your house on New Year's Eve, year after year? #register/general-event ^ge-162
+- what goes wrong on your birthday, year after year? #register/general-event ^ge-163
+- what did the end of every school year involve in your family? #register/general-event ^ge-164
+- what job were you given every year when your family prepared for a feast? #register/general-event ^ge-165
+- who in your family tends a grave, and what do they do there each visit? #register/general-event ^ge-166
+- what food did one holiday always bring into your house? #register/general-event ^ge-167
+- what did Saturday mornings involve when you were ten? #register/general-event ^ge-168
+- what do you do every time the clocks change? #register/general-event ^ge-169
+- what happens every year when your family decides where to spend the holidays? #register/general-event ^ge-170
+- what did your family always buy in bulk, and where was it kept? #register/general-event ^ge-171
+- what do you always buy second-hand? #register/general-event ^ge-172
+- what happens every time friends split a restaurant bill with you? #register/general-event ^ge-173
+- what did you do with the money you earned each week as a teenager? #register/general-event ^ge-174
+- what do you keep buying and never finish? #register/general-event ^ge-175
+- what did your family do every time something broke? #register/general-event ^ge-177
+- what do you always spend too much on? #register/general-event ^ge-178
+- what do you do every time you receive a gift you do not like? #register/general-event ^ge-179
+- which piece of clothing have you worn so often that people describe you by it? #register/general-event ^ge-180
+- who do you argue with in your head while you wash the dishes? #register/general-event ^ge-183
+- what do you do in the minutes after good news, before anyone else knows? #register/general-event ^ge-184
+- what do you always search for online when you are anxious? #register/general-event ^ge-185
+- what do you do with the first hour after a bad day? #register/general-event ^ge-186
+- what do you do each time you finish a book you loved? #register/general-event ^ge-187
+- what did your family always hide before visitors came? #register/general-event ^ge-188
+- what do you do every time someone asks you to sing? #register/general-event ^ge-189
+- what phrase did an adult in your childhood say so often you still hear it? #register/general-event ^ge-191
+- what did your family always blame when something went wrong? #register/general-event ^ge-193
+- what do you do every time someone raises their voice at you? #register/general-event ^ge-194
+- what have you started over and over, each January? #register/general-event ^ge-195
+- what happens every time you try to leave a party? #register/general-event ^ge-196
+- what do you always do right before you give up on something? #register/general-event ^ge-197
+- what happened every time you told your parents about someone you were dating? #register/general-event ^ge-198
+- what did your family say at the table before eating, every time? #register/general-event ^ge-199
+- what did every visit to a doctor involve when you were a child? #register/general-event ^ge-200
 
 ## Lifetime period — a stretch of years
 
@@ -290,6 +478,30 @@ guess the answer. None of them can be closed in a sentence.
 - what did the years of quiet actually contain? #register/lifetime-period ^lp-098
 - what were you refusing during the period you were most stubborn? #register/lifetime-period ^lp-099
 - what did the period after the children, the students, or the staff left look like? #register/lifetime-period ^lp-100
+- which street did you walk most in the years of your first rented room, and why that one? #register/lifetime-period ^lp-101
+- what could you find in the dark in the house you lived in longest? #register/lifetime-period ^lp-102
+- which neighbour from a place you once lived still turns up in your thoughts, and doing what? #register/lifetime-period ^lp-103
+- what did you keep in the car during a stretch of years when you drove every day? #register/lifetime-period ^lp-104
+- what did you eat for lunch, most days, in your first steady job? #register/lifetime-period ^lp-105
+- what did you carry home in your clothes from a job you once had? #register/lifetime-period ^lp-106
+- what did you call your boss behind their back in a job you have left? #register/lifetime-period ^lp-107
+- whose phone calls did you overhear for years at work, and what did you learn from them? #register/lifetime-period ^lp-108
+- what joke only made sense during a relationship that has ended? #register/lifetime-period ^lp-109
+- which piece of furniture outlasted a relationship, and where is it now? #register/lifetime-period ^lp-110
+- what did you and a friend do every week for years, until you stopped? #register/lifetime-period ^lp-111
+- what name did someone call you for a stretch of years, and when did they stop? #register/lifetime-period ^lp-112
+- what were you allowed to do at twelve that no twelve-year-old you know is allowed now? #register/lifetime-period ^lp-113
+- what did you own at twenty that you would have saved from a fire? #register/lifetime-period ^lp-114
+- what kept you awake at night when you were nine? #register/lifetime-period ^lp-115
+- what age did you pretend to be for a while, and who were you fooling? #register/lifetime-period ^lp-116
+- what could your hands do during some stretch of years that they have since forgotten? #register/lifetime-period ^lp-117
+- what did you sleep on during a period when you had no proper bed? #register/lifetime-period ^lp-118
+- what could one hour of your pay buy in your first job? #register/lifetime-period ^lp-119
+- what did you pretend not to want during the years you could not afford it? #register/lifetime-period ^lp-120
+- what was on the radio or television every evening in a house you grew up in? #register/lifetime-period ^lp-121
+- what did Sundays consist of during the years you lived with your parents? #register/lifetime-period ^lp-122
+- which year of your life could you recount almost hour by hour, and why that one? #register/lifetime-period ^lp-123
+- what did you write on forms under "occupation" during a period you would rather not explain? #register/lifetime-period ^lp-124
 
 ## Fact — the plain record
 
@@ -393,6 +605,45 @@ guess the answer. None of them can be closed in a sentence.
 - what is the oldest thing in your kitchen that still works? #register/fact ^fa-098
 - what is the last date you can remember exactly, and why that one? #register/fact ^fa-099
 - what is the exact title of the job you actually do? #register/fact ^fa-100
+- what is on the shelf nearest your bed, from left to right? #register/fact ^fa-101
+- what is in the drawer that holds everything with no other home? #register/fact ^fa-102
+- what is stuck to your fridge, and how long has each thing been there? #register/fact ^fa-103
+- what did you carry out of a home you no longer live in? #register/fact ^fa-104
+- what is in your wallet that you have never once used? #register/fact ^fa-105
+- what did your family call the car you grew up with? #register/fact ^fa-106
+- what name do you give when you book a table? #register/fact ^fa-107
+- what was the name of the shop you went to most as a child? #register/fact ^fa-108
+- who is saved in your phone under something other than their name? #register/fact ^fa-109
+- what was the name of the first animal you knew by name? #register/fact ^fa-110
+- how many stitches have you had, and where on your body? #register/fact ^fa-111
+- how many of the numbers in your phone would still reach the person saved there? #register/fact ^fa-112
+- how many unopened letters are in your home right now? #register/fact ^fa-113
+- what was your first wage by the hour, and what did it buy? #register/fact ^fa-114
+- what was the name of the road you took to school? #register/fact ^fa-115
+- which house on your childhood street did you never go inside? #register/fact ^fa-116
+- where is the nearest place you could buy bread at midnight? #register/fact ^fa-117
+- what number was on the door of a room you once rented? #register/fact ^fa-118
+- which town did your family leave, and in what year? #register/fact ^fa-119
+- what does your oldest surviving school report say about you? #register/fact ^fa-120
+- what reason was given on the last letter that refused you something? #register/fact ^fa-121
+- what is the earliest date on any receipt you have kept? #register/fact ^fa-122
+- what was the first thing you owned that had a serial number? #register/fact ^fa-123
+- where on your body is your oldest scar, and what made it? #register/fact ^fa-124
+- what is your height, and when did you stop growing? #register/fact ^fa-125
+- which of your teeth is not the one you were born with? #register/fact ^fa-126
+- what was the weather on the day you moved into where you live now? #register/fact ^fa-127
+- what time was it when you last watched the sun come up, and why were you awake? #register/fact ^fa-128
+- what year did you last buy a new mattress? #register/fact ^fa-129
+- what is the most you have paid for something you wore once? #register/fact ^fa-130
+- what did your rent cost the first time you paid it yourself? #register/fact ^fa-131
+- what coin or note from another country is still in your home? #register/fact ^fa-132
+- who lived in your home before you, and what did they leave behind? #register/fact ^fa-133
+- what did your mother's father do for work? #register/fact ^fa-134
+- who was standing next to you in the last photograph taken of you? #register/fact ^fa-135
+- what was the first thing you ever sold, and to whom? #register/fact ^fa-136
+- what is in your freezer that nobody in your house will eat? #register/fact ^fa-137
+- what brand of soap was by the sink in the house you grew up in? #register/fact ^fa-138
+- which cupboard in your childhood home were you told not to open, and what was in it? #register/fact ^fa-139
 
 ## Construct — what you take yourself to be
 
@@ -491,6 +742,97 @@ guess the answer. None of them can be closed in a sentence.
 - what do you carry from a group you have left? #register/construct ^co-097
 - what would you be if the thing you are known for was taken away tomorrow? #register/construct ^co-098
 - what is the description of you that you would not correct? #register/construct ^co-099
+- what word on a form do you hesitate over before ticking a box? #register/construct ^co-101
+- what nickname did you outgrow, and who still uses it? #register/construct ^co-102
+- what do you say you do when a stranger at a party asks? #register/construct ^co-103
+- what label did you give yourself at fifteen that makes you wince now? #register/construct ^co-104
+- what word do you use for yourself only inside your own head? #register/construct ^co-105
+- which of your titles goes in your email signature, and which do you leave out? #register/construct ^co-106
+- what do you call your job when you want the conversation to end? #register/construct ^co-107
+- what adjective do your friends use for you that you never chose? #register/construct ^co-108
+- what did your family call you when you were in trouble? #register/construct ^co-109
+- what personality test result have you quoted about yourself more than once? #register/construct ^co-110
+- who do you become in a group chat that you are not in person? #register/construct ^co-111
+- what job do you always end up with on a trip with friends? #register/construct ^co-112
+- who are you the reliable one for, and who is that for you? #register/construct ^co-113
+- what role in your friendships would you quietly like to hand back? #register/construct ^co-114
+- at a wedding or a funeral, what task do people expect you to take? #register/construct ^co-115
+- who in your family are you measured against? #register/construct ^co-116
+- what do people ring you for, and what do they never ring you for? #register/construct ^co-117
+- what part did you play among your siblings that you still play at work? #register/construct ^co-118
+- which person in your life treats you as older than you are? #register/construct ^co-119
+- what are you in your friends' stories when you are not in the room? #register/construct ^co-120
+- what small daily habit would you defend as part of your character? #register/construct ^co-121
+- what do you do the same way every time that someone once laughed at? #register/construct ^co-122
+- what have you done every week for a year without calling it a hobby? #register/construct ^co-123
+- what habit of yours would a flatmate list first? #register/construct ^co-124
+- what order do you do things in each morning, and what happens when it breaks? #register/construct ^co-126
+- what habit did you pick up from someone you no longer see? #register/construct ^co-127
+- what do your hands do when you are thinking, and who pointed it out? #register/construct ^co-128
+- what do you keep that other people throw away? #register/construct ^co-129
+- what do you always order, and what would it mean to order something else? #register/construct ^co-130
+- what kind of request do you turn down before you hear the details? #register/construct ^co-132
+- what rule do you keep that has no reason you could say aloud? #register/construct ^co-133
+- what have you never done on principle, and whose principle was it first? #register/construct ^co-134
+- what phrase will you not say, even as a joke? #register/construct ^co-135
+- what have you refused to learn so that someone else keeps doing it for you? #register/construct ^co-136
+- what would you quit your work over? #register/construct ^co-137
+- what food will you not eat, and is it really about taste? #register/construct ^co-138
+- what app have you refused to install, and what would installing it make you? #register/construct ^co-139
+- what will you not be seen doing in public? #register/construct ^co-140
+- which object in your home would tell a stranger most about you? #register/construct ^co-141
+- what have you owned longest, and how has it survived every move? #register/construct ^co-142
+- what do you own that belongs to a person you meant to become? #register/construct ^co-143
+- what do you wear on a day you need to feel like yourself? #register/construct ^co-144
+- what hangs on your walls, and who chose it? #register/construct ^co-146
+- what would you rescue from a fire that has no value to anyone else? #register/construct ^co-147
+- which book on your shelf do you want visitors to notice? #register/construct ^co-148
+- what do you own that embarrasses you and still will not give away? #register/construct ^co-149
+- what tool do you use that marks you as someone who does a particular thing? #register/construct ^co-150
+- what do strangers guess your job is? #register/construct ^co-151
+- what compliment do you get that seems to describe someone else? #register/construct ^co-152
+- what do people who know you from work never find out? #register/construct ^co-153
+- which first impression of you takes longest to wear off? #register/construct ^co-154
+- what did a teacher write about you that you still remember word for word? #register/construct ^co-155
+- what do you have to explain about yourself on every first day somewhere new? #register/construct ^co-156
+- what did an old friend say about you that you could not argue with? #register/construct ^co-157
+- what do you still do that marks where you grew up? #register/construct ^co-159
+- which accent or word slips back into your speech when you are tired? #register/construct ^co-160
+- what do you do exactly like your father and hate noticing? #register/construct ^co-161
+- which grandparent do you resemble in a way nobody mentions? #register/construct ^co-162
+- what did your first job make you into that you still are? #register/construct ^co-163
+- what town do you still say you are from, though you left it long ago? #register/construct ^co-164
+- what belief of your family's do you still act on while denying it? #register/construct ^co-165
+- what class do you think you belong to, and what gives you away? #register/construct ^co-166
+- what did you have to stop being in order to leave home? #register/construct ^co-167
+- what religion do you still behave like, whether or not you believe it? #register/construct ^co-168
+- who are you trying to impress with the way you dress? #register/construct ^co-169
+- what do you do only when someone could be watching? #register/construct ^co-170
+- what version of yourself do you save for people you have just met? #register/construct ^co-171
+- whose opinion do you still check your choices against? #register/construct ^co-172
+- what do you post online that you would never say out loud? #register/construct ^co-173
+- what do you pretend to know about so as not to lose your place in a conversation? #register/construct ^co-174
+- what do you do to seem busier than you are? #register/construct ^co-175
+- what do you let people believe about you because correcting it costs too much? #register/construct ^co-176
+- what do you only enjoy once you have told someone about it? #register/construct ^co-177
+- who do you picture reading your private notebook? #register/construct ^co-178
+- what were you called at school that you have never told a new friend? #register/construct ^co-179
+- what did you quit that you still call yourself? #register/construct ^co-180
+- what did you want to be at twelve, and what is left of it in you? #register/construct ^co-181
+- which old self do you still dress as now and then? #register/construct ^co-182
+- what did you give up being to fit a partner? #register/construct ^co-183
+- what identity did you wear for a year and then drop overnight? #register/construct ^co-184
+- what did you stop saying you were after someone laughed? #register/construct ^co-185
+- what username belongs to a person you no longer are? #register/construct ^co-186
+- what do you still own from a scene you have left? #register/construct ^co-187
+- which old friend would not recognise the way you live now? #register/construct ^co-188
+- what do you think you are bad at that you do every day? #register/construct ^co-191
+- what are you proud of never having done, and is it only because nobody asked? #register/construct ^co-192
+- what do you dislike in other people that you did last week? #register/construct ^co-193
+- what have you spent the most hours on this year that you would not list as an interest? #register/construct ^co-194
+- what do you cook when nobody else is eating, and what does it say about you? #register/construct ^co-195
+- what are you good at that you are embarrassed to be good at? #register/construct ^co-196
+- what are you loyal to that has never been loyal back? #register/construct ^co-197
 
 ## Intention — what you mean to do
 
@@ -586,6 +928,90 @@ guess the answer. None of them can be closed in a sentence.
 - what are you going to say yes to next? #register/intention ^in-097
 - what do you intend to leave exactly as it is? #register/intention ^in-098
 - what do you want to be doing the day you stop? #register/intention ^in-100
+- what did you buy the equipment for and never begin? #register/intention ^in-101
+- which half-read book are you still pretending you will finish? #register/intention ^in-102
+- what have you started twice and abandoned at the same point both times? #register/intention ^in-103
+- what is sitting half-assembled somewhere in your home? #register/intention ^in-104
+- what did you sign up for and quietly stop attending? #register/intention ^in-105
+- what draft have you not opened since you last told someone about it? #register/intention ^in-106
+- which project have you renamed instead of finishing? #register/intention ^in-107
+- what is waiting on one missing part before you can carry on? #register/intention ^in-108
+- what phone call have you moved to tomorrow more than three times? #register/intention ^in-109
+- what form have you left blank because one question stumps you? #register/intention ^in-110
+- what small repair have you walked past every day for a month? #register/intention ^in-112
+- what letter have you written in your head but never on paper? #register/intention ^in-113
+- what errand are you saving for a day that never arrives? #register/intention ^in-114
+- what are you waiting to be less tired to do? #register/intention ^in-115
+- what did you stop intending to do without ever deciding to stop? #register/intention ^in-116
+- what plan did you let lapse simply by not renewing something? #register/intention ^in-117
+- what did you pay for lessons in and then let slide? #register/intention ^in-118
+- what have you stopped mentioning because you no longer mean to do it? #register/intention ^in-119
+- which trip have you stopped bringing up at dinner? #register/intention ^in-120
+- what ambition did you hand to someone else to carry for you? #register/intention ^in-121
+- what did you tell someone you would send them, and still have not? #register/intention ^in-122
+- what favour do you owe that nobody is chasing you for? #register/intention ^in-123
+- whose hospitality have you promised to return? #register/intention ^in-124
+- what did you promise a child that you have not yet done? #register/intention ^in-125
+- what did you agree to late at night that you mean to honour? #register/intention ^in-126
+- what have you agreed to that you intend to wriggle out of? #register/intention ^in-127
+- what did you borrow that you keep meaning to give back? #register/intention ^in-128
+- what place within an hour of you have you meant to visit for years? #register/intention ^in-129
+- where do you mean to go back to before it closes? #register/intention ^in-130
+- which walk from your front door have you never taken? #register/intention ^in-131
+- what city have you told people you will live in one day? #register/intention ^in-132
+- whose grave do you mean to visit? #register/intention ^in-133
+- what do you mean to learn from one particular person before they are gone? #register/intention ^in-134
+- what recipe are you determined to get right? #register/intention ^in-135
+- what do you intend to learn only so you can stop relying on someone? #register/intention ^in-136
+- what have you been meaning to look up for years? #register/intention ^in-137
+- whose missed call do you keep meaning to return? #register/intention ^in-138
+- which two people have you been meaning to introduce? #register/intention ^in-139
+- what apology are you still drafting? #register/intention ^in-140
+- who do you intend to thank properly, and for what? #register/intention ^in-141
+- what do you mean to tell a friend that you keep leaving out? #register/intention ^in-142
+- who are you planning to see less of? #register/intention ^in-143
+- which friendship are you letting fade on purpose? #register/intention ^in-144
+- what do you mean to ask an older relative about? #register/intention ^in-145
+- what broken thing are you keeping because you intend to mend it? #register/intention ^in-146
+- what have you bought a frame for and never framed? #register/intention ^in-147
+- which box have you not unpacked since your last move? #register/intention ^in-148
+- what do you mean to do with the photographs trapped on an old phone? #register/intention ^in-149
+- what do you mean to sell and keep not listing? #register/intention ^in-150
+- what corner of your home are you going to change first? #register/intention ^in-151
+- what have you been driving around with, meaning to drop off? #register/intention ^in-152
+- what are you going to cancel the next time you remember? #register/intention ^in-153
+- what purchase are you waiting to be able to justify? #register/intention ^in-154
+- what charge are you intending to dispute? #register/intention ^in-155
+- what are you going to ask a doctor about next time? #register/intention ^in-156
+- what have you been meaning to get checked? #register/intention ^in-157
+- what hill do you mean to walk up one day without stopping? #register/intention ^in-158
+- what are you quietly preparing to leave? #register/intention ^in-159
+- which email are you letting sit until it answers itself? #register/intention ^in-160
+- what side project are you keeping from your employer? #register/intention ^in-161
+- what chore are you going to automate so you never do it again? #register/intention ^in-162
+- what do you mean to do before your next birthday? #register/intention ^in-163
+- what do you mean to finish before the clocks change? #register/intention ^in-164
+- what have you put a date on that you already expect to move? #register/intention ^in-165
+- what are you going to do with the day off you have not booked? #register/intention ^in-166
+- what do you mean to try once, alone, where nobody knows you? #register/intention ^in-167
+- what are you planning that your family would argue you out of? #register/intention ^in-168
+- what have you researched late at night and never acted on? #register/intention ^in-169
+- what name are you saving for something you have not made yet? #register/intention ^in-170
+- what are you making that only one person will ever see? #register/intention ^in-171
+- what story do you mean to write down before you forget how it goes? #register/intention ^in-172
+- what are you collecting material for? #register/intention ^in-173
+- what song do you mean to learn all the way through? #register/intention ^in-174
+- what are you keeping odds and ends for? #register/intention ^in-175
+- what membership are you going to let run out? #register/intention ^in-176
+- what have you left at someone's house that you mean to collect? #register/intention ^in-177
+- what do you want finished before you move again? #register/intention ^in-178
+- whose goodbye are you rehearsing? #register/intention ^in-179
+- what habit do you keep restarting on a Monday? #register/intention ^in-180
+- what did you intend to do every day and have done three times? #register/intention ^in-181
+- which morning routine did you drop, and what broke it? #register/intention ^in-182
+- what are you going to do differently next time you host? #register/intention ^in-183
+- what are you pretending you will get round to when you retire? #register/intention ^in-184
+- what have you told yourself you will do once nobody needs you so much? #register/intention ^in-185
 
 ## Value — what you hold worth it
 
@@ -674,6 +1100,99 @@ guess the answer. None of them can be closed in a sentence.
 - what do you refuse to optimise? #register/value ^va-097
 - what would you spend a decade on? #register/value ^va-098
 - what do you think should be given away rather than inherited? #register/value ^va-099
+- what is the most you have ever paid for something that was gone within an hour? #register/value ^va-101
+- what do you buy the expensive version of, and what do you buy the cheapest? #register/value ^va-103
+- what have you paid someone to do that you could easily have done yourself? #register/value ^va-104
+- what did you save up for as a child, and did you get it? #register/value ^va-105
+- what is the last thing you returned to a shop, and why did it go back? #register/value ^va-106
+- which subscription have you cancelled and then quietly started again? #register/value ^va-107
+- what do you tip generously for? #register/value ^va-108
+- what have you bought twice because losing the first one was unbearable? #register/value ^va-109
+- what did you once spend a whole week's wages on? #register/value ^va-110
+- what do you still do by hand that a machine does faster? #register/value ^va-111
+- what have you driven through the night to reach? #register/value ^va-112
+- which chore do you refuse to share because nobody else does it properly? #register/value ^va-113
+- what is the longest you have waited in one place for one thing? #register/value ^va-114
+- what do you make room for in a week that has no room in it? #register/value ^va-115
+- what did you give a whole year to that nobody else saw? #register/value ^va-116
+- whose phone call do you always answer, whatever you are doing? #register/value ^va-117
+- what do you read slowly on purpose? #register/value ^va-118
+- what meal do you cook that takes longer than it needs to? #register/value ^va-119
+- what have you learned knowing you would never use it? #register/value ^va-120
+- what object have you moved house with every time without ever using it? #register/value ^va-121
+- what broken thing do you keep instead of replacing? #register/value ^va-122
+- what have you mended more than once? #register/value ^va-123
+- what do you keep that you would be embarrassed for a visitor to find? #register/value ^va-126
+- which message have you never deleted? #register/value ^va-127
+- what have you refused to lend, even to someone you trust? #register/value ^va-129
+- what is the cheapest thing you own that you would grieve? #register/value ^va-130
+- whose secret have you kept at a cost to yourself? #register/value ^va-131
+- what part of your day do you guard from other people? #register/value ^va-132
+- what did nobody protect you from that you now protect someone else from? #register/value ^va-133
+- whose name have you defended in a room they were not in? #register/value ^va-134
+- what place do you not tell people about, so it stays as it is? #register/value ^va-135
+- what about your life do you keep off the internet? #register/value ^va-136
+- which habit of yours do you hide from the people who would fix it? #register/value ^va-137
+- who can wake you at night without apology? #register/value ^va-138
+- what have you refused to let a partner change about you? #register/value ^va-139
+- what job have you turned down, and what did the refusal cost you? #register/value ^va-140
+- what have you refused to sign? #register/value ^va-141
+- which invitation do you decline every year? #register/value ^va-142
+- what advice from your parents did you refuse then and still refuse? #register/value ^va-143
+- what have you refused to throw away when someone told you to? #register/value ^va-144
+- what film or book do you refuse to open, and why that one? #register/value ^va-145
+- what have you declined to forgive, and does holding it cost you anything? #register/value ^va-146
+- what would you never let someone else pay for? #register/value ^va-148
+- whose praise have you turned down? #register/value ^va-149
+- what did you give up to live where you live now? #register/value ^va-150
+- what did you stop doing so that someone else could keep going? #register/value ^va-151
+- what friendship did you let go of to keep a principle? #register/value ^va-152
+- what pastime did you abandon for money, and do you miss it? #register/value ^va-153
+- what did you give up for a relationship that you would give up again? #register/value ^va-154
+- what have you given up that people still assume you do? #register/value ^va-155
+- what would you drop first if next year asked twice as much of you? #register/value ^va-156
+- what promotion have you let pass? #register/value ^va-157
+- what did someone give up for you that you have tried to repay? #register/value ^va-158
+- what have you sworn off, and how long has it held? #register/value ^va-159
+- what is the best thing you have given away and never seen again? #register/value ^va-160
+- what do you lend knowing it will not come back? #register/value ^va-161
+- what skill do you teach anyone who asks, for nothing? #register/value ^va-162
+- who do you give money to without asking what it is for? #register/value ^va-163
+- what gift cost you more than the person who got it ever knew? #register/value ^va-164
+- what have you given a stranger that you would not give a friend? #register/value ^va-165
+- what of yours do you hope a particular person gets when you die, and who? #register/value ^va-166
+- what have you donated and then wanted back? #register/value ^va-167
+- what have you been laughed at for and kept doing? #register/value ^va-168
+- when did you let people think worse of you rather than explain? #register/value ^va-169
+- what opinion of yours has cost you a job, a friend or a dinner? #register/value ^va-170
+- whose approval did you lose by doing what you did? #register/value ^va-171
+- what do you do in public that embarrasses the people with you? #register/value ^va-172
+- what did you own up to that you could have got away with? #register/value ^va-173
+- whose mistake have you taken the blame for, and why that one? #register/value ^va-174
+- what do you get cold, wet or tired for, gladly? #register/value ^va-175
+- what pain do you put up with to keep doing something? #register/value ^va-176
+- what have you risked your health for, and would you risk it again? #register/value ^va-177
+- what food do you eat even though it disagrees with you? #register/value ^va-178
+- how far will you walk for one particular thing to eat? #register/value ^va-179
+- which letter or email did you rewrite the most times before sending? #register/value ^va-180
+- what have you redone after it was already accepted? #register/value ^va-181
+- which task do you save for the hour when you are sharpest? #register/value ^va-182
+- what did you pay to learn that you are still glad you paid for? #register/value ^va-183
+- what corner have you seen someone cut that you never would? #register/value ^va-184
+- which ordinary afternoon from years ago would you pay to live again, and how much? #register/value ^va-185
+- what is the most hours you have spent on a single gift? #register/value ^va-186
+- what would you hand over for one more conversation with someone who has died? #register/value ^va-187
+- what is cheap that you would gladly pay ten times for? #register/value ^va-189
+- what do you tell others to spend on that you never spend on yourself? #register/value ^va-190
+- what do you claim to care about that your bank statement would not support? #register/value ^va-191
+- where does your calendar disagree with what you say matters? #register/value ^va-192
+- what spending do you judge in others that you do yourself? #register/value ^va-193
+- what did your family always spend on, even when money was short? #register/value ^va-194
+- what did your family never waste, and do you still not waste it? #register/value ^va-195
+- which of your grandparents' ways of saving do you still keep? #register/value ^va-196
+- what did your family refuse to buy on principle? #register/value ^va-197
+- what did you learn was precious by watching someone lose it? #register/value ^va-198
+- what would you replace the same day it broke? #register/value ^va-199
 
 ## Causal theory — your account of why
 
@@ -741,6 +1260,51 @@ guess the answer. None of them can be closed in a sentence.
 - what caused the moment you gave up? #register/causal-theory ^ct-098
 - why do you think you got sick when you did? #register/causal-theory ^ct-099
 - what made your family's fortunes turn? #register/causal-theory ^ct-100
+- why do you think you wake at the hour you usually wake? #register/causal-theory ^ct-101
+- what do you privately blame for a pain no doctor ever explained? #register/causal-theory ^ct-102
+- why do you think you eat differently when nobody else is home? #register/causal-theory ^ct-103
+- what do you think your body is answering when you cannot sit still? #register/causal-theory ^ct-104
+- why do you think you get ill at the start of a holiday, if you do? #register/causal-theory ^ct-105
+- why do you think you leave the same kind of task until the last possible day? #register/causal-theory ^ct-106
+- which of your habits came from one particular person, and why did it stick? #register/causal-theory ^ct-107
+- why do you think some rooms you have lived in stayed untidy and others never did? #register/causal-theory ^ct-108
+- why do you think you are late to everything, or early to everything? #register/causal-theory ^ct-109
+- why do you think you argue about the same thing with the person you live with? #register/causal-theory ^ct-110
+- why do you think one friend from years ago is still in your life when the others are not? #register/causal-theory ^ct-111
+- what do you think made you and a sibling turn out so differently? #register/causal-theory ^ct-112
+- why do you think the people who fall for you tend to be alike? #register/causal-theory ^ct-113
+- in your own account, why did your parents stay together, or not? #register/causal-theory ^ct-114
+- why do you think you are easier with strangers than with family, or the reverse? #register/causal-theory ^ct-115
+- what would a former partner say ended things, and where do you think they are wrong? #register/causal-theory ^ct-116
+- why do you think one teacher bothered with you when others did not? #register/causal-theory ^ct-117
+- why do you think one parent was harder on you than the other was? #register/causal-theory ^ct-118
+- why do you think you are good at a part of your job nobody taught you? #register/causal-theory ^ct-119
+- what do you believe is the real reason you were once passed over? #register/causal-theory ^ct-120
+- why do you think your best work happens at the hour it does? #register/causal-theory ^ct-121
+- why did you choose your line of work, leaving out the answer you give at parties? #register/causal-theory ^ct-122
+- what is your theory of why you left your last job, as opposed to the story you tell? #register/causal-theory ^ct-123
+- why do you think you spend freely on some things and not at all on others? #register/causal-theory ^ct-124
+- where does your attitude to borrowing money come from, in your account? #register/causal-theory ^ct-125
+- why do you think money was never mentioned in the house you grew up in, or always was? #register/causal-theory ^ct-126
+- why do you think you apologise at the moments you do? #register/causal-theory ^ct-127
+- what do you think made you the funny one, or the quiet one, in your family? #register/causal-theory ^ct-128
+- why do you think you cry at films but not at funerals, or the reverse? #register/causal-theory ^ct-129
+- why do you think a particular smell stops you where you stand? #register/causal-theory ^ct-130
+- what is your own explanation, not a therapist's, for your strongest fear? #register/causal-theory ^ct-133
+- what basic skill did you never pick up, and why do you think you did not? #register/causal-theory ^ct-134
+- why do you think you live where you live, beyond the reasons you gave at the time? #register/causal-theory ^ct-135
+- why do you think one town you lived in never felt like home? #register/causal-theory ^ct-136
+- which of your grandparents' choices do you think you are still living inside? #register/causal-theory ^ct-137
+- why do you think one subject at school made sense to you and another never did? #register/causal-theory ^ct-138
+- why do you think you were the child your parents worried about, or were not? #register/causal-theory ^ct-139
+- what small accident do you think your present life depends on? #register/causal-theory ^ct-140
+- why do you think your life went differently from a friend's who had the same start? #register/causal-theory ^ct-141
+- why do you think a person who disliked you on sight did so? #register/causal-theory ^ct-142
+- why do you think strangers ask you for directions, or never do? #register/causal-theory ^ct-143
+- why do you think people so often guess wrong about what you do? #register/causal-theory ^ct-144
+- why do you think you still own the oldest thing you own? #register/causal-theory ^ct-145
+- why do you think your houseplants die? #register/causal-theory ^ct-146
+- why do you think you gave up something you once did every week without being asked? #register/causal-theory ^ct-147
 
 ## Belief — what you hold true
 
@@ -792,6 +1356,101 @@ guess the answer. None of them can be closed in a sentence.
 - what do you think would be true even if nobody believed it? #register/belief ^be-095
 - what do you think happens to a skill after its last practitioner? #register/belief ^be-097
 - what did you believe about the future when you were twelve? #register/belief ^be-100
+- what have you seen with your own eyes that most people only take on trust? #register/belief ^be-101
+- what did you watch happen once that you still treat as a law? #register/belief ^be-102
+- which single conversation settled something for you that no argument had? #register/belief ^be-103
+- what is the smallest piece of evidence you have ever changed your life over? #register/belief ^be-104
+- what did a job show you about people that you cannot unsee? #register/belief ^be-105
+- what have you seen from the staff side of a counter that changed how you behave as a customer? #register/belief ^be-106
+- what have you concluded about your neighbours from sounds alone? #register/belief ^be-107
+- what did seeing someone dead tell you that being told had not? #register/belief ^be-108
+- what did you find out by counting something nobody else bothered to count? #register/belief ^be-109
+- what rule of thumb have you tested so often you no longer check it? #register/belief ^be-110
+- what are you betting on with the way you spend your mornings? #register/belief ^be-111
+- what does your savings account say you believe about the next ten years? #register/belief ^be-112
+- what would a stranger conclude you believe from reading your calendar alone? #register/belief ^be-113
+- what have you bought that only makes sense if you are right about something? #register/belief ^be-114
+- which of your habits would be pointless if you turned out to be wrong? #register/belief ^be-115
+- what do you keep doing although you have never once seen it work? #register/belief ^be-116
+- what do you prepare for that the people around you do not? #register/belief ^be-117
+- what did you stake a year on, and what were you sure of when you did? #register/belief ^be-118
+- what do you keep a spare of, and what does that say you expect? #register/belief ^be-119
+- what do you expect from a room full of strangers, judging by where you sit? #register/belief ^be-120
+- what will you not do even when it would be easier, and what do you think would follow if you did? #register/belief ^be-121
+- what do you refuse to own, and what do you think it would do to you? #register/belief ^be-122
+- what advice have you been given many times and never once followed? #register/belief ^be-123
+- what will you not tell a child, even as a kindness? #register/belief ^be-124
+- what have you refused to sign, and what did you think signing would mean? #register/belief ^be-125
+- what do you decline at parties, and what are you protecting by it? #register/belief ^be-126
+- what shortcut do you refuse that everyone around you takes? #register/belief ^be-127
+- which comfortable explanation of your own past do you refuse to accept? #register/belief ^be-128
+- what do you refuse to forgive, and what do you think forgiving it would cost? #register/belief ^be-129
+- what tool do you refuse that everyone you know relies on? #register/belief ^be-130
+- what do you know about one of your parents that they have never admitted to you? #register/belief ^be-131
+- what do you believe a sibling got that you did not? #register/belief ^be-132
+- what is your oldest friend still waiting for, as far as you can tell? #register/belief ^be-133
+- what do you hold true about someone you no longer speak to? #register/belief ^be-134
+- what do you think a former teacher got wrong about you and still believes? #register/belief ^be-135
+- who do you think is quietly holding your family together? #register/belief ^be-136
+- why do you think a friendship of yours ended, in a version the other person would deny? #register/belief ^be-137
+- what does your boss know, in your view, and refuse to say? #register/belief ^be-138
+- who in your life do you believe is happier than they let on? #register/belief ^be-139
+- what are you sure a dead grandparent would make of how you live now? #register/belief ^be-140
+- what do you know about your own body that no test has confirmed? #register/belief ^be-141
+- which food do you believe changes your mood, whatever the research says? #register/belief ^be-142
+- what are you sure of about your own sleep that you have never checked? #register/belief ^be-143
+- what do your hands know how to do that your head could not explain? #register/belief ^be-144
+- who have you watched age faster than they should, and what do you think did it? #register/belief ^be-146
+- what do you believe your face gives away that you have tried to hide? #register/belief ^be-147
+- what do you believe about money that your parents would call foolish? #register/belief ^be-148
+- what do you think actually gets people promoted where you work? #register/belief ^be-149
+- what did your first pay packet teach you that you still act on? #register/belief ^be-150
+- what do you believe your customers never tell you? #register/belief ^be-151
+- what part of your job do you think could vanish without anyone noticing? #register/belief ^be-152
+- what are you really paid for, as opposed to what your contract says? #register/belief ^be-153
+- what do you believe about debt from watching someone carry it? #register/belief ^be-154
+- what do you know about your trade that the manuals get wrong? #register/belief ^be-155
+- what do you think set the best person you ever worked with apart from the rest? #register/belief ^be-156
+- what do you believe about the weather where you live that forecasts ignore? #register/belief ^be-157
+- what do you think a building you know well was designed to make people do? #register/belief ^be-158
+- what do you know about a road you drive often that no map would show? #register/belief ^be-159
+- which house on your street do you think holds the most trouble, and what gives it away? #register/belief ^be-160
+- what has living with an animal convinced you of? #register/belief ^be-161
+- what has keeping a plant alive, or killing one, made you believe about care? #register/belief ^be-162
+- what object in your home do you believe brings bad luck? #register/belief ^be-163
+- what has your phone taken from your memory, and what is your proof? #register/belief ^be-164
+- what do you expect to be true about your life at eighty, and what makes you sure? #register/belief ^be-165
+- what do you think will outlast you that you had a hand in? #register/belief ^be-166
+- what mistake do you believe you are still on course to make? #register/belief ^be-167
+- what are you certain will get worse before it gets better, from what you have seen? #register/belief ^be-168
+- which prediction of yours came true, and what did being right teach you? #register/belief ^be-169
+- what do you think the year you were born gave you that a later year would not have? #register/belief ^be-170
+- what private rule do you follow that you have never explained to anyone? #register/belief ^be-171
+- what small ritual do you half believe keeps things from going wrong? #register/belief ^be-172
+- what do you do for luck that you would not admit to at work? #register/belief ^be-173
+- what sign do you watch for before a big decision? #register/belief ^be-174
+- what coincidence are you not ready to call a coincidence? #register/belief ^be-175
+- which dream of yours convinced you of something, and of what? #register/belief ^be-176
+- what do you believe about the dead that you act on, even if you would not argue it? #register/belief ^be-177
+- what do you know is true that you have given up trying to convince anyone of? #register/belief ^be-178
+- what argument did you lose that you are still sure you were right about? #register/belief ^be-179
+- what do your friends believe together that you privately do not? #register/belief ^be-180
+- what do you believe about your own generation that you would not say to its face? #register/belief ^be-181
+- what would you swear to in court that no one else in your family would? #register/belief ^be-182
+- what do you think the people who raised you were afraid of, and how did it shape you? #register/belief ^be-184
+- what did an expert tell you that your own experience has since overruled? #register/belief ^be-185
+- what do you believe because of one afternoon? #register/belief ^be-186
+- what did one stranger do that you still hold as proof of something? #register/belief ^be-187
+- what accident convinced you of something, and of what? #register/belief ^be-189
+- what did one bad night teach you that good years never did? #register/belief ^be-190
+- what did you conclude about honesty from a lie that worked? #register/belief ^be-191
+- what trait do you claim that your own record contradicts? #register/belief ^be-192
+- what are you sure you would do in an emergency, and what is that based on? #register/belief ^be-193
+- what do you believe you are owed, and by whom? #register/belief ^be-194
+- what do you believe you will never be good at, and who told you first? #register/belief ^be-195
+- what did the last time your anger got loose prove to you about it? #register/belief ^be-197
+- what have you forgiven yourself for that you think you should not have? #register/belief ^be-199
+- which of your own stories do you suspect you have improved in the telling? #register/belief ^be-200
 
 ## State — how it feels from inside
 
@@ -867,6 +1526,65 @@ guess the answer. None of them can be closed in a sentence.
 - what does it feel like to be at the beginning again? #register/state ^st-098
 - how were you the last time you felt young? #register/state ^st-099
 - what does the quiet after a long noise feel like? #register/state ^st-100
+- where in your body does a bad email land first? #register/state ^st-101
+- what do your shoulders do on the walk to a job you dislike? #register/state ^st-102
+- which part of you goes cold first when you are frightened? #register/state ^st-103
+- what does your jaw know at the end of a workday that your mind missed? #register/state ^st-104
+- what do you do with your hands while you wait to be called in somewhere? #register/state ^st-105
+- what is the first sign, in your own stomach, that a visit has gone on too long? #register/state ^st-106
+- which room in your home do you go to when you are upset, and where in it do you sit? #register/state ^st-107
+- in which shop or waiting room do you become a smaller version of yourself? #register/state ^st-108
+- what changes in you as you cross the threshold of the house you grew up in? #register/state ^st-109
+- which stretch of your commute is the one where your mood turns? #register/state ^st-110
+- where were you standing when you most recently felt entirely at ease? #register/state ^st-111
+- which seat do you choose on a bus or train, and what happens in you if it is taken? #register/state ^st-112
+- what are your hands doing right now that you did not tell them to do? #register/state ^st-113
+- what do you pick up and turn over when a phone call gets hard? #register/state ^st-114
+- which small chore calms you, and at what moment does it start to work? #register/state ^st-115
+- what do you check twice before leaving the house, and what are you afraid of as you check? #register/state ^st-116
+- what do you eat when you are alone and low, and how do you eat it? #register/state ^st-117
+- which habit do you slide back into when you are worn out, and how do you catch yourself? #register/state ^st-118
+- at a funeral you went to, what did you notice in yourself that you did not expect? #register/state ^st-119
+- how did you carry yourself on your first day at the work you do now? #register/state ^st-120
+- what went through you when someone recently praised work you thought was poor? #register/state ^st-121
+- at what hour did your last birthday turn, for better or worse? #register/state ^st-122
+- at a wedding, where do you end up standing by the end of the night, and why there? #register/state ^st-123
+- what did your body do the last time you had to give someone bad news? #register/state ^st-124
+- what is the first thing you notice about yourself on a morning after a bad night? #register/state ^st-125
+- at what hour of an ordinary day are you most yourself, and where are you then? #register/state ^st-126
+- which day of your week has a weight nobody else in your house can see? #register/state ^st-127
+- how does your mood travel across the hours of a day off? #register/state ^st-128
+- whose footsteps can you recognise, and what happens in you when you hear them? #register/state ^st-129
+- whose name on your phone makes your chest tighten before you answer? #register/state ^st-130
+- who can you sit in silence with, and what makes that easy? #register/state ^st-131
+- which voice do you put on for a stranger on the phone, and where did you learn it? #register/state ^st-132
+- who makes you feel twelve again, and what happens to your posture near them? #register/state ^st-133
+- when one particular person walks into a room, what changes in your breathing? #register/state ^st-134
+- what do you do in the first ten minutes at your desk to get yourself to begin? #register/state ^st-135
+- how do you know, from inside, that you are only pretending to work? #register/state ^st-136
+- which task do you move to tomorrow every day, and what happens in you when you see it? #register/state ^st-137
+- what happens in your hands when someone watches you do your job? #register/state ^st-138
+- which sound in your home tells you that you are safe? #register/state ^st-139
+- which smell turns you, for a second, back into who you were at fifteen? #register/state ^st-140
+- which song do you skip because it takes you somewhere you do not want to be? #register/state ^st-141
+- what is the loudest thing near you now, and how is it getting into you? #register/state ^st-142
+- which month of the year do you brace for, and when does the bracing start? #register/state ^st-143
+- what loosens in you on the first warm evening of a year, and where are you when it happens? #register/state ^st-144
+- what do you expect of yourself on a day that starts with rain on your window? #register/state ^st-145
+- what do you crave when you are afraid, and when did that start? #register/state ^st-146
+- what position do you fall asleep in when something is worrying you? #register/state ^st-147
+- which side of the bed is yours, and what happens in you if you must take the other? #register/state ^st-148
+- where were you when you last cried, and what were you holding? #register/state ^st-149
+- what was in your pockets on the day you felt most lost? #register/state ^st-150
+- what did you notice first when you came home after your longest time away? #register/state ^st-151
+- what was the room like where you heard the best news of your life? #register/state ^st-152
+- what did you do with your hands in the hour after you last lost your temper? #register/state ^st-153
+- which chair has worn to your shape, and who are you when you sit in it? #register/state ^st-154
+- what do you carry in your pocket that you reach for when you are anxious? #register/state ^st-156
+- what do you sit through in the car or at the door before you go into your home? #register/state ^st-157
+- how long does it take you to become yourself again after a party, and what do you do meanwhile? #register/state ^st-158
+- when you come back to an empty home after a trip, what in you settles first? #register/state ^st-159
+- what do you do to your face in a mirror before a hard conversation? #register/state ^st-160
 
 ## Transformative — what the change left behind
 
@@ -965,3 +1683,52 @@ guess the answer. None of them can be closed in a sentence.
 - what did you stop being able to lie about? #register/transformative ^tr-098
 - what did you become fluent in? #register/transformative ^tr-099
 - what changed in the first thing you do in the morning? #register/transformative ^tr-100
+- what is still in a drawer from a home you no longer live in? #register/transformative ^tr-101
+- which object from a relationship that ended have you neither kept on purpose nor thrown away? #register/transformative ^tr-102
+- what note in a dead person's handwriting do you still come across? #register/transformative ^tr-103
+- what do you still own that belonged to a job you quit? #register/transformative ^tr-104
+- what piece of furniture has survived every move, and what has it outlasted? #register/transformative ^tr-105
+- what did you used to do every Sunday that nobody in your life now would know about? #register/transformative ^tr-106
+- which route did you stop taking after a relationship ended, and what do you take instead? #register/transformative ^tr-107
+- what meal stopped being cooked in your house when someone left it? #register/transformative ^tr-108
+- what went quiet in your week when you gave up a habit? #register/transformative ^tr-109
+- which standing phone call ended, and what fills that hour now? #register/transformative ^tr-110
+- what does your body still do from a job you no longer have? #register/transformative ^tr-111
+- what scar do you have to explain, and which version of the story do you tell? #register/transformative ^tr-112
+- what injury changed how you sit, stand, or climb stairs? #register/transformative ^tr-113
+- which sound still makes you flinch, and since when? #register/transformative ^tr-114
+- what word did you have to stop using when you left a faith, a party, or a family's way of talking? #register/transformative ^tr-115
+- whose phrase came out of your mouth after they were gone? #register/transformative ^tr-116
+- what place do you still call by a name nobody else uses anymore? #register/transformative ^tr-117
+- who did you start saying "we" about, and who did you stop? #register/transformative ^tr-118
+- what word did a move put in your mouth that you did not choose? #register/transformative ^tr-119
+- whose number is still in your phone although you will never call it? #register/transformative ^tr-120
+- who did you lose in a breakup who was never yours to begin with? #register/transformative ^tr-121
+- which friend knew you only before a change, and what do they still expect of you? #register/transformative ^tr-122
+- who do you now see only at funerals? #register/transformative ^tr-123
+- who took over a job that a dead or departed person used to do in your family? #register/transformative ^tr-124
+- which street do you avoid, and how much longer is the way round? #register/transformative ^tr-125
+- what had changed the first time you went back to a house you grew up in? #register/transformative ^tr-126
+- which shop, bar, or café belongs to a version of your life that has ended? #register/transformative ^tr-127
+- where did you stop being recognised? #register/transformative ^tr-128
+- what do you still buy out of a fear left from a poor year? #register/transformative ^tr-129
+- what bill did a separation or a death leave you paying alone? #register/transformative ^tr-130
+- what did losing a job teach you to check that you had never checked? #register/transformative ^tr-131
+- which date in the calendar do you notice before you remember why? #register/transformative ^tr-132
+- what do you still count the years from? #register/transformative ^tr-133
+- which season became difficult because of something that happened in it? #register/transformative ^tr-134
+- what do you still buy or save for someone who is no longer there to have it? #register/transformative ^tr-135
+- what do you check twice now because once you did not? #register/transformative ^tr-136
+- what password or account still belongs to a life you left? #register/transformative ^tr-137
+- what are you still waiting for someone to ask you about? #register/transformative ^tr-138
+- what habit did a stay in hospital leave you with? #register/transformative ^tr-139
+- what did having a child end that you have not told the child about? #register/transformative ^tr-140
+- what do people who met you after your divorce, your illness, or your move assume you have always been? #register/transformative ^tr-141
+- what does your family still ask you to do that you can no longer do? #register/transformative ^tr-142
+- which old photograph of you do other people like better than you do, and what had not happened yet? #register/transformative ^tr-143
+- what did you give away when you moved countries, and what did it cost to replace? #register/transformative ^tr-144
+- what did quitting something leave you an hour a day of, and where does that hour go? #register/transformative ^tr-145
+- what skill of yours rusted because the life that needed it ended? #register/transformative ^tr-146
+- what did a friendship that ended keep of yours that you never asked back for? #register/transformative ^tr-147
+- what did you inherit that you would rather someone else had been left to keep? #register/transformative ^tr-148
+- what did you learn to cook only because the person who cooked it was gone? #register/transformative ^tr-149

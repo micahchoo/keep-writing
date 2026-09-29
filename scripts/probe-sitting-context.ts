@@ -64,5 +64,5 @@ for (const c of CASES) {
   if (kept.includes(c.asked)) console.log('      !! the re-ask survived');
 
   console.log(`\n  FOLLOW-UP (same words, same day) — note how close it is`);
-  for (const q of await composeFollowUps(cfg, c.asked, c.answer, [], 'me')) console.log(`      * ${q}`);
+  for (const q of await composeFollowUps(cfg, c.asked, c.answer, [], [], 'me')) console.log(`      * ${q}`);
 }

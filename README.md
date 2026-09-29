@@ -21,7 +21,7 @@ A blank page stops you; a question doesn't. keep-writing puts one into your dail
 
 ## Getting started
 
-On first run it offers to fill your question bank: 2,374 questions written for this, across five plain Markdown notes you can choose, edit, or delete. The ordinary-life bank starts from familiar places, small encounters, and things you notice.
+On first run it offers to fill your question bank: 3,576 questions written for this, across five plain Markdown notes you can choose, edit, or delete. The ordinary-life bank starts from familiar places, small encounters, and things you notice.
 
 1. Open today's daily note.
 2. Run **Draw a question** — ribbon icon, command palette, or right-click.

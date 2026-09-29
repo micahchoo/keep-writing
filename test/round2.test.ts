@@ -48,13 +48,13 @@ describe('marking retains the answer and its owning question', () => {
 test('an offer finishing after unload opens no chooser', async () => {
   const v = fakeVault({ 'x.md': 'A deliberately selected paragraph.\n', 'Sittings/day.md': '## Asked\n' });
   const source = selectionParagraph(v.app, v.file('x.md'), 'A deliberately selected paragraph.', 0, 'Sittings');
-  let release!: (value: { candidates: { question: string }[]; lens: null; error: null }) => void;
+  let release!: (value: { candidates: { question: string }[]; error: null }) => void;
   const plugin = Object.create(KeepWritingPlugin.prototype) as KeepWritingPlugin;
   Object.assign(plugin, { app: v.app, unloaded: false, model: { available: false }, interview: { offerFrom: () => new Promise(resolve => { release = resolve; }) } });
   const show = spyOn(ChoiceModal.prototype, 'open').mockImplementation(() => {});
   try {
     const pending = (plugin as unknown as { offer(...args: unknown[]): Promise<void> }).offer(v.file('Sittings/day.md'), source, 'pointed');
-    (plugin as unknown as { unloaded: boolean }).unloaded = true; release({ candidates: [{ question: 'What changed?' }], lens: null, error: null });
+    (plugin as unknown as { unloaded: boolean }).unloaded = true; release({ candidates: [{ question: 'What changed?' }], error: null });
     await pending;
     expect(show).not.toHaveBeenCalled();
     expect(v.writes).toHaveLength(0);

@@ -100,6 +100,42 @@ here because a writing practice that only remembers runs dry.
 - what did you learn from something you maintained for years? #register/knowledge ^kn-097
 - what do you understand about a tool that has been discontinued? #register/knowledge ^kn-098
 - what do you know about how a decision actually got made? #register/knowledge ^kn-100
+- where does the water from your kitchen tap start, and how do you know? #register/knowledge ^kn-101
+- what do you know about the ground under your home from having dug into it? #register/knowledge ^kn-102
+- how far can you trace your rubbish after it leaves your street? #register/knowledge ^kn-103
+- what grows near your home that you learned to recognise by accident? #register/knowledge ^kn-104
+- what do you know about who lived where you live a hundred years ago? #register/knowledge ^kn-105
+- what do you understand about electricity from a power cut you sat through? #register/knowledge ^kn-106
+- what can you tell about the night from one window you often look out of? #register/knowledge ^kn-107
+- how do you tell a finished piece from one you have given up on? #register/knowledge ^kn-108
+- what do you do in the first ten minutes of a project that you never skip? #register/knowledge ^kn-109
+- what does your work need from you on days you do not touch it? #register/knowledge ^kn-110
+- what mistake do you now make on purpose? #register/knowledge ^kn-111
+- what can you hear missing in your own work that nobody else notices? #register/knowledge ^kn-112
+- how do you know a question is worth an afternoon? #register/knowledge ^kn-113
+- how do you catch yourself working hard on something that only lets you avoid something else? #register/knowledge ^kn-114
+- what did it cost you to learn the thing you are most sure of? #register/knowledge ^kn-115
+- what do you know about fixing something that you learned by breaking it first? #register/knowledge ^kn-116
+- what skill did you teach yourself badly, and what habit is left from it? #register/knowledge ^kn-117
+- what is the hardest thing you have learned to do that nobody notices you doing? #register/knowledge ^kn-118
+- what trick do you use every week that you are surprised nobody taught you? #register/knowledge ^kn-119
+- what could you explain to a room of experts that they would still write down? #register/knowledge ^kn-120
+- what subject do you know far more about than your life has ever needed? #register/knowledge ^kn-121
+- what have you solved that stayed solved? #register/knowledge ^kn-122
+- what do people ask you for help with that you never trained for? #register/knowledge ^kn-123
+- what did teaching someone show you that you had been doing without knowing? #register/knowledge ^kn-124
+- what do you understand about a skill from having been bad at it in public? #register/knowledge ^kn-125
+- what do you understand about how your friends ask for help without asking? #register/knowledge ^kn-126
+- what did you learn about a grandparent only after they were gone? #register/knowledge ^kn-127
+- what do you know about how a child in your life reads your moods? #register/knowledge ^kn-129
+- what do you know about your own sleep that no app has told you? #register/knowledge ^kn-130
+- what warning does your body give before you fall ill, and how long did you take to trust it? #register/knowledge ^kn-131
+- what do you know about your own hunger that took decades to learn? #register/knowledge ^kn-132
+- what do you know about a form you have filled in too many times? #register/knowledge ^kn-133
+- what do you understand about where the money came from at a place you worked? #register/knowledge ^kn-134
+- what setting on a device you own took you years to find? #register/knowledge ^kn-135
+- what do you know about a piece of software from the way it breaks? #register/knowledge ^kn-136
+- which advice could you only give because something once went badly for you? #register/knowledge ^kn-137
 
 ## Skill — what you can do
 
@@ -303,3 +339,27 @@ here because a writing practice that only remembers runs dry.
 - who made the rules of the game you played as a child? #register/research-spur ^rs-098
 - what happened to the harvest, the catch, or the season last year? #register/research-spur ^rs-099
 - what did the people who left your town go on to do? #register/research-spur ^rs-100
+- which building near you has changed its use most often, and what was it each time? #register/research-spur ^rs-101
+- who planted the largest tree on your street, and in what year? #register/research-spur ^rs-102
+- where did people on your block meet to be together before the place they use now opened? #register/research-spur ^rs-103
+- what sound once told your town the hour, and when did it fall silent? #register/research-spur ^rs-104
+- who gave the nearest hill its name, and after what? #register/research-spur ^rs-105
+- what name was painted over the shopfront nearest your door before the one there now? #register/research-spur ^rs-106
+- on which evening of the year does the sun set exactly at the end of your street? #register/research-spur ^rs-107
+- what does the name of your town mean in the language first spoken there? #register/research-spur ^rs-108
+- who was your town named after, and what did they do to deserve it? #register/research-spur ^rs-109
+- what did your grandmother earn in her first job, and what would it buy? #register/research-spur ^rs-110
+- whose handwriting is on the oldest recipe your family still keeps? #register/research-spur ^rs-111
+- who in your family left home first for another country, and what did they write back? #register/research-spur ^rs-112
+- what did the oldest person in your family expect to become at twenty? #register/research-spur ^rs-113
+- what name was one of your parents nearly given, and who argued against it? #register/research-spur ^rs-114
+- who signed as witnesses at your grandparents' wedding, and what became of them? #register/research-spur ^rs-115
+- who taught your grandparent to read? #register/research-spur ^rs-116
+- where did a song your family sings when it gathers first come from? #register/research-spur ^rs-117
+- who first called you by the nickname you answer to, and where did they get it? #register/research-spur ^rs-118
+- which factory made the oldest tool in your house, and is it still standing? #register/research-spur ^rs-119
+- what did the last owner of something secondhand you own use it for? #register/research-spur ^rs-120
+- what did your local newspaper print on the morning of your first day at school? #register/research-spur ^rs-121
+- which birds sleep on your street at night, and where exactly do they roost? #register/research-spur ^rs-122
+- who was the midwife or doctor at your birth, and what else can you learn about them? #register/research-spur ^rs-124
+- what did your grandparents call something that you now call by a different name? #register/research-spur ^rs-125

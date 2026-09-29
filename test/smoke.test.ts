@@ -12,7 +12,6 @@ import { describe, expect, test } from 'bun:test';
 import { existsSync, readFileSync } from 'fs';
 import { appendAsk, parseAsks } from '../src/asks';
 import { parseBankLine, parseDue } from '../src/bank';
-import { bodyOf } from '../src/lens';
 import { STARTER_BANK } from '../src/starter-bank';
 
 const VAULT = `${import.meta.dir}/../../../..`;
@@ -22,25 +21,12 @@ const items = (name: string) =>
 /** This vault's own Bank is not published with the plugin. */
 const inVault = (name: string) => existsSync(bankNote(name));
 
-describe('the Lenses', () => {
-  for (const [name, target] of [['craft', 'domain'], ['learning', 'learning']] as const) {
-    test(`${name}: kind lens, for ${target}, prose after the frontmatter`, () => {
-      const path = `${VAULT}/Lenses/${name}.md`;
-      if (!existsSync(path)) return; // being written by another hand; the plugin reads '' until then
-      const md = readFileSync(path, 'utf8');
-      expect(md).toMatch(/^---\n[\s\S]*kind: lens[\s\S]*---/);
-      expect(md).toMatch(new RegExp(`for: ${target}`));
-      expect(bodyOf(md).length).toBeGreaterThan(100);
-    });
-  }
-});
-
 // What ships. These run everywhere, because the notes are in the repo.
 describe('the starter bank parses', () => {
   const lines = STARTER_BANK.flatMap((n) => n.markdown.split('\n').filter((l) => l.startsWith('- ')));
 
   test('every shipped entry parses to text, a register and no debris', () => {
-    expect(lines.length).toBe(2374);
+    expect(lines.length).toBe(3576);
     for (const line of lines) {
       const p = parseBankLine(line);
       expect(p.text).not.toBe('');

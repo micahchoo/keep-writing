@@ -3,7 +3,9 @@
 import { BANK_SHARE, bankNotes } from './bank';
 import { bankKey, bankWeight } from './bank-mix';
 import type { BankWeights } from './bank-mix';
-import { BankInstallModal, NewBankModal, openBankNote } from './bank-modals';
+import { BankInstallModal, NewBankModal, offerBankUpdate, openBankNote } from './bank-modals';
+import { STARTER_BANK } from './starter-bank';
+import { CRAFT_LENS, INVITATION_LENS, MAX_LENS_WORDS, lensProblem, lensText } from './lens';
 import { DropdownComponent, ExtraButtonComponent, Notice, PluginSettingTab, TFolder } from 'obsidian';
 import type { App, EventRef, Plugin, Setting, SettingDefinitionItem, SettingGroupItem, TAbstractFile } from 'obsidian';
 
@@ -29,6 +31,13 @@ export interface KeepWritingSettings {
   maxTokens: number;
   /** When off, follow-ups and Proposals are not attempted. */
   enableModel: boolean;
+  /**
+   * The owner's Lenses, at most MAX_LENS_WORDS each. '' means the shipped one
+   * (lens.ts), so an owner who never edited the box gets a better default
+   * when a release brings one.
+   */
+  craftLens: string;
+  invitationLens: string;
   /** Folder that holds Sittings (daily notes). */
   sittingsFolder: string;
   /** Folder that holds Bank notes. */
@@ -48,6 +57,11 @@ export interface KeepWritingSettings {
    * anyone who said no and changed their mind.
    */
   starterOffered: boolean;
+  /**
+   * The plugin version whose new questions were last offered to installed
+   * banks. Once per version, like `starterOffered`: the command stays.
+   */
+  updateOfferedFor: string;
 }
 
 /** A share between 0 and 1, or the default for anything that is not one. Read at load and at the slider. */
@@ -63,10 +77,13 @@ export const DEFAULT_SETTINGS: KeepWritingSettings = {
   bankWeights: {},
   maxTokens: 2048,
   enableModel: true,
+  craftLens: '',
+  invitationLens: '',
   sittingsFolder: 'Sittings',
   bankFolder: 'Bank',
   writingFolders: ['Sittings'],
   starterOffered: false,
+  updateOfferedFor: '',
 };
 
 export interface SettingsHost extends Plugin {
@@ -137,11 +154,14 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         items: [
           {
             name: 'Install or create banks',
-            desc: `A bank is a collection of saved questions. Choose from the included banks, or get instructions to make your own. To import a finished bank, put its .md file in ${s.bankFolder}.`,
+            desc: `A bank is a collection of saved questions. Choose from the included banks, add the new questions a later version brings to the ones you have, or get instructions to make your own. To import a finished bank, put its .md file in ${s.bankFolder}.`,
             aliases: ['import', 'prompts', 'ordinary life', 'rubric', 'agent instructions'],
             render: (setting: Setting) => {
               setting.addButton(button => button.setButtonText('Install banks').onClick(() => {
                 new BankInstallModal(this.app, s.bankFolder, () => this.update()).open();
+              }));
+              setting.addButton(button => button.setButtonText('Add new questions').onClick(() => {
+                void offerBankUpdate(this.app, s.bankFolder, STARTER_BANK, { quiet: false }).catch(showSettingsError);
               }));
               setting.addButton(button => button.setButtonText('Create a bank').onClick(() => {
                 new NewBankModal(this.app, s.bankFolder, () => this.update()).open();
@@ -241,6 +261,36 @@ export class KeepWritingSettingTab extends PluginSettingTab {
           },
         ],
       },
+      {
+        type: 'group',
+        heading: 'What the AI looks for',
+        items: [
+          {
+            name: 'When you ask about a paragraph',
+            desc: `Added to the AI's instructions when you choose a paragraph to be asked about. It says what to look for in your writing. Up to ${MAX_LENS_WORDS} words. Clear the box to restore the default.`,
+            aliases: ['lens', 'craft', 'prompt', 'instructions', 'revisit', 'selection'],
+            control: {
+              type: 'textarea',
+              key: 'craftLens',
+              rows: 6,
+              validate: (v) => lensProblem(v),
+              disabled: () => !this.host.settings.enableModel,
+            },
+          },
+          {
+            name: 'When a paragraph is drawn',
+            desc: `Added to the AI's instructions when a question is drawn from your older writing. The AI does not ask about that paragraph; this says how to turn it into a question about your life now. Up to ${MAX_LENS_WORDS} words. Clear the box to restore the default.`,
+            aliases: ['lens', 'invitation', 'prompt', 'instructions', 'draw'],
+            control: {
+              type: 'textarea',
+              key: 'invitationLens',
+              rows: 6,
+              validate: (v) => lensProblem(v),
+              disabled: () => !this.host.settings.enableModel,
+            },
+          },
+        ],
+      },
     ];
   }
 
@@ -331,6 +381,10 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         return Math.round(s.bankShare * 100);
       case 'apiKey':
         return s.apiKey;
+      case 'craftLens':
+        return lensText(s.craftLens, CRAFT_LENS);
+      case 'invitationLens':
+        return lensText(s.invitationLens, INVITATION_LENS);
     }
   }
 
@@ -367,6 +421,16 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       case 'apiKey':
         s.apiKey = text.trim();
         break;
+      // Refused over the limit, and the last Lens stays. The shipped text is
+      // stored as '' so it keeps following the shipped one.
+      case 'craftLens':
+        if (lensProblem(text)) return Promise.resolve();
+        s.craftLens = ownLens(text, CRAFT_LENS);
+        break;
+      case 'invitationLens':
+        if (lensProblem(text)) return Promise.resolve();
+        s.invitationLens = ownLens(text, INVITATION_LENS);
+        break;
     }
     return this.host.saveSettings();
   }
@@ -385,7 +449,15 @@ type ControlKey = 'bankShare'
   | 'baseUrl'
   | 'model'
   | 'maxTokens'
-  | 'apiKey';
+  | 'apiKey'
+  | 'craftLens'
+  | 'invitationLens';
+
+/** Pure: what to store for a Lens box — the owner's own text, or '' for the shipped one. */
+function ownLens(text: string, shipped: string): string {
+  const own = text.trim();
+  return own === shipped ? '' : own;
+}
 
 function stripSlashes(v: string): string {
   return v.trim().replace(/^\/+|\/+$/g, '');

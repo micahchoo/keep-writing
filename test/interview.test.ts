@@ -12,6 +12,8 @@ import type { Composed, Model, RevisitCandidate, SectionText } from '../src/mode
 import { Interview, dayStamp } from '../src/interview';
 import type { InterviewHost } from '../src/interview';
 import type { Paragraph } from '../src/paragraphs';
+import type { SectionText as Section } from '../src/model';
+import { CRAFT_LENS, INVITATION_LENS } from '../src/lens';
 import { DEFAULT_SETTINGS } from '../src/settings';
 import { fakeVault, sequence } from './fake-vault';
 import type { VaultHooks } from './fake-vault';
@@ -38,7 +40,7 @@ function recordingModel(plan: Plan = {}) {
   const seen = {
     revisit: [] as { paragraph: string; framing: string; asked: string[]; lens: string }[],
     invitation: [] as { paragraph: string; asked: string[]; lens: string }[],
-    followUp: [] as { question: string; answer: string; asked: string[]; target: string }[],
+    followUp: [] as { question: string; answer: string; earlier: Section[]; asked: string[]; target: string }[],
     summary: [] as SectionText[][],
     headings: [] as SectionText[][],
   };
@@ -59,8 +61,8 @@ function recordingModel(plan: Plan = {}) {
       seen.invitation.push({ paragraph, asked, lens });
       return composed(plan.invitation ?? []);
     },
-    composeFollowUps: async (question, answer, asked, target) => {
-      seen.followUp.push({ question, answer, asked, target });
+    composeFollowUps: async (question, answer, earlier, asked, target) => {
+      seen.followUp.push({ question, answer, earlier, asked, target });
       return composed(plan.followUps ?? []);
     },
     summarize: async (sections) => {
@@ -472,17 +474,26 @@ describe('the seed — a Sitting is never born blank', () => {
 // ---------------------------------------------------------------------------
 
 describe('the Invitation — the draw found it', () => {
+  // The fixture still holds `Lenses/invitation.md`. It is not read: the Lens
+  // is a setting, so every install has one.
   test('the paragraph seeds the question, with NO framing and the invitation Lens', async () => {
     const { model, seen } = recordingModel();
     const { v, interview } = open(paragraphOnly(), model);
     const paragraph = await drawnParagraph(interview, v.file(TODAY));
-    const offer = await interview.offerFrom(paragraph, 'picked');
+    await interview.offerFrom(paragraph, 'picked');
 
     expect(seen.invitation).toHaveLength(1);
     expect(seen.revisit).toHaveLength(0);
     expect(seen.invitation[0]?.paragraph).toBe(PARAGRAPH);
-    expect(seen.invitation[0]?.lens).toBe('The paragraph is a seed, not a subject.');
-    expect(offer.lens).toBe('invitation');
+    expect(seen.invitation[0]?.lens).toBe(INVITATION_LENS);
+  });
+
+  test('the owner’s own invitation Lens replaces the shipped one', async () => {
+    const { model, seen } = recordingModel();
+    const { v, interview, host } = open(paragraphOnly(), model);
+    host.settings.invitationLens = 'Ask about the people, not the place.';
+    await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'picked');
+    expect(seen.invitation[0]?.lens).toBe('Ask about the people, not the place.');
   });
 
   // The framing is what stops a Revisit reading as random. It is what would
@@ -522,13 +533,20 @@ describe('the Revisit — the owner pointed at it', () => {
     const { model, seen } = recordingModel();
     const { v, interview } = open(paragraphOnly(), model);
     const paragraph = await drawnParagraph(interview, v.file(TODAY));
-    const offer = await interview.offerFrom(paragraph, 'pointed');
+    await interview.offerFrom(paragraph, 'pointed');
 
     expect(seen.revisit).toHaveLength(1);
     expect(seen.invitation).toHaveLength(0);
     expect(seen.revisit[0]?.framing).toBe('in 2021, in "Rigging"');
-    expect(seen.revisit[0]?.lens).toBe('Ask for a time it went wrong.');
-    expect(offer.lens).toBe('craft');
+    expect(seen.revisit[0]?.lens).toBe(CRAFT_LENS);
+  });
+
+  test('the owner’s own craft Lens replaces the shipped one', async () => {
+    const { model, seen } = recordingModel();
+    const { v, interview, host } = open(paragraphOnly(), model);
+    host.settings.craftLens = 'Ask what the tool did that they did not expect.';
+    await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'pointed');
+    expect(seen.revisit[0]?.lens).toBe('Ask what the tool did that they did not expect.');
   });
 
   test('a paragraph from a Piece has no Asked set, and says so by being empty', async () => {
@@ -624,8 +642,38 @@ describe('answering', () => {
     expect(seen.followUp[0]?.answer).toBe(ANSWERED);
     expect(seen.followUp[0]?.asked).toEqual(['what else did you try?']);
     expect(seen.followUp[0]?.target).toBe('me');
+    // A root: nothing came before it.
+    expect(seen.followUp[0]?.earlier).toEqual([]);
 
     expect(marked?.questions).toEqual(['which bone did you weight it to?']);
+  });
+
+  test('marking a Follow-up’s answer hands bonsai the questions and answers that led to it', async () => {
+    const { model, seen } = recordingModel({ followUps: ['which bone?'] });
+    const { v, interview } = open({
+      [TODAY]: [
+        '---',
+        '---',
+        '',
+        '## Asked',
+        '',
+        '> [!ask] what broke in the rig?',
+        '> from [[Bank/craft#^b1]]',
+        '',
+        `${ANSWERED} ^a1`,
+        '',
+        '> [!ask] which bone did you weight it to?',
+        '> from [[Sittings/2026-09-15#^a1]]',
+        '',
+        'The spine, and it pulled the legs sideways.',
+        '',
+      ].join('\n'),
+      'Bank/craft.md': '---\nkind: bank\n---\n\n- what broke in the rig? #register/episode ^b1\n',
+    }, model);
+    await interview.markAt({ file: v.file(TODAY), line: 13 });
+
+    expect(seen.followUp[0]?.question).toBe('which bone did you weight it to?');
+    expect(seen.followUp[0]?.earlier).toEqual([{ question: 'what broke in the rig?', answer: ANSWERED }]);
   });
 
   test('accepting a Follow-up writes it as an Ask citing the answer block', async () => {
@@ -714,6 +762,24 @@ describe('answering', () => {
       expect(v.frontmatter(TODAY)['answers']).toEqual(['[[Bank/craft#^b1]]']);
       // And it is not announced twice.
       expect(surface.notices).toEqual(['Answer linked.']);
+    });
+
+    // The chooser's "Different questions": the offer lives in the modal, and
+    // the modal hands it back. Nothing is marked again and nothing is written;
+    // what was offered joins the asked set, so none of it can come back.
+    test('asking for different Follow-ups measures them against what was offered', async () => {
+      const { model, seen } = recordingModel({ followUps: ['what did the hips do?'] });
+      const { v, interview } = open(answered(), model);
+      const marked = await interview.markAt({ file: v.file(TODAY), line: 8 });
+      const before = v.text(TODAY);
+
+      const more = await interview.moreFollowUps(v.file(TODAY), marked as NonNullable<typeof marked>, ['which bone?']);
+
+      expect(more.questions).toEqual(['what did the hips do?']);
+      // Found by its question after the frontmatter write moved it.
+      expect(seen.followUp[1]?.answer).toBe(ANSWERED);
+      expect(seen.followUp[1]?.asked).toEqual(['what else did you try?', 'which bone?']);
+      expect(v.text(TODAY)).toBe(before);
     });
 
     // markAnswered hands back the reason; this is the Surface saying it.

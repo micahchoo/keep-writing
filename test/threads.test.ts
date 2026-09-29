@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { threadSections, threadsOf } from '../src/threads';
+import { parseAsks } from '../src/asks';
+import { earlierInThread, threadSections, threadsOf } from '../src/threads';
 
 // A Thread is a root Ask and every Follow-up that grew from it. The `from`
 // line already says which is which: a Follow-up cites an answer block in the
@@ -83,5 +84,26 @@ describe('threads', () => {
       question: 'why the river?',
       answer: 'Because it keeps moving. ^a3\n\nAnd I do not.',
     });
+  });
+});
+
+// What a Follow-up is composed from: the path that led to this answer, root
+// first. A sibling branch is not on the path, and a block id is not words.
+describe('earlierInThread', () => {
+  const ask = (question: string) => parseAsks(SITTING).find((a) => a.question === question)!;
+
+  test('the questions and answers that led here, root first, ids stripped', () => {
+    expect(earlierInThread(SITTING, here, ask('what moves you, then?'))).toEqual([
+      { question: 'what are you saving up for?', answer: 'A house by the river.' },
+      { question: 'why the river?', answer: 'Because it keeps moving.\n\nAnd I do not.' },
+    ]);
+  });
+
+  test('a root has nothing before it', () => {
+    expect(earlierInThread(SITTING, here, ask('what are you saving up for?'))).toEqual([]);
+  });
+
+  test('an Ask citing another note starts no chain', () => {
+    expect(earlierInThread(SITTING, () => false, ask('what moves you, then?'))).toEqual([]);
   });
 });

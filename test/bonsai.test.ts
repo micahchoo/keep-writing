@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { checkFollowUps, checkRevisit, composeFollowUps, composeRevisit, extractJson, isParrot, splitDue } from '../src/bonsai';
+import { FOLLOW_UP_SYSTEM, REVISIT_SYSTEM, checkFollowUps, checkRevisit, composeFollowUps, composeRevisit, extractJson, isParrot, splitDue } from '../src/bonsai';
 import type { CallLog } from '../src/bonsai';
 import type { BonsaiConfig } from '../src/bonsai';
 
@@ -60,11 +60,11 @@ describe('composeFollowUps with a fake server', () => {
     };
   };
   test('returns the kept questions', async () => {
-    const out = await composeFollowUps(cfg(['{"questions":["What happened the first time?","Tell me more."]}']), 'q?', ANSWER, [], 'me');
+    const out = await composeFollowUps(cfg(['{"questions":["What happened the first time?","Tell me more."]}']), 'q?', ANSWER, [], [], 'me');
     expect(out).toEqual(['What happened the first time?']);
   });
   test('retries once, then gives up empty', async () => {
-    const out = await composeFollowUps(cfg(['{"questions":["Tell me more."]}', '{"questions":["Still no."]}']), 'q?', ANSWER, [], 'me');
+    const out = await composeFollowUps(cfg(['{"questions":["Tell me more."]}', '{"questions":["Still no."]}']), 'q?', ANSWER, [], [], 'me');
     expect(out).toEqual([]);
   });
   test('abstain is empty without retry', async () => {
@@ -72,8 +72,44 @@ describe('composeFollowUps with a fake server', () => {
     const c = cfg(['{"abstain":true}']);
     const f = c.fetcher;
     c.fetcher = (u, i) => { calls++; return f(u, i); };
-    expect(await composeFollowUps(c, 'q?', ANSWER, [], 'me')).toEqual([]);
+    expect(await composeFollowUps(c, 'q?', ANSWER, [], [], 'me')).toEqual([]);
     expect(calls).toBe(1);
+  });
+
+  // The thread so far, root first, then the answer being followed. Both arms
+  // carry it: the second drops only the line the model re-issues.
+  test('the earlier questions and answers of the thread come before the one being followed', async () => {
+    const sent: string[] = [];
+    const c: BonsaiConfig = {
+      baseUrl: 'http://fake',
+      model: 'fake',
+      fetcher: async (_url, init) => {
+        sent.push((JSON.parse(init.body) as { messages: { content: string }[] }).messages[1]?.content ?? '');
+        return { status: 200, text: JSON.stringify({ choices: [{ message: { content: '{"questions":["Tell me more."]}' } }] }) };
+      },
+    };
+    const earlier = [
+      { question: 'what are you saving up for?', answer: 'A house by the river.' },
+      { question: 'why the river?', answer: 'Because it keeps moving.' },
+    ];
+    await composeFollowUps(c, 'what moves you, then?', 'People who stay.', earlier, [], 'me');
+    const thread =
+      'Earlier in this thread:\n\nQuestion: what are you saving up for?\nAnswer:\nA house by the river.\n\n' +
+      'Question: why the river?\nAnswer:\nBecause it keeps moving.\n\n';
+    expect(sent[0]).toBe(`${thread}Question asked: what moves you, then?\n\nAnswer:\nPeople who stay.`);
+    // The retry inside the first arm repeats the first message; the second arm is the last.
+    expect(sent[sent.length - 1]).toBe(`${thread}Answer:\nPeople who stay.`);
+  });
+});
+
+// A Revisit is shown a paragraph, not a question and its answer. It used the
+// Follow-up's prompt until 2026-09-28, which told the model it was reading an
+// answer to a question it was never shown.
+describe('the Revisit has its own prompt', () => {
+  test('it describes a paragraph, and no question the paragraph answered', () => {
+    expect(REVISIT_SYSTEM).not.toBe(FOLLOW_UP_SYSTEM);
+    expect(REVISIT_SYSTEM).toContain('paragraph');
+    expect(REVISIT_SYSTEM).not.toContain('the question they were asked');
   });
 });
 
@@ -99,22 +135,22 @@ describe('the API key', () => {
   };
 
   test('no key configured: no Authorization header at all', async () => {
-    await composeFollowUps(cfg(), 'q?', ANSWER, [], 'me');
+    await composeFollowUps(cfg(), 'q?', ANSWER, [], [], 'me');
     expect(Object.keys(seen.headers)).toEqual(['Content-Type']);
   });
 
   test('an empty or blank key is no key', async () => {
-    await composeFollowUps(cfg('   '), 'q?', ANSWER, [], 'me');
+    await composeFollowUps(cfg('   '), 'q?', ANSWER, [], [], 'me');
     expect(seen.headers['Authorization']).toBeUndefined();
   });
 
   test('a key is sent as a bearer token, trimmed', async () => {
-    await composeFollowUps(cfg(' sk-secret '), 'q?', ANSWER, [], 'me');
+    await composeFollowUps(cfg(' sk-secret '), 'q?', ANSWER, [], [], 'me');
     expect(seen.headers['Authorization']).toBe('Bearer sk-secret');
   });
 
   test('the key is never in the log', async () => {
-    await composeFollowUps(cfg('sk-secret'), 'q?', ANSWER, [], 'me');
+    await composeFollowUps(cfg('sk-secret'), 'q?', ANSWER, [], [], 'me');
     expect(seen.logs.length).toBeGreaterThan(0);
     expect(JSON.stringify(seen.logs)).not.toContain('sk-secret');
   });
@@ -341,14 +377,42 @@ describe('the reply budget', () => {
 
   test('what the setting says is what the endpoint is asked for', async () => {
     sent.length = 0;
-    await composeFollowUps(spy(777), 'q?', ANSWER, [], 'me');
+    await composeFollowUps(spy(777), 'q?', ANSWER, [], [], 'me');
     expect(sent[0]?.['max_tokens']).toBe(777);
   });
 
   test('unset falls back to a budget with room to think in', async () => {
     sent.length = 0;
-    await composeFollowUps(spy(), 'q?', ANSWER, [], 'me');
+    await composeFollowUps(spy(), 'q?', ANSWER, [], [], 'me');
     expect(sent[0]?.['max_tokens']).toBe(2048);
+  });
+});
+
+// Marking an answer again sends the same request. At temperature 0 that is
+// the same reply, so "mark again for others" offered the questions the owner
+// had just dismissed (2026-09-28). A Follow-up is sampled; every other job
+// stays at 0, where a result can be measured and repeated.
+describe('temperature', () => {
+  const sent: Record<string, unknown>[] = [];
+  const spy: BonsaiConfig = {
+    baseUrl: 'http://fake',
+    model: 'fake',
+    fetcher: async (_url, init) => {
+      sent.push(JSON.parse(init.body) as Record<string, unknown>);
+      return { status: 200, text: JSON.stringify({ choices: [{ message: { content: '{"abstain": true}' } }] }) };
+    },
+  };
+
+  test('a Follow-up is sampled, so asking again can find other questions', async () => {
+    sent.length = 0;
+    await composeFollowUps(spy, 'q?', ANSWER, [], [], 'me');
+    expect(sent[0]?.['temperature']).toBeGreaterThan(0);
+  });
+
+  test('a Revisit stays at 0', async () => {
+    sent.length = 0;
+    await composeRevisit(spy, 'The map aligned against the survey sheet.', 'in 2021', []);
+    expect(sent[0]?.['temperature']).toBe(0);
   });
 });
 
@@ -370,7 +434,7 @@ describe('an empty reply', () => {
 
   test('cut off mid-budget is an error that names the setting', async () => {
     logs.length = 0;
-    const out = await composeFollowUps(replying({ finish_reason: 'length', message: { content: '' } }), 'q?', ANSWER, [], 'me');
+    const out = await composeFollowUps(replying({ finish_reason: 'length', message: { content: '' } }), 'q?', ANSWER, [], [], 'me');
     expect(out).toEqual([]);
     // Twice: a failed first arm falls through to the answer-only arm, which
     // truncates the same way. Wasteful on this path, harmless, and the second
@@ -382,7 +446,7 @@ describe('an empty reply', () => {
 
   test('empty for any other reason is still an error, and says which', async () => {
     logs.length = 0;
-    await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '   ' } }), 'q?', ANSWER, [], 'me');
+    await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '   ' } }), 'q?', ANSWER, [], [], 'me');
     expect(logs.map((l) => l.outcome)).toEqual(['error', 'error']);
     expect(logs[0]?.reason).toContain('finish_reason: stop');
   });
@@ -391,7 +455,7 @@ describe('an empty reply', () => {
   // an abstain. One attempt, no retry, no error.
   test('an abstain is not an error', async () => {
     logs.length = 0;
-    const out = await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '{"abstain": true}' } }), 'q?', ANSWER, [], 'me');
+    const out = await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '{"abstain": true}' } }), 'q?', ANSWER, [], [], 'me');
     expect(out).toEqual([]);
     expect(logs.map((l) => l.outcome)).toEqual(['abstain']);
   });

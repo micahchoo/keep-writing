@@ -1,6 +1,6 @@
 // bonsai-27b client. Three jobs, and two of them are the same interviewer:
 // compose a Follow-up, compose a Revisit (the interviewer again, over an old
-// paragraph), and compose an Invitation.
+// paragraph, with its own prompt), and compose an Invitation.
 //
 // The Invitation is the one that is not an interview. See INVITATION_SYSTEM.
 //
@@ -12,7 +12,8 @@
 // Contract (CONTEXT.md, "Bonsai judges, code arbitrates"): one job per call,
 // small payload, temperature 0, JSON out, every candidate measured in code
 // against the Asked set, one retry with the rejection attached, then drop.
-// Abstain is always a legal answer.
+// Abstain is always a legal answer. One exception to the temperature: see
+// TEMPERATURE.
 //
 // No import from "obsidian". The caller injects a fetch-like function so the
 // plugin can pass requestUrl and a script can pass global fetch.
@@ -87,11 +88,26 @@ type Verdict<T> =
 
 type Message = { role: 'system' | 'user' | 'assistant'; content: string };
 
-async function chat(cfg: BonsaiConfig, messages: Message[]): Promise<string> {
+/**
+ * Every job runs at 0, where a result can be measured and repeated, except
+ * the Follow-up. The owner asks for another Follow-up by marking the answer
+ * again, which sends the same request; at 0 that is the same reply, so the
+ * questions they had just dismissed came back (2026-09-28). The checks still
+ * run on whatever is sampled.
+ */
+const TEMPERATURE: Record<CallLog['job'], number> = {
+  'follow-up': 0.8,
+  revisit: 0,
+  invitation: 0,
+  summary: 0,
+  headings: 0,
+};
+
+async function chat(cfg: BonsaiConfig, job: CallLog['job'], messages: Message[]): Promise<string> {
   const url = cfg.baseUrl.replace(/\/+$/, '') + '/chat/completions';
   const body = JSON.stringify({
     model: cfg.model,
-    temperature: 0,
+    temperature: TEMPERATURE[job],
     max_tokens: cfg.maxTokens ?? DEFAULT_MAX_TOKENS,
     messages,
   });
@@ -232,7 +248,7 @@ async function runJob<T>(
     const started = Date.now();
     let raw: string;
     try {
-      raw = await chat(cfg, messages);
+      raw = await chat(cfg, job, messages);
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       cfg.onLog?.({ job, attempt, ms: Date.now() - started, outcome: 'error', reason });
@@ -271,7 +287,7 @@ async function runJob<T>(
 const MAX_FOLLOW_UPS = 3;
 const MAX_FOLLOW_UP_WORDS = 30;
 
-export const FOLLOW_UP_SYSTEM = `You are an autoethnographic interviewer. A person is being interviewed so that their own words become the material for their writing. You are shown the question they were asked and the answer they wrote. Compose the next question.
+export const FOLLOW_UP_SYSTEM = `You are an autoethnographic interviewer. A person is being interviewed so that their own words become the material for their writing. You are shown the question they were asked and the answer they wrote, and sometimes the questions and answers earlier in the same thread. Compose the next question about the latest answer.
 
 Reply with a JSON object and nothing else:
 {"questions": ["...", "...", "..."]}
@@ -421,10 +437,11 @@ export async function composeFollowUps(
   cfg: BonsaiConfig,
   question: string,
   answer: string,
+  earlier: SectionText[],
   asked: string[],
   target: string,
 ): Promise<string[]> {
-  const about = target === 'me' ? '' : `About: ${target}\n\n`;
+  const about = (target === 'me' ? '' : `About: ${target}\n\n`) + threadSoFar(earlier);
   // The question being answered is always part of the set, whatever else the
   // caller found: it is the one the model is most likely to re-issue.
   const check = (obj: unknown) => checkFollowUps(obj, answer, [question, ...asked]);
@@ -436,6 +453,16 @@ export async function composeFollowUps(
   if (first.kind === 'abstain') return [];
   const answerOnly = `${about}Answer:\n${answer}`;
   return valueOrNull(await runJob(cfg, 'follow-up', FOLLOW_UP_SYSTEM, answerOnly, check)) ?? [];
+}
+
+/**
+ * Pure: the questions and answers that led to the answer being followed, root
+ * first. Without them the model read each answer cold, and a third answer in
+ * a thread read like a first one (2026-09-28).
+ */
+function threadSoFar(earlier: SectionText[]): string {
+  if (earlier.length === 0) return '';
+  return `Earlier in this thread:\n\n${earlier.map((s) => `Question: ${s.question}\nAnswer:\n${s.answer}\n\n`).join('')}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -484,8 +511,8 @@ export function checkRevisit(obj: unknown, paragraph: string, asked: string[]): 
 
 /**
  * Compose up to three questions from a paragraph the person wrote before,
- * best first. Same interviewer, same checks as a Follow-up: the paragraph is
- * the context, the framing says when and where it was written (`in 2021, in
+ * best first. Same checks as a Follow-up, its own prompt (REVISIT_SYSTEM):
+ * the paragraph is the context, the framing says when and where it was written (`in 2021, in
  * "Koramangala", for Branch Magazine`), and the Well's Lens, when it has one,
  * is appended to the system prompt verbatim. Empty on abstain, transport
  * error, or when the retry also fails.
@@ -504,10 +531,36 @@ export async function composeRevisit(
   asked: string[],
   lens = '',
 ): Promise<RevisitCandidate[]> {
-  const system = lens.trim() ? `${FOLLOW_UP_SYSTEM}\n\n${lens.trim()}` : FOLLOW_UP_SYSTEM;
+  const system = lens.trim() ? `${REVISIT_SYSTEM}\n\n${lens.trim()}` : REVISIT_SYSTEM;
   const user = `Something they wrote ${framing}:\n\n${paragraph}`;
   return valueOrNull(await runJob(cfg, 'revisit', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
 }
+
+/**
+ * The Revisit's own prompt. It borrowed FOLLOW_UP_SYSTEM until 2026-09-28,
+ * which told the model it was shown a question and its answer; it is shown a
+ * paragraph and when it was written. The owner's craft Lens is appended.
+ */
+export const REVISIT_SYSTEM = `You are an autoethnographic interviewer. A person keeps a notebook so their own words become material for their writing. You are shown ONE paragraph they wrote, and when and where they wrote it. Compose the question an interviewer would ask them about it next.
+
+Reply with a JSON object and nothing else:
+{"questions": ["...", "...", "..."]}
+
+Give up to three candidate questions, best first. Each one:
+- is a single question, ending with "?", in plain words, under 25 words;
+- asks for something only this person can answer and that you cannot guess from the paragraph;
+- reaches for something concrete: a specific time this happened, a real example, a choice they made, a contrast between two things they named, or a consequence they have not stated;
+- may use their own terms, but never hands the paragraph back to them as a question;
+- does not refer to the paragraph as writing ("you wrote", "in this paragraph", "back then").
+Do not explain. Do not praise the paragraph.
+
+Where to look for the question, in order of preference:
+1. A term they coined or use oddly: ask what it means to them, with an example.
+2. A thing they named but did not open: ask about it.
+3. An abstraction with no scene under it: ask for the moment it comes from.
+4. A pole with no contrast: ask what the opposite would be.
+5. A cause claimed with no event: ask what happened.
+6. A trailing thought, a "might", a tag, an aside: ask what is behind it.`;
 
 // ---------------------------------------------------------------------------
 // Invitation

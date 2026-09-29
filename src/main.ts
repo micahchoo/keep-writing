@@ -13,12 +13,13 @@ import { MarkdownView, Notice, Platform, Plugin, TFile } from 'obsidian';
 import type { App, Menu } from 'obsidian';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
-import type { Reach } from './interview';
+import type { Answered, Reach } from './interview';
 import { createModel } from './model';
 import type { Model, RevisitCandidate } from './model';
 import { questionCount } from './install';
-import { BankInstallModal } from './bank-modals';
+import { BankInstallModal, offerBankUpdate } from './bank-modals';
 import { normalizeBankWeights } from './bank-mix';
+import { readLens } from './lens';
 import { GraduateModal } from './graduate-modal';
 import { OfferModal, choose } from './modals';
 import type { Choice } from './modals';
@@ -36,6 +37,7 @@ const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
 const MARK = 'Mark this answer done, and follow up';
 const INSTALL = 'Choose question banks to install';
+const UPDATE = 'Add new questions to installed banks';
 const GRADUATE = 'Graduate threads to pieces';
 
 /**
@@ -131,7 +133,10 @@ export default class KeepWritingPlugin extends Plugin {
       );
     });
 
-    this.app.workspace.onLayoutReady(() => this.offerStarterBank());
+    this.app.workspace.onLayoutReady(() => {
+      this.offerStarterBank();
+      this.run(() => this.offerNewQuestions());
+    });
 
     this.addRibbonIcon('message-circle-question', 'Draw a question', () => this.run(() => this.drawQuestion()));
 
@@ -144,6 +149,11 @@ export default class KeepWritingPlugin extends Plugin {
       },
     });
     this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => this.installStarterBank() });
+    this.addCommand({
+      id: 'update-starter-bank',
+      name: UPDATE,
+      callback: () => this.run(() => offerBankUpdate(this.app, this.settings.bankFolder, STARTER_BANK, { quiet: false })),
+    });
     this.addCommand({ id: 'graduate-threads', name: GRADUATE, callback: () => this.run(() => this.graduateThreads()) });
     this.addCommand({
       id: 'ask-about-selection',
@@ -218,6 +228,21 @@ export default class KeepWritingPlugin extends Plugin {
     ).open();
   }
 
+  /**
+   * A release that ships new questions offers them to the banks the owner
+   * already has, once per version: marked offered before it is shown, so an
+   * answer of either kind, or none, is the end of it until the next version.
+   * Quiet when nothing installed is missing anything, which is every load of
+   * a version that shipped no new questions.
+   */
+  private async offerNewQuestions(): Promise<void> {
+    const version = this.manifest.version;
+    if (this.settings.updateOfferedFor === version) return;
+    this.settings.updateOfferedFor = version;
+    await this.saveSettings();
+    await offerBankUpdate(this.app, this.settings.bankFolder, STARTER_BANK, { quiet: true });
+  }
+
   /** Let the owner choose which shipped question notes to add. */
   private installStarterBank(): void {
     new BankInstallModal(this.app, this.settings.bankFolder, () => {}).open();
@@ -267,7 +292,6 @@ export default class KeepWritingPlugin extends Plugin {
   private async offer(sitting: TFile, paragraph: Paragraph, reach: Reach): Promise<void> {
     const offer = await this.composing(() => this.interview.offerFrom(paragraph, reach));
     if (this.unloaded) return;
-    const lens = offer.lens ? ` · through the ${offer.lens} lens` : '';
     // The fallback below is indistinguishable from a composed question, so a
     // failure must say so. Silently substituting it told the owner the model
     // had answered when it had never been reached.
@@ -279,7 +303,7 @@ export default class KeepWritingPlugin extends Plugin {
     choose(
       this.app,
       candidates.map((c) => revisitChoice(c)),
-      `${paragraph.title}${lens}`,
+      paragraph.title,
       (candidate) => this.run(() => this.interview.acceptFrom(sitting, paragraph, candidate, reach)),
     );
   }
@@ -289,15 +313,25 @@ export default class KeepWritingPlugin extends Plugin {
    * The note and the line are read here, while the editor still holds focus.
    *
    * Run it again on the same answer to ask for another Follow-up: marking an
-   * answer twice writes nothing, and the questions are composed afresh. That
-   * is the way back to a dismissed offer; nothing is kept between.
+   * answer twice writes nothing, and the Follow-up is sampled, so it usually
+   * finds other questions. That is the way back to a dismissed offer; nothing
+   * is kept between. "Different questions" in the chooser is the sure way:
+   * the modal still holds what it offered, and hands it back to be excluded.
    */
   private async markUnderCursor(view: MarkdownView, line: number): Promise<void> {
     const file = view.file;
     if (!file) return;
     const answered = await this.composing(() => this.interview.markAt({ file, line }));
     if (!answered || this.unloaded) return;
-    if (answered.questions.length === 0) {
+    this.offerFollowUps(file, answered, answered.questions, answered.error, []);
+  }
+
+  /**
+   * The chooser for Follow-ups. `offered` is every question shown for this
+   * answer since it was marked, so "Different questions" never repeats one.
+   */
+  private offerFollowUps(file: TFile, answered: Answered, questions: string[], error: string | null, offered: string[]): void {
+    if (questions.length === 0) {
       // Never nothing: a silent command reads as a broken one. And never the
       // WRONG nothing: "nothing to follow up with" is the model declining, and
       // saying it after a 404 blamed the model for a setting the owner could
@@ -305,14 +339,28 @@ export default class KeepWritingPlugin extends Plugin {
       new Notice(
         !this.model.available
           ? this.model.reason
-          : answered.error
-            ? modelFailureLine(answered.error)
-            : 'Nothing to follow up with. Run it again to ask afresh.',
+          : error
+            ? modelFailureLine(error)
+            : offered.length
+              ? 'No different questions this time.'
+              : 'Nothing to follow up with. Run it again to ask afresh.',
       );
       return;
     }
-    choose(this.app, answered.questions.map(question => ({ value: question, title: question })), 'Follow up · mark again for fresh ones', question => {
-      this.run(() => this.interview.acceptFollowUp(file, question, answered.ref));
+    const shown = [...offered, ...questions];
+    const choices: Choice<string | null>[] = [
+      ...questions.map(question => ({ value: question, title: question })),
+      { value: null, title: 'Different questions', note: 'Ask again, leaving out the ones shown here' },
+    ];
+    choose(this.app, choices, 'Follow up · or ask for different questions', question => {
+      if (question !== null) {
+        this.run(() => this.interview.acceptFollowUp(file, question, answered.ref));
+        return;
+      }
+      this.run(async () => {
+        const more = await this.composing(() => this.interview.moreFollowUps(file, answered, shown));
+        if (!this.unloaded) this.offerFollowUps(file, answered, more.questions, more.error, shown);
+      });
     });
   }
 
@@ -406,6 +454,8 @@ export default class KeepWritingPlugin extends Plugin {
     if (legacy && !secret && this.settings.apiKey !== legacy) throw new Error('API key migration failed. The existing settings were preserved.');
     this.settings.bankShare = normalizeBankShare(data.bankShare);
     this.settings.bankWeights = normalizeBankWeights(data.bankWeights);
+    this.settings.craftLens = readLens(data.craftLens);
+    this.settings.invitationLens = readLens(data.invitationLens);
     if ('apiKey' in data) await this.persistSettings();
   }
   private async persistSettings(): Promise<void> {

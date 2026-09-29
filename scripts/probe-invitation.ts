@@ -10,7 +10,7 @@
 //
 // Two arms over the same REAL corpus blocks, through the shipped composers:
 //   revisit     the interviewer, with framing (`in 2021, in "Koramangala"`)
-//   invitation  the seed, no framing, `Lenses/invitation.md` appended
+//   invitation  the seed, no framing, the shipped invitation Lens appended
 //
 // What to look for in the output. An Invitation passes when it could be
 // answered today by someone who never wrote the paragraph: no proper noun out
@@ -21,7 +21,7 @@
 
 import { readFileSync } from 'fs';
 import { composeInvitation, composeRevisit, type BonsaiConfig, type Fetcher } from '../src/bonsai';
-import { bodyOf } from '../src/lens';
+import { CRAFT_LENS, INVITATION_LENS } from '../src/lens';
 import { framingOf } from '../src/paragraphs';
 
 const fetcher: Fetcher = async (url, init) => {
@@ -37,13 +37,6 @@ const cfg: BonsaiConfig = {
 };
 
 const VAULT = `${import.meta.dir}/../../../..`;
-const lens = (name: string) => {
-  try {
-    return bodyOf(readFileSync(`${VAULT}/Lenses/${name}.md`, 'utf8'));
-  } catch {
-    return '';
-  }
-};
 
 interface Case {
   piece: string;
@@ -85,9 +78,8 @@ function block(piece: string, id: string): string | null {
     .trim();
 }
 
-const craft = lens('craft');
-const invitation = lens('invitation');
-if (!invitation) console.warn('! Lenses/invitation.md not found — the invitation arm runs unsteered\n');
+const craft = CRAFT_LENS;
+const invitation = INVITATION_LENS;
 
 for (const c of CASES) {
   const text = block(c.piece, c.id);

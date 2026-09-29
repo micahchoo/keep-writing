@@ -1,3 +1,14 @@
+# 0.5.0
+
+- 1,202 new questions: 767 in autobiographical, 60 in learning, and 375 prompts in invention. The bundled banks now hold 3,576.
+- Banks you already installed can receive them. The first time Obsidian loads this version, it shows how many new questions each installed bank would gain and adds nothing unless you agree. **Add new questions to installed banks**, and **Add new questions** in settings, do the same at any time. New questions go into the section of their register. Nothing you wrote or changed is edited, and a question you deleted does not come back.
+- Each bank note now carries a `shipped` property: the highest question number of each kind it has received. It is how an update knows what is new. Leave it in place.
+- Settings → **What the AI looks for** holds two instructions you can edit, up to 100 words each: one for questions about a paragraph you choose, one for questions drawn from your older writing. Clear a box to restore the default. Notes in a `Lenses` folder are no longer read.
+- Follow-ups can be asked for again: marking an answer again usually finds other questions, and **Different questions** in the chooser leaves out every question it has already shown.
+- A follow-up is now written with the questions and answers that led to it in the same thread. Questions about a paragraph you point at have their own instructions to the model, instead of borrowing the follow-up's.
+
+Requires Obsidian 1.13.0 or later. Existing bank notes are kept as they are until you choose to add the new questions.
+
 # 0.4.0
 
 - The bank list starts closed behind **Installed banks**, with a count. Open that page to adjust frequencies or open a bank note.

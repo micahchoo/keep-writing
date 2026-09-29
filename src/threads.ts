@@ -11,7 +11,7 @@
 // Pure: markdown in, threads out. The caller says which link paths name this
 // Sitting and which sources are the Bookmark, because both need the vault.
 
-import { parseAsks } from './asks';
+import { answerText, parseAsks } from './asks';
 import type { Ask } from './asks';
 import { parseRef } from './refs';
 
@@ -35,23 +35,9 @@ export function threadsOf(
   isHere: (linkPath: string) => boolean,
   leaveOut: (sourceRef: string) => boolean = () => false,
 ): Thread[] {
-  const lines = markdown.split('\n');
   const asks = parseAsks(markdown);
-  // Which Ask's answer holds each block id.
-  const holder = new Map<string, number>();
-  asks.forEach((ask, i) => {
-    for (let l = ask.answer.start; l < ask.answer.end; l++) {
-      const id = BLOCK_ID.exec(lines[l] ?? '')?.[1];
-      if (id) holder.set(id, i);
-    }
-  });
-  const rootOf = (i: number, seen = new Set<number>()): number => {
-    const ref = parseRef(asks[i]?.sourceRef ?? '');
-    const parent = ref?.blockId && isHere(ref.path) ? holder.get(ref.blockId) : undefined;
-    if (parent === undefined || parent === i || seen.has(parent)) return i;
-    seen.add(i);
-    return rootOf(parent, seen);
-  };
+  const parentOf = parents(markdown, asks, isHere);
+  const rootOf = (i: number): number => ancestry(i, parentOf)[0] ?? i;
   const byRoot = new Map<number, Ask[]>();
   asks.forEach((ask, i) => {
     const root = rootOf(i);
@@ -60,6 +46,46 @@ export function threadsOf(
   return [...byRoot.entries()]
     .filter(([root]) => asks[root]?.firstParagraph && !leaveOut(asks[root]?.sourceRef ?? ''))
     .map(([, members]) => ({ asks: members }));
+}
+
+/**
+ * Pure: the questions and answers that led to `ask`, root first, `ask` itself
+ * left out. The path only: a sibling Follow-up grew from the same answer but
+ * is not what this answer continues. Block ids are stripped; they are not the
+ * owner's words.
+ */
+export function earlierInThread(markdown: string, isHere: (linkPath: string) => boolean, ask: Ask): Section[] {
+  const asks = parseAsks(markdown);
+  const i = asks.findIndex((a) => a.callout.start === ask.callout.start);
+  if (i < 0) return [];
+  return ancestry(i, parents(markdown, asks, isHere))
+    .slice(0, -1)
+    .map((j) => asks[j])
+    .map((a) => ({ question: a.question, answer: answerText(markdown, a) }));
+}
+
+/** Which Ask each Ask follows up: the one whose answer holds the block its `from` line cites here. */
+function parents(markdown: string, asks: Ask[], isHere: (linkPath: string) => boolean): (i: number) => number | undefined {
+  const lines = markdown.split('\n');
+  // Which Ask's answer holds each block id.
+  const holder = new Map<string, number>();
+  asks.forEach((ask, i) => {
+    for (let l = ask.answer.start; l < ask.answer.end; l++) {
+      const id = BLOCK_ID.exec(lines[l] ?? '')?.[1];
+      if (id) holder.set(id, i);
+    }
+  });
+  return (i) => {
+    const ref = parseRef(asks[i]?.sourceRef ?? '');
+    return ref?.blockId && isHere(ref.path) ? holder.get(ref.blockId) : undefined;
+  };
+}
+
+/** Root first, ending at `i`. A cycle — hand-edited ids can make one — ends where it would repeat. */
+function ancestry(i: number, parentOf: (i: number) => number | undefined): number[] {
+  const path = [i];
+  for (let p = parentOf(i); p !== undefined && !path.includes(p); p = parentOf(p)) path.unshift(p);
+  return path;
 }
 
 /** One section of a thread: the question, and what the owner wrote under it, verbatim. */

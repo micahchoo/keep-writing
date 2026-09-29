@@ -28,7 +28,7 @@ import type { Drawn, JarCounts } from './bank';
 import { answeredInVault } from './links';
 import { ensureSourceBlockId } from './blocks';
 import { readBookmark, runClosing } from './closing';
-import { CRAFT, INVITATION, lensFor } from './lens';
+import { CRAFT_LENS, INVITATION_LENS, lensText } from './lens';
 import { graduate } from './graduation';
 import type { PieceChoice } from './graduation';
 import type { Composed, Model, RevisitCandidate, SectionText } from './model';
@@ -40,7 +40,7 @@ import type { Ref } from './refs';
 import { selectionParagraph } from './selection';
 import type { KeepWritingSettings } from './settings';
 import { ME_BASENAME, isSitting, readTarget } from './target';
-import { threadSections, threadsOf } from './threads';
+import { earlierInThread, threadSections, threadsOf } from './threads';
 import type { Thread } from './threads';
 
 /** What the Interview reads the vault and the model through. The plugin is one. */
@@ -89,20 +89,24 @@ export interface Drawing {
 export type Reach = 'pointed' | 'picked';
 
 /**
- * Everything a reach decides, in one row per reach: which Lens page frames
- * the composer, which composer, and whether the paragraph is embedded under
- * the Ask. Three ternaries decided these separately until 2026-09-21, and a
- * third reach would have fallen into the `picked` arm of each without a word.
+ * Everything a reach decides, in one row per reach: which Lens frames the
+ * composer (the owner's setting, or the shipped one), which composer, and
+ * whether the paragraph is embedded under the Ask. Three ternaries decided
+ * these separately until 2026-09-21, and a third reach would have fallen into
+ * the `picked` arm of each without a word.
  */
-const REACHES: Record<Reach, { lens: string; composer: 'revisit' | 'invitation'; embed: boolean }> = {
-  pointed: { lens: CRAFT, composer: 'revisit', embed: true },
-  picked: { lens: INVITATION, composer: 'invitation', embed: false },
+const REACHES: Record<Reach, {
+  lens: (settings: KeepWritingSettings) => string;
+  composer: 'revisit' | 'invitation';
+  embed: boolean;
+}> = {
+  pointed: { lens: (s) => lensText(s.craftLens, CRAFT_LENS), composer: 'revisit', embed: true },
+  picked: { lens: (s) => lensText(s.invitationLens, INVITATION_LENS), composer: 'invitation', embed: false },
 };
 
-/** The questions bonsai composed from a paragraph, and the Lens it read through. */
+/** The questions bonsai composed from a paragraph. */
 export interface RevisitOffer {
   candidates: RevisitCandidate[];
-  lens: string | null;
   /** Why nothing was composed, when the reason was the call and not the model. */
   error: string | null;
 }
@@ -110,6 +114,8 @@ export interface RevisitOffer {
 /** What marking an answer produced: the answer block, and what follows from it. */
 export interface Answered {
   ref: Ref;
+  /** The Ask as parsed BEFORE marking; `followUps` finds it again by its question. */
+  ask: Ask;
   /** Follow-up questions bonsai composed, best first. Empty when it had none. */
   questions: string[];
   /**
@@ -285,16 +291,15 @@ export class Interview {
    */
   async offerFrom(paragraph: Paragraph, reach: Reach): Promise<RevisitOffer> {
     const { model } = this.host;
-    const { lens: page, composer } = REACHES[reach];
-    const lens = await lensFor(this.app, page);
-    const name = lens ? page : null;
-    if (!model.available) return { candidates: [], lens: name, error: null };
+    const { lens: lensOf, composer } = REACHES[reach];
+    const lens = lensOf(this.host.settings);
+    if (!model.available) return { candidates: [], error: null };
     const asked = await this.askedAbout(paragraph);
     const composed =
       composer === 'revisit'
         ? await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens)
         : await model.composeInvitation(paragraph.text, asked, lens);
-    return { candidates: composed.questions, lens: name, error: composed.error };
+    return { candidates: composed.questions, error: composed.error };
   }
 
   /**
@@ -392,8 +397,17 @@ export class Interview {
     // sits in.
     const source = parseRef(ask.sourceRef);
     if (source) await runClosing(this.app, file, source, marked.ref, bankFolder);
-    const followed = await this.followUps(file, ask);
-    return { ref: marked.ref, questions: followed.questions, error: followed.error };
+    const followed = await this.followUps(file, ask, []);
+    return { ref: marked.ref, ask, questions: followed.questions, error: followed.error };
+  }
+
+  /**
+   * Different Follow-ups for an answer already marked. `offered` is what the
+   * chooser showed; it joins the asked set, so none of it can come back.
+   * Nothing is written: the offer lives in the modal, which hands it back.
+   */
+  moreFollowUps(file: TFile, answered: Answered, offered: string[]): Promise<Composed<string>> {
+    return this.followUps(file, answered.ask, offered);
   }
 
   /**
@@ -407,7 +421,7 @@ export class Interview {
    * answer. Measured 2026-09-16: handed a stale range, bonsai was shown the
    * Ask callout and composed a follow-up to the question's own text.
    */
-  private async followUps(file: TFile, ask: Ask): Promise<Composed<string>> {
+  private async followUps(file: TFile, ask: Ask, offered: string[]): Promise<Composed<string>> {
     const { model } = this.host;
     if (!model.available) return { questions: [], error: null };
     const content = await this.app.vault.cachedRead(file);
@@ -419,7 +433,9 @@ export class Interview {
     // Every other question this Sitting has already put. composeFollowUps
     // adds the one being answered itself.
     const alsoAsked = asks.map((a) => a.question).filter((q) => q !== ask.question);
-    return model.composeFollowUps(ask.question, answer, alsoAsked, target);
+    const isHere = (path: string) => this.app.metadataCache.getFirstLinkpathDest(path, file.path)?.path === file.path;
+    const earlier = earlierInThread(content, isHere, fresh);
+    return model.composeFollowUps(ask.question, answer, earlier, [...alsoAsked, ...offered], target);
   }
 
   /** Write one of the offered Follow-ups as an Ask, cited to the answer it came from. */

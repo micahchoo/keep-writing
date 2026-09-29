@@ -69,3 +69,378 @@ handed.
 - what do we build so that we never have to decide again? #register/invention ^iv-093
 - what is kept because throwing it away would be an admission? #register/invention ^iv-097
 - where does a small lie do the work of a large kindness? #register/invention ^iv-099
+- when does fear stop protecting us and start ruling us? #register/invention ^iv-102
+- what shapes us without ever fully showing itself? #register/invention ^iv-103
+- who does forgiveness actually set free? #register/invention ^iv-104
+- when does being watched start to feel like being known? #register/invention ^iv-105
+- how much of us was shaped by someone else's small choice? #register/invention ^iv-106
+- can an object carry a fate that isn't ours? #register/invention ^iv-107
+- what do we choose when losing is certain? #register/invention ^iv-108
+- what does an encounter with the unknown take from you? #register/invention ^iv-109
+- what makes the monstrous worth loving? #register/invention ^iv-110
+- what returns to where it began? #register/invention ^iv-111
+- what does uncovering the truth take from the one who finds it? #register/invention ^iv-112
+- what fear hides inside a habit we call superstition? #register/invention ^iv-113
+- what can still grow in a world after collapse? #register/invention ^iv-114
+- what keeps going after every reason to stop? #register/invention ^iv-115
+- why can a crowded place still feel like nowhere to hide? #register/invention ^iv-116
+- what do you say to the world before you disappear? #register/invention ^iv-117
+- when does feeding become a kind of harm? #register/invention ^iv-118
+- what does it cost to build a life somewhere new? #register/invention ^iv-119
+- what do we fear even when we know better? #register/invention ^iv-120
+- what would it take to imagine a future we actually want? #register/invention ^iv-123
+- how close can someone live and stay a stranger? #register/invention ^iv-124
+- what does hope look like when everything argues against it? #register/invention ^iv-125
+- what do we carry when a loss is never explained? #register/invention ^iv-127
+- what warns us in a language we can't yet read? #register/invention ^iv-128
+- what happens when trying to fix something makes it worse? #register/invention ^iv-129
+- who is allowed to imagine the future? #register/invention ^iv-131
+- what are you actually running toward when you run away? #register/invention ^iv-134
+- what does trying to repair something reveal about what broke? #register/invention ^iv-135
+- where does wildness end and civilization begin? #register/invention ^iv-136
+- how can playing by the rules set someone free? #register/invention ^iv-137
+- what survives when the money that sustained it disappears? #register/invention ^iv-138
+- what in your own home doesn't feel safe? #register/invention ^iv-139
+- what happens when you're stuck playing the same role forever? #register/invention ^iv-140
+- what do we risk by trying to know what comes next? #register/invention ^iv-141
+- what changes in you between where you start and where you land? #register/invention ^iv-142
+- what happens when the line meant to divide begins to blur? #register/invention ^iv-144
+- what does the cold make us admit? #register/invention ^iv-145
+- how can decay be its own kind of beauty? #register/invention ^iv-146
+- what does the work we do quietly make of us? #register/invention ^iv-147
+- what do we refuse to see about the harm we're causing? #register/invention ^iv-149
+- what can generations who never overlap still pass to each other? #register/invention ^iv-150
+- how much of who we are is a story we made up? #register/invention ^iv-151
+- what lies just on the other side of what we can see? #register/invention ^iv-152
+- what do we hide to keep the cheer from cracking? #register/invention ^iv-153
+- what makes a situation feel like hell even without fire? #register/invention ^iv-156
+- what wakes up in us that winter kept asleep? #register/invention ^iv-158
+- what future did we imagine and then forget? #register/invention ^iv-159
+- what can lightness carry that seriousness can't? #register/invention ^iv-160
+- what does power build that outlasts the people who held it? #register/invention ^iv-161
+- what does love look like across an unbridgeable difference? #register/invention ^iv-163
+- what does growing up cost you before you're ready to pay it? #register/invention ^iv-164
+- what waits for us in absolute isolation? #register/invention ^iv-166
+- what light are we still seeing after its source is gone? #register/invention ^iv-168
+- what does the past refuse to let go of in us? #register/invention ^iv-169
+- what does it cost to think differently from everyone else? #register/invention ^iv-171
+- what comes after simply surviving is no longer enough? #register/invention ^iv-174
+- what would it take to share the world instead of ruling it? #register/invention ^iv-175
+- where does the wild still take root inside a city? #register/invention ^iv-176
+- what does blood mean beyond what flows through us? #register/invention ^iv-177
+- at what point does love turn into something else? #register/invention ^iv-179
+- what does a body understand that language cannot name? #register/invention ^iv-182
+- who inherits the damage that others caused the earth? #register/invention ^iv-185
+- what one repair would let the rest heal? #register/invention ^iv-187
+- what does a good season hide? #register/invention ^iv-189
+- what freedom exists only outside the law? #register/invention ^iv-191
+- when does love become another kind of danger? #register/invention ^iv-192
+- what spreads before anyone notices it has begun? #register/invention ^iv-198
+- what waits at the edge of what we've mapped? #register/invention ^iv-199
+- what does it mean to lose a home that still exists? #register/invention ^iv-201
+- why do some memories survive and others don't? #register/invention ^iv-202
+- what claims a room without ever asking permission? #register/invention ^iv-203
+- what did you sense before you had words for it? #register/invention ^iv-204
+- who dares tell power what it doesn't want to hear? #register/invention ^iv-205
+- what insists on rising after being pushed down? #register/invention ^iv-208
+- what do our beliefs demand we stop questioning? #register/invention ^iv-211
+- what does hunger turn a person into? #register/invention ^iv-213
+- what does kindness cost the person who gives it? #register/invention ^iv-214
+- what does a fairy tale hide beneath its happy ending? #register/invention ^iv-215
+- what do we gather to survive that isn't food? #register/invention ^iv-216
+- what do we owe the creatures who can't ask? #register/invention ^iv-217
+- what fear survives the moment daylight returns? #register/invention ^iv-218
+- what does hardship reveal that comfort keeps hidden? #register/invention ^iv-220
+- what does resistance look like when no one's watching? #register/invention ^iv-221
+- what does a holiday become without its comfort? #register/invention ^iv-222
+- what does a person owe their second chance? #register/invention ^iv-223
+- how far from safety does a person have to go? #register/invention ^iv-225
+- what do we mean by closeness when we can't touch? #register/invention ^iv-226
+- what does love look like when the old rules don't fit? #register/invention ^iv-227
+- what keeps circling back to where it began? #register/invention ^iv-229
+- what does water give that it can also take away? #register/invention ^iv-231
+- what becomes possible only after the worst is admitted? #register/invention ^iv-233
+- what does it take to live somewhere without ruining it? #register/invention ^iv-234
+- what old story keeps returning in a new disguise? #register/invention ^iv-235
+- what happens when two old stories collide into one? #register/invention ^iv-236
+- when does love turn into something that consumes you? #register/invention ^iv-238
+- what lives in the space between belief and proof? #register/invention ^iv-240
+- what passes between the very young and the very old? #register/invention ^iv-241
+- what changes when you become the one being seen? #register/invention ^iv-242
+- what does a performance hide behind its makeup? #register/invention ^iv-243
+- what does a screen let us get away with? #register/invention ^iv-246
+- what decays quietly beneath something that still looks beautiful? #register/invention ^iv-248
+- what does an interruption reveal that continuity hides? #register/invention ^iv-250
+- what does keeping a secret protect, and from whom? #register/invention ^iv-253
+- who decides which work is honest and which isn't? #register/invention ^iv-254
+- what turns something sweet into something wrong? #register/invention ^iv-256
+- what does it mean to be chased by your own fate? #register/invention ^iv-257
+- what connection to a place outlives its dispossession? #register/invention ^iv-262
+- who gets imagined into the future? #register/invention ^iv-264
+- what do we owe a future someone else already imagined? #register/invention ^iv-266
+- what do you owe someone you didn't choose to help? #register/invention ^iv-267
+- what does distance reveal that staying never would? #register/invention ^iv-270
+- what are you willing to become to survive? #register/invention ^iv-271
+- what do you become when no one answers? #register/invention ^iv-272
+- what must be paid before someone can be forgiven? #register/invention ^iv-275
+- what survives when an old story is told again? #register/invention ^iv-278
+- what truth arrives before you're ready for it? #register/invention ^iv-280
+- who do we call when the ordinary rules stop working? #register/invention ^iv-283
+- how far should we go to fix a harm we caused? #register/invention ^iv-284
+- what punishment comes wrapped like a gift? #register/invention ^iv-286
+- what do we let ourselves become for one night? #register/invention ^iv-288
+- what do we learn to live with when there's no end? #register/invention ^iv-290
+- what do we become while we wait for things to end? #register/invention ^iv-291
+- what part of who you are bends, and what won't? #register/invention ^iv-293
+- what would we give up to live within our means? #register/invention ^iv-294
+- what do we owe creatures that can't speak for themselves? #register/invention ^iv-296
+- can the thing that divides us also connect us? #register/invention ^iv-297
+- how do we speak about an ending everyone will face? #register/invention ^iv-299
+- what does it mean to grieve a place that hasn't disappeared yet? #register/invention ^iv-300
+- what do you carry that a border can't stop? #register/invention ^iv-301
+- what surfaces at the edge, where solid ground gives way? #register/invention ^iv-302
+- what happens to a place built for wanting, once the wanting stops? #register/invention ^iv-303
+- what do you take back after it's been taken from you? #register/invention ^iv-305
+- what replaces the thrill once you've known someone for years? #register/invention ^iv-306
+- what can an old story still explain that a new one can't? #register/invention ^iv-307
+- what breaks clean, and what tears? #register/invention ^iv-308
+- what comes out when everyone agrees to pretend? #register/invention ^iv-309
+- what makes an ordinary life worth preserving? #register/invention ^iv-310
+- how do you keep living when everything around you is burning? #register/invention ^iv-311
+- what wildness lives close enough to touch? #register/invention ^iv-312
+- what connects you to someone who can't answer back? #register/invention ^iv-313
+- what does a tool for understanding also decide for us? #register/invention ^iv-314
+- what makes something worth digging up? #register/invention ^iv-315
+- what do you understand about a place only after leaving it? #register/invention ^iv-316
+- what stories do we need most when we can't leave? #register/invention ^iv-317
+- what keeps someone from moving on? #register/invention ^iv-324
+- what does it cost to be fully seen as who you are? #register/invention ^iv-325
+- when does breaking the rules become the right thing to do? #register/invention ^iv-328
+- what happens when the ones assumed harmless refuse to behave? #register/invention ^iv-329
+- what do we become when we're not fully in control? #register/invention ^iv-330
+- what does calling someone a monster let us avoid admitting? #register/invention ^iv-331
+- what must a person give up to be called a hero? #register/invention ^iv-332
+- what do we trust machines to do that we wouldn't trust people with? #register/invention ^iv-334
+- what does fire destroy to make room for something new? #register/invention ^iv-335
+- what would it look like to want only enough? #register/invention ^iv-337
+- what do we risk when we know there's no second chance? #register/invention ^iv-339
+- what happens when an old story is asked to hold a new truth? #register/invention ^iv-340
+- why do we ignore the warning we already noticed? #register/invention ^iv-341
+- what does an act of silencing reveal about what it fears? #register/invention ^iv-342
+- what turns a strange custom into a beloved tradition? #register/invention ^iv-343
+- when does knowledge become something to fear? #register/invention ^iv-344
+- does a voice arrive late, or does the world only catch up? #register/invention ^iv-345
+- what was already true before anyone noticed it? #register/invention ^iv-347
+- what draws us to love the very thing that could destroy us? #register/invention ^iv-349
+- what does a search turn up besides what it was looking for? #register/invention ^iv-350
+- what does a meal make impossible to hide? #register/invention ^iv-351
+- what do we become under a power we didn't choose? #register/invention ^iv-356
+- what do animals sense that we're too slow to notice? #register/invention ^iv-357
+- what changes about love once it stops needing to hide? #register/invention ^iv-358
+- what do we hide in the place we're supposed to be ourselves? #register/invention ^iv-359
+- what guides us across a threshold we can't see? #register/invention ^iv-360
+- what does it take to imagine a future worth wanting? #register/invention ^iv-362
+- what makes one rule-breaker a hero and another a villain? #register/invention ^iv-364
+- how does naming a wound change what it means? #register/invention ^iv-365
+- what does a quiet life reveal that a loud one hides? #register/invention ^iv-366
+- what does a crack let through? #register/invention ^iv-367
+- what remains human when machines can imitate it? #register/invention ^iv-368
+- how do we make a home in a changing world? #register/invention ^iv-370
+- what do we learn about being human by teaching a machine? #register/invention ^iv-372
+- what does water hide that keeps pulling us toward it? #register/invention ^iv-373
+- what do we see of ourselves in the animals we keep close? #register/invention ^iv-374
+- what does it cost to have to prove you belong? #register/invention ^iv-375
+- what do we have to rebuild to survive together? #register/invention ^iv-376
+- what do we carry that has no weight? #register/invention ^iv-377
+- what can't be undone once it's been said? #register/invention ^iv-378
+- what makes an ordinary moment feel like shelter? #register/invention ^iv-379
+- what does a place remember that its people forget? #register/invention ^iv-380
+- how much of what happens to us was already going to happen? #register/invention ^iv-382
+- why do the smallest things provoke the biggest reactions? #register/invention ^iv-384
+- what does a shadow prove about the light we can't see? #register/invention ^iv-385
+- what does it mean to inhabit a body that won't fully obey? #register/invention ^iv-386
+- when does a meal stop being food and become a spell? #register/invention ^iv-388
+- what happens in the silence after a story ends? #register/invention ^iv-389
+- what happens to the body when life moves onto a screen? #register/invention ^iv-391
+- what's left once the growing season ends? #register/invention ^iv-394
+- what does a game demand of the people who must keep playing it? #register/invention ^iv-396
+- what turns the ordinary frightening on a second look? #register/invention ^iv-397
+- what hunger outlives the body that felt it? #register/invention ^iv-398
+- what does it take to become someone new on purpose? #register/invention ^iv-399
+- what do we bury that keeps finding its way back? #register/invention ^iv-400
+- what does healing look like when it never fully finishes? #register/invention ^iv-403
+- what does a place carry long after the violence ends? #register/invention ^iv-404
+- can belonging exist without ever being fully claimed? #register/invention ^iv-405
+- is the fear ever really about what's behind the door? #register/invention ^iv-406
+- how does a slow disaster change the people living inside it? #register/invention ^iv-408
+- what does it cost to undo one moment of the past? #register/invention ^iv-409
+- what makes something frightening even when we know it isn't real? #register/invention ^iv-414
+- what do we carry across a border without meaning to? #register/invention ^iv-415
+- who are we in the moment between arriving and leaving? #register/invention ^iv-416
+- what does resistance look like when leaving isn't an option? #register/invention ^iv-418
+- what do we plant knowing we won't be the ones to see it bloom? #register/invention ^iv-421
+- how much of a person does a job get to decide? #register/invention ^iv-423
+- what grows back after everything else has fallen? #register/invention ^iv-428
+- what begins only once the worst is finally over? #register/invention ^iv-429
+- why do we worship the things we also fear? #register/invention ^iv-430
+- what happens to a belief once it travels far from where it began? #register/invention ^iv-431
+- what haunts us that isn't a ghost at all? #register/invention ^iv-432
+- what do we expect a machine to give us that we can't give ourselves? #register/invention ^iv-433
+- what happens to wonder once it's run through an institution? #register/invention ^iv-435
+- why is accepting an invitation never as simple as saying yes? #register/invention ^iv-436
+- what happens when something broken gets dressed up and sold as new? #register/invention ^iv-439
+- what does a book keep alive long after its writer is gone? #register/invention ^iv-440
+- what truth only survives when it's found, not told? #register/invention ^iv-441
+- where's the line between cheating and simply refusing to lose? #register/invention ^iv-442
+- where does the weather end and we begin? #register/invention ^iv-447
+- what does refusal make possible? #register/invention ^iv-448
+- what does courage make possible that tradition forbids? #register/invention ^iv-449
+- what can only be won together? #register/invention ^iv-450
+- what happens when a forced silence finally breaks? #register/invention ^iv-451
+- what is only real because it doesn't last? #register/invention ^iv-452
+- what does it take to trust the place you live? #register/invention ^iv-454
+- whose movement counts as a story worth telling? #register/invention ^iv-455
+- why do the smallest duties feel unbearable? #register/invention ^iv-456
+- what connects people who cannot touch? #register/invention ^iv-457
+- what does decay make possible? #register/invention ^iv-458
+- what makes a memory worth keeping? #register/invention ^iv-459
+- what does calm water hide? #register/invention ^iv-460
+- what gets passed down at the table besides food? #register/invention ^iv-461
+- what does fire reveal about what we couldn't protect? #register/invention ^iv-462
+- what happens when two versions of a story run together? #register/invention ^iv-464
+- what do we keep back when the truth costs too much? #register/invention ^iv-467
+- what do we owe the things that keep us alive? #register/invention ^iv-470
+- what do you lose in order to grow up? #register/invention ^iv-473
+- what makes a place worth loving, flaws and all? #register/invention ^iv-474
+- what happens when you're frozen while the world keeps moving? #register/invention ^iv-475
+- where does helplessness go when there's nowhere to put it? #register/invention ^iv-476
+- how can the same bond hold love and hurt? #register/invention ^iv-478
+- what begins only after the worst has happened? #register/invention ^iv-479
+- what does an archive decide to forget? #register/invention ^iv-480
+- what small ritual makes the rest of the day possible? #register/invention ^iv-482
+- what does isolation reveal about who we really are? #register/invention ^iv-483
+- what do we trust when we can't yet see clearly? #register/invention ^iv-484
+- what does it mean to belong to something already disappearing? #register/invention ^iv-487
+- what in us wakes up when the world does? #register/invention ^iv-488
+- what do we do with each other while the world storms? #register/invention ^iv-490
+- how do you tell what's real once you doubt everything? #register/invention ^iv-492
+- what happens when what you tried to hide takes shape? #register/invention ^iv-493
+- what happens the moment you step somewhere you don't understand? #register/invention ^iv-494
+- what does a riddle hide inside its own answer? #register/invention ^iv-497
+- what does it cost to belong to two worlds at once? #register/invention ^iv-498
+- what does hunger for food stand in for? #register/invention ^iv-499
+- what do the things we own know about us? #register/invention ^iv-502
+- what can connect people who have nothing else in common? #register/invention ^iv-503
+- what do we call the thing inside us that won't leave? #register/invention ^iv-504
+- what decides whether something counts as treasure? #register/invention ^iv-505
+- what happens to a truth once it passes mouth to mouth? #register/invention ^iv-507
+- what grows once you decide to set it free? #register/invention ^iv-508
+- what does a recipe preserve besides the food itself? #register/invention ^iv-509
+- what does a happy ending cost the one who earns it? #register/invention ^iv-510
+- what does the sea keep that never comes back? #register/invention ^iv-511
+- what turns a childhood memory into something you fear? #register/invention ^iv-512
+- what strangeness hides just beneath a familiar place? #register/invention ^iv-513
+- when does simply surviving turn into understanding? #register/invention ^iv-514
+- what lingers after it's supposed to be gone? #register/invention ^iv-516
+- what do old boundaries still control long after they're erased? #register/invention ^iv-517
+- what does watching something too closely change in you? #register/invention ^iv-518
+- what do we notice about ourselves only while waiting? #register/invention ^iv-519
+- what does breaking a rule reveal about who enforces it? #register/invention ^iv-520
+- what do we gain when we make something smaller? #register/invention ^iv-522
+- what does coming undone look like from the inside? #register/invention ^iv-523
+- where does the human end and the machine begin? #register/invention ^iv-525
+- what does protection cost the one who wears it? #register/invention ^iv-526
+- what is lost between knowing and being understood? #register/invention ^iv-527
+- what do we send out not knowing if anyone answers? #register/invention ^iv-528
+- what must you become to fight what oppresses you? #register/invention ^iv-530
+- what is lost when a life becomes a specimen? #register/invention ^iv-531
+- what lingers after we say goodbye? #register/invention ^iv-533
+- what moves us before we notice we're moving? #register/invention ^iv-534
+- where does the thing that doesn't fit still belong? #register/invention ^iv-535
+- what survives once the mold that made it is broken? #register/invention ^iv-536
+- what do we agree to that we don't actually believe? #register/invention ^iv-538
+- what do we carry across a distance we didn't choose? #register/invention ^iv-539
+- why do we fear the power we don't understand? #register/invention ^iv-540
+- what ancient purpose survives inside an ordinary structure? #register/invention ^iv-541
+- what does oppression forbid us from even imagining? #register/invention ^iv-544
+- what does the earth take back when we look away? #register/invention ^iv-545
+- how would you recognize a mind that thinks nothing like your own? #register/invention ^iv-548
+- when does a rule protect us, and when does it fail? #register/invention ^iv-549
+- what do we create, knowing that we won't last? #register/invention ^iv-551
+- how do you keep going after hope runs out? #register/invention ^iv-552
+- what changes when the thing you feared becomes familiar? #register/invention ^iv-553
+- who decides what counts as poison? #register/invention ^iv-554
+- what lives just past the edge of what we're willing to believe? #register/invention ^iv-555
+- what are you before someone decides to look? #register/invention ^iv-557
+- what does the tide bring back that we thought was buried? #register/invention ^iv-558
+- who decided when a day begins? #register/invention ^iv-561
+- what remains when you finally stop moving? #register/invention ^iv-562
+- what happens when the order that explains the world stops making sense? #register/invention ^iv-563
+- what do we owe the land that shaped us? #register/invention ^iv-565
+- what do we steal from tomorrow when we use up today? #register/invention ^iv-566
+- what monsters does desperation bring to the surface? #register/invention ^iv-567
+- what happens when the thing you depend on has its own will? #register/invention ^iv-568
+- can the thing that broke the world also be what saves it? #register/invention ^iv-569
+- what does a place remember long after the people leave? #register/invention ^iv-570
+- what manages to survive when everything larger has failed? #register/invention ^iv-571
+- what happens to love once the rest of life gets in the way? #register/invention ^iv-573
+- what does it take to keep fighting once hope is gone? #register/invention ^iv-574
+- how can the same figure stand for what we want and what we fear? #register/invention ^iv-575
+- what lives in the relationship between one body and another? #register/invention ^iv-576
+- how does loving the same thing as strangers make you feel less alone? #register/invention ^iv-577
+- what's left of a person's purpose once something else can do the job? #register/invention ^iv-578
+- what does the end of the world look like from inside one room? #register/invention ^iv-579
+- why can the same meal carry both welcome and shame? #register/invention ^iv-580
+- what changes in us the instant we meet something entirely unlike ourselves? #register/invention ^iv-581
+- who do you become in a place that doesn't know you? #register/invention ^iv-583
+- what can disappear completely before anyone notices it's gone? #register/invention ^iv-584
+- what would you make if no one was watching to judge it? #register/invention ^iv-586
+- who haunts you without ever having died? #register/invention ^iv-588
+- what happens when the imagined refuses to stay imagined? #register/invention ^iv-589
+- who gets to play the hero when the story never casts them? #register/invention ^iv-590
+- what does a companion do when no one's watching? #register/invention ^iv-592
+- what survives when everything says it shouldn't? #register/invention ^iv-593
+- how do you feel a crisis too large to see? #register/invention ^iv-594
+- what did you only understand once it was too late? #register/invention ^iv-595
+- what do you owe the place that raised you? #register/invention ^iv-596
+- what invisible things keep the visible world alive? #register/invention ^iv-597
+- what roots survive when the ground itself is taken? #register/invention ^iv-598
+- what's hidden in the distance between growing and eating? #register/invention ^iv-600
+- what is born only through hard, sustained effort? #register/invention ^iv-601
+- what does a wound reveal once it starts to heal? #register/invention ^iv-602
+- what does a system take from you to keep you working? #register/invention ^iv-603
+- what future do we have to imagine before we can live it? #register/invention ^iv-605
+- what do we stop noticing once life gets busy enough? #register/invention ^iv-606
+- what power does age grant that youth never has? #register/invention ^iv-607
+- what looks human without actually being one? #register/invention ^iv-608
+- what changes the moment you step through a doorway? #register/invention ^iv-609
+- what kind of closeness doesn't need romance to be real? #register/invention ^iv-611
+- what refuses to divide evenly? #register/invention ^iv-612
+- what if the light doesn't come back this time? #register/invention ^iv-614
+- what do you gain by living outside every law? #register/invention ^iv-615
+- what do we lose by learning what we weren't meant to know? #register/invention ^iv-617
+- where does confidence end and self-doubt begin? #register/invention ^iv-619
+- how do you save the world and still make dinner? #register/invention ^iv-620
+- what escapes every attempt to define it? #register/invention ^iv-622
+- how small a change would it take to remake history? #register/invention ^iv-623
+- what are you worth when you're not being productive? #register/invention ^iv-624
+- what does seeing something make us responsible for? #register/invention ^iv-626
+- what do we owe the past when we imagine it? #register/invention ^iv-627
+- why are we drawn to what should frighten us? #register/invention ^iv-628
+- what does imagining the end reveal about the present? #register/invention ^iv-629
+- what happens when love aims and misses? #register/invention ^iv-630
+- when does a body stop feeling like home? #register/invention ^iv-631
+- what must we become in order to survive? #register/invention ^iv-632
+- what does it cost to stand between two worlds? #register/invention ^iv-633
+- what does a legacy demand from those who inherit it? #register/invention ^iv-634
+- what changes when no one is there to see it? #register/invention ^iv-636
+- what do we call the good we cannot explain? #register/invention ^iv-637
+- what can we understand of a life we cannot speak for? #register/invention ^iv-638
+- what gives a life meaning if it never has to end? #register/invention ^iv-639
+- what do we learn about a thing only when it breaks? #register/invention ^iv-640
+- what does a city remember about the people who pass through it? #register/invention ^iv-641
+- why do we return to what makes us worse? #register/invention ^iv-642
+- what keeps happening while everything else falls apart? #register/invention ^iv-643
+- what happens when the watched start watching back? #register/invention ^iv-644
+- what does danger look like before it shows itself? #register/invention ^iv-645
+- what does hiding something else make visible? #register/invention ^iv-646
