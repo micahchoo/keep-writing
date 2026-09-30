@@ -140,6 +140,54 @@ export async function blockTexts(app: App, file: TFile): Promise<BlockText[]> {
   return out;
 }
 
+/**
+ * The address of a paragraph that carries no id: `kw-` and a hash of its
+ * words, written nowhere in the note. The owner's prose stays untouched, and
+ * an `answers` link to it still resolves to the note and shows in its
+ * backlinks (verified in Obsidian, 2026-09-29) — it lands at the top of the
+ * note rather than on the paragraph, which is the price.
+ *
+ * The words, not the line: a paragraph keeps its address when the note grows
+ * above it, and becomes a new paragraph when it is edited.
+ */
+export function virtualId(text: string): string {
+  let h = 0x811c9dc5;
+  for (const ch of text.replace(/\s+/g, ' ').trim()) {
+    h ^= ch.codePointAt(0) ?? 0;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return VIRTUAL_PREFIX + h.toString(36).padStart(7, '0');
+}
+
+const VIRTUAL_PREFIX = 'kw-';
+
+/** Is this id one `virtualId` computed, and not one the owner's note carries? */
+export function isVirtual(cache: CachedMetadata | null, id: string): boolean {
+  return id.startsWith(VIRTUAL_PREFIX) && !cache?.blocks?.[id];
+}
+
+/**
+ * Every block of a note as text: the ones carrying an id, and every paragraph,
+ * list item and heading that carries none, under its virtual id. One read,
+ * like `blockTexts`. A virtual id is always of the STRIPPED text, so the draw,
+ * a selection and a later lookup compute the same one.
+ */
+export async function paragraphTexts(app: App, file: TFile): Promise<BlockText[]> {
+  const cache = app.metadataCache.getFileCache(file);
+  const bare = [
+    ...(cache?.sections ?? []).filter((s) => (s.type === 'paragraph' || s.type === 'heading') && !s.id),
+    ...(cache?.listItems ?? []).filter((i) => !i.id),
+  ].map((b) => b.position);
+  if (bare.length === 0) return blockTexts(app, file);
+  const lines = (await app.vault.cachedRead(file)).split('\n');
+  const out = await blockTexts(app, file);
+  for (const { start, end } of bare) {
+    const text = stripBlockDecoration(lines.slice(start.line, end.line + 1).join('\n'));
+    if (text) out.push({ id: virtualId(text), line: start.line, text });
+  }
+  return out.sort((a, b) => a.line - b.line);
+}
+
 /** Drop the trailing ` ^id` and a leading list marker. */
 export function stripBlockDecoration(text: string): string {
   return text

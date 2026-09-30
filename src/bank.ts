@@ -244,14 +244,18 @@ export function jarCounts(jars: Jars<unknown>): JarCounts {
  * note it names. Answered-ness is read here, off the metadata cache, so a
  * link written a moment ago counts.
  */
-export async function fillJars(ctx: DrawContext, target: TFile | null): Promise<Jars> {
-  const answered = answeredInVault(ctx.app);
-  const drawable = (key: string) => !answered.has(key) && !ctx.skipped.has(key);
+export async function fillJars(ctx: DrawContext, target: TFile | null, answered = answeredInVault(ctx.app)): Promise<Jars> {
+  const drawable = drawableIn(ctx, answered);
   return {
     bank: (await bankJar(ctx, target, answered)),
     paragraphs: paragraphJar(ctx.app, ctx.writingFolders, target)
       .filter((block) => drawable(block.key) && block.file.path !== ctx.sitting?.path),
   };
+}
+
+/** Unanswered and not skipped. A paragraph without an id is asked again once read. */
+function drawableIn(ctx: DrawContext, answered: Set<string>): (key: string) => boolean {
+  return (key) => !answered.has(key) && !ctx.skipped.has(key);
 }
 
 /**
@@ -335,7 +339,9 @@ function take<T>(items: T[], item: T): void {
 export async function drawMany(ctx: DrawContext, target: TFile | null, count: number): Promise<Draws> {
   const random = ctx.random ?? Math.random;
   const today = ctx.today ?? new Date();
-  const jars = await fillJars(ctx, target);
+  const answered = answeredInVault(ctx.app);
+  const drawable = drawableIn(ctx, answered);
+  const jars = await fillJars(ctx, target, answered);
   const counts = jarCounts(jars);
   const reads = new Map<string, Promise<BlockText[]>>();
   const drawn: Drawn[] = [];
@@ -351,7 +357,8 @@ export async function drawMany(ctx: DrawContext, target: TFile | null, count: nu
     while (block) {
       take(jars.paragraphs, block);
       const paragraph = await readBlock(ctx.app, ctx.sittingsFolder, block, reads);
-      if (paragraph) { drawn.push({ source: paragraph }); break; }
+      // Its virtual key is known only now: an answered one is put back like Furniture.
+      if (paragraph && drawable(paragraph.key)) { drawn.push({ source: paragraph }); break; }
       block = pickOne(jars.paragraphs, random);
     }
   }

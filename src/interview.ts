@@ -26,7 +26,7 @@ import type { Ask, AskOptions } from './asks';
 import { bankJar, drawMany, parseDue, pickBankQuestion, questionAt } from './bank';
 import type { Drawn, JarCounts } from './bank';
 import { answeredInVault } from './links';
-import { ensureSourceBlockId } from './blocks';
+import { addressSource } from './blocks';
 import { readBookmark, runClosing } from './closing';
 import { CRAFT_LENS, INVITATION_LENS, lensText } from './lens';
 import { graduate } from './graduation';
@@ -78,30 +78,29 @@ export interface Drawing {
  * asked of it.
  *
  * `pointed` — they highlighted it, so they went there on purpose and they want
- * to talk about THAT. The interviewer composes; the paragraph is embedded
- * under the Ask so it reads in place.
+ * to talk about THAT. The interviewer composes.
  *
  * `picked` — the draw handed it over, so they did not choose it and 99% of
  * what the draw can reach is years old. The Invitation composes: the paragraph
- * is a seed and the question aims at their present. It is NOT embedded —
- * showing the 2020 prose under a question about now undoes the work.
+ * is a seed and the question aims at their present.
+ *
+ * Either way the paragraph is pasted under the Ask (`acceptFrom`).
  */
 export type Reach = 'pointed' | 'picked';
 
 /**
  * Everything a reach decides, in one row per reach: which Lens frames the
- * composer (the owner's setting, or the shipped one), which composer, and
- * whether the paragraph is embedded under the Ask. Three ternaries decided
+ * composer (the owner's setting, or the shipped one) and which composer.
+ * Whether the paragraph was embedded was a third column until 2026-09-29. Three ternaries decided
  * these separately until 2026-09-21, and a third reach would have fallen into
  * the `picked` arm of each without a word.
  */
 const REACHES: Record<Reach, {
   lens: (settings: KeepWritingSettings) => string;
   composer: 'revisit' | 'invitation';
-  embed: boolean;
 }> = {
-  pointed: { lens: (s) => lensText(s.craftLens, CRAFT_LENS), composer: 'revisit', embed: true },
-  picked: { lens: (s) => lensText(s.invitationLens, INVITATION_LENS), composer: 'invitation', embed: false },
+  pointed: { lens: (s) => lensText(s.craftLens, CRAFT_LENS), composer: 'revisit' },
+  picked: { lens: (s) => lensText(s.invitationLens, INVITATION_LENS), composer: 'invitation' },
 };
 
 /** The questions bonsai composed from a paragraph. */
@@ -325,29 +324,35 @@ export class Interview {
 
   /**
    * Place the chosen question as an Ask, citing the paragraph it came from. A
-   * paragraph with no block id yet is given one now, so the Ask can cite it. A
    * candidate with `dueDays` sets the Ask's due date — nothing asks for one
    * today, and a Lens is prose the owner edits, so any Lens can start.
    *
-   * `pointed` embeds the paragraph under the from-line so it reads in place.
-   * `picked` does not: the question is about the owner's present, and the old
-   * prose sitting under it would pull them back into the year it came from.
-   * The SOURCE is linked either way — that is what stops it coming back.
+   * The paragraph is cited by the id it carries, or by its virtual id; nothing
+   * is written into it (blocks.ts#addressSource). Until 2026-09-29 one without
+   * an id was given one here.
+   *
+   * The paragraph is PASTED under the from-line, whatever the reach and
+   * whatever the id. A virtual id's link previews nothing and lands at the top
+   * of the note, and one Ask reads like every other. Until 2026-09-29 a
+   * `pointed` paragraph was embedded and a `picked` one was not shown at all,
+   * to keep old prose from pulling the owner back; in use it left them unable
+   * to see what they were asked about. The SOURCE is linked either way — that
+   * is what stops it coming back.
    */
   async acceptFrom(
     sitting: TFile,
     source: Paragraph,
     candidate: RevisitCandidate,
-    reach: Reach,
   ): Promise<void> {
-    let ref: Ref;
+    let address: { ref: Ref; text: string };
     try {
-      ref = await ensureSourceBlockId(this.app, source);
+      address = await addressSource(this.app, source);
     } catch (e) {
       this.surface.notice(refusalLine(e));
       return;
     }
-    const opts: AskOptions = REACHES[reach].embed ? { embed: true } : {};
+    const { ref, text } = address;
+    const opts: AskOptions = { paste: text };
     const due = candidate.dueDays !== undefined ? parseDue(`+${candidate.dueDays}d`, new Date()) : null;
     if (due) opts.due = due;
     this.landed(sitting, await insertAsk(this.app, sitting, candidate.question, ref, opts));
@@ -532,6 +537,23 @@ export function jarsLine(jars: JarCounts): string {
   const q = `${jars.questions} question${jars.questions === 1 ? '' : 's'}`;
   const p = `${jars.paragraphs} paragraph${jars.paragraphs === 1 ? '' : 's'}`;
   return `roaming · ${q} · ${p}`;
+}
+
+/**
+ * Pure: what the owner is told when a draw comes back empty. A vault whose
+ * jars never held anything and one whose sources are all spent are different
+ * facts. Until 2026-09-29 both were "Every source here is answered or already
+ * asked", which on a vault with no block ids sent the owner looking for
+ * answers that did not exist.
+ */
+export function emptyDrawLine(jars: JarCounts, target: string | null, writingFolders: string[], bankFolder: string): string {
+  if (target) return `Nothing to draw in ${target}: it has no paragraph left to ask about.`;
+  if (jars.questions > 0 || jars.paragraphs > 0) {
+    return 'Nothing left to draw. Every source here is answered, already asked, or not a paragraph.';
+  }
+  const folders = writingFolders.filter(Boolean);
+  const where = folders.length ? `no paragraphs in ${folders.join(' or ')}` : 'no writing folder is named';
+  return `Nothing to draw from: ${where}, and no questions in ${bankFolder}. Name a writing folder or install a bank in settings.`;
 }
 
 /** Pure: a thread's sections as the model reads them, block ids taken off. */

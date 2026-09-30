@@ -1,10 +1,10 @@
 // "Ask about the selection": the owner points at their own words and the
 // interview takes them as the source.
 //
-// The paragraph jar only reaches blocks that already carry an id, in a Sitting
-// or a finished Piece. This is the hand-worked way in, and it reaches further
-// than the jar ever did: any run of text, in ANY note, id or not. The block
-// gets its id when the Ask is accepted.
+// The paragraph jar reaches the paragraphs of the folders the owner named.
+// This is the hand-worked way in, and it reaches further: any run of text, in
+// ANY note, id or not. The Ask cites the block by the id it carries or by its
+// virtual id; nothing is written into it (blocks.ts#addressSource).
 //
 // It refused everything outside four folders until 2026-09-17 — "Ask about the
 // selection works in a Sitting, a Piece, a Domain or a Learning note" — which

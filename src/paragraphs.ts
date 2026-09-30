@@ -1,6 +1,9 @@
 // The paragraph jar: every paragraph the owner wrote that the draw can put in
-// front of them. One rule — every block with an id, in a folder the owner
-// named (settings.ts, `writingFolders`). Their daily notes are in that list by
+// front of them. One rule — every block with an id, and every paragraph
+// without one, in a folder the owner named (settings.ts, `writingFolders`).
+// A paragraph without an id is addressed by a virtual one (refs.ts#virtualId)
+// and nothing is written into it; until 2026-09-29 only id'd blocks counted,
+// and a vault that never had an import script gave the draw nothing. Their daily notes are in that list by
 // default, so their own answers come back to them; a folder of finished
 // writing is the other thing most people add.
 //
@@ -28,7 +31,7 @@
 
 import type { App, TFile } from 'obsidian';
 import { headingAbove, readsAsParagraph } from './furniture';
-import { blockTexts, refOf, resolveRef } from './refs';
+import { paragraphTexts, refOf, resolveRef } from './refs';
 import type { BlockText, Ref } from './refs';
 import { isSitting } from './target';
 
@@ -55,7 +58,7 @@ export interface Paragraph {
   title: string;
   /** Meta parts after the title on the pane's framing line: date, publisher, `set down`. */
   meta: string[];
-  /** First line of the paragraph, 0-based: what ensureSourceBlockId needs when there is no id yet. */
+  /** First line of the paragraph, 0-based. */
   line: number;
   /** Exact selected words and, when available, their original editor block. */
   selectionSnapshot?: { selected: string; block?: string; anchorFirst?: boolean };
@@ -242,8 +245,8 @@ export interface ParagraphBlock {
  *
  * The key is the one thing every path here must agree on, because
  * answered-ness is keyed by it (links.ts#answeredInVault): a block with an id is
- * addressed by the id, one without is addressed by its line and gets a real
- * id when the Ask is accepted (blocks.ts#ensureSourceBlockId). Before 2026-09-17
+ * addressed by the id, one without by its line until the Ask is accepted,
+ * which cites it by its virtual id (blocks.ts#addressSource). Before 2026-09-17
  * this literal was written in four places — the two block shelves, the Well
  * body shelf, and a Selection in another module — and two of them spelled the
  * key without the branch.
@@ -273,25 +276,33 @@ export function paragraphOf(file: TFile, facts: ParagraphFacts, block: Paragraph
 export async function paragraphAt(app: App, ref: Ref, sittingsFolder: string): Promise<Paragraph | null> {
   const r = resolveRef(app, ref);
   if (!r?.blockId) return null;
-  const block = (await blockTexts(app, r.file)).find((b) => b.id === r.blockId);
+  const block = (await paragraphTexts(app, r.file)).find((b) => b.id === r.blockId);
   return block ? paragraphOf(r.file, fileFacts(app, r.file, sittingsFolder), block) : null;
 }
 
 /**
- * A block id the draw may choose, before a word of it is read. The paragraph
+ * A paragraph the draw may choose, before a word of it is read. The paragraph
  * jar is a list of these: Obsidian's metadata cache already knows every block
- * id in the vault, so listing them reads no file.
+ * id and every paragraph's lines in the vault, so listing them reads no file.
+ *
+ * A paragraph with no id is known here only by its line, and its key is
+ * `path#L<line>` until it is read: its real address is the virtual id of its
+ * words (`refs.ts#virtualId`), and the words are not read yet. So answered-ness
+ * is checked once it is read (`bank.ts#drawMany`), not when the jar is filled.
  */
 export interface UnreadBlock {
   kind: 'block';
   file: TFile;
-  id: string;
+  /** Absent while the paragraph carries no id. */
+  id?: string;
+  /** First line, 0-based: how a paragraph without an id is found again. */
+  line: number;
   key: string;
 }
 
 /**
- * The paragraph jar, unread: every block id of every note in the folders the
- * owner named, or of the Target alone. Furniture is still in it; the draw
+ * The paragraph jar, unread: every block id and every paragraph without one,
+ * of every note in the folders the owner named, or of the Target alone. Furniture is still in it; the draw
  * finds out by reading the one it chose (`readBlock`).
  *
  * It read and split every note in the jar until 2026-09-24, on every draw, and
@@ -307,8 +318,14 @@ export function paragraphJar(app: App, writingFolders: string[], target: TFile |
   const jar: UnreadBlock[] = [];
   for (const file of target ? [target] : app.vault.getMarkdownFiles()) {
     if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
-    for (const id of Object.keys(app.metadataCache.getFileCache(file)?.blocks ?? {})) {
-      jar.push({ kind: 'block', file, id, key: `${file.path}#^${id}` });
+    const cache = app.metadataCache.getFileCache(file);
+    for (const [id, block] of Object.entries(cache?.blocks ?? {})) {
+      jar.push({ kind: 'block', file, id, line: block.position.start.line, key: `${file.path}#^${id}` });
+    }
+    for (const s of cache?.sections ?? []) {
+      if (s.type !== 'paragraph' || s.id) continue;
+      const line = s.position.start.line;
+      jar.push({ kind: 'block', file, line, key: `${file.path}#L${line}` });
     }
   }
   return jar;
@@ -327,10 +344,10 @@ export async function readBlock(
 ): Promise<Paragraph | null> {
   let texts = reads.get(block.file.path);
   if (!texts) {
-    texts = blockTexts(app, block.file);
+    texts = paragraphTexts(app, block.file);
     reads.set(block.file.path, texts);
   }
-  const text = (await texts).find((b) => b.id === block.id);
+  const text = (await texts).find((b) => (block.id ? b.id === block.id : b.line === block.line));
   if (!text) return null;
   const heading = headingAbove(app.metadataCache.getFileCache(block.file), text.line);
   if (!readsAsParagraph(text.text, heading)) return null;

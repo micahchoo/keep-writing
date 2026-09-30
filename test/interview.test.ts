@@ -15,6 +15,7 @@ import type { Paragraph } from '../src/paragraphs';
 import type { SectionText as Section } from '../src/model';
 import { CRAFT_LENS, INVITATION_LENS } from '../src/lens';
 import { DEFAULT_SETTINGS } from '../src/settings';
+import { virtualId } from '../src/refs';
 import { fakeVault, sequence } from './fake-vault';
 import type { VaultHooks } from './fake-vault';
 
@@ -513,18 +514,37 @@ describe('the Invitation — the draw found it', () => {
     expect(seen.invitation[0]?.asked).toEqual(['what broke in the rig?']);
   });
 
-  // Showing the 2020 prose under a question about now undoes the work.
-  test('accepting cites the paragraph and does NOT embed it', async () => {
+  // It was cited and NOT shown until 2026-09-29, on the reasoning that 2020
+  // prose under a question about now undoes the work. In use the owner could
+  // not see what was being asked about; the words are pasted now, as on the
+  // pointed path.
+  test('accepting cites the paragraph and pastes it', async () => {
     const { model } = recordingModel({ invitation: [{ question: 'what do you keep repairing?' }] });
     const { v, interview } = open(paragraphOnly(), model);
     const sitting = v.file(TODAY);
     const paragraph = await drawnParagraph(interview, sitting);
-    await interview.acceptFrom(sitting, paragraph, { question: 'what do you keep repairing?' }, 'picked');
+    await interview.acceptFrom(sitting, paragraph, { question: 'what do you keep repairing?' });
 
     const written = v.text(TODAY);
     expect(written).toContain('> [!ask] what do you keep repairing?');
     expect(written).toContain('> from [[Pieces/rigging#^p-001]]');
-    expect(written).not.toContain('![[Pieces/rigging#^p-001]]');
+    expect(written).toContain(`> > ${PARAGRAPH}\n`);
+    expect(written).not.toContain('![[');
+  });
+
+  // A virtual id previews nothing on hover and lands at the top of the note on
+  // a click, so without the words the owner cannot see what was asked about.
+  // Found in the Notion export on 2026-09-29: two Asks, and nothing to read.
+  test('a drawn paragraph with no id is pasted, since its link cannot show it', async () => {
+    const { model } = recordingModel({ invitation: [{ question: 'what do you keep repairing?' }] });
+    const { v, interview } = open({ [TODAY]: EMPTY_SITTING, 'Pieces/rigging.md': `---\n---\n\n${PARAGRAPH}\n` }, model);
+    const sitting = v.file(TODAY);
+    const paragraph = await drawnParagraph(interview, sitting);
+    await interview.acceptFrom(sitting, paragraph, { question: 'what do you keep repairing?' });
+
+    const written = v.text(TODAY);
+    expect(written).toContain(`> from [[Pieces/rigging#^${virtualId(PARAGRAPH)}]]`);
+    expect(written).toContain(`> > ${PARAGRAPH}`);
   });
 });
 
@@ -556,36 +576,41 @@ describe('the Revisit — the owner pointed at it', () => {
     expect(seen.revisit[0]?.asked).toEqual([]);
   });
 
-  test('accepting embeds the paragraph under the Ask, so it reads in place', async () => {
+  // Pasted, not embedded, since 2026-09-29: an Ask reads the same whether its
+  // source carries a real id or a virtual one, and outside Obsidian too.
+  test('accepting pastes the paragraph under the Ask, so it reads in place', async () => {
     const { model } = recordingModel({ revisit: [{ question: 'which corner broke it first?' }] });
     const { v, interview } = open(paragraphOnly(), model);
     const sitting = v.file(TODAY);
     const paragraph = await drawnParagraph(interview, sitting);
-    await interview.acceptFrom(sitting, paragraph, { question: 'which corner broke it first?' }, 'pointed');
+    await interview.acceptFrom(sitting, paragraph, { question: 'which corner broke it first?' });
 
     const written = v.text(TODAY);
     expect(written).toContain('> from [[Pieces/rigging#^p-001]]');
-    expect(written).toContain('> ![[Pieces/rigging#^p-001]]');
+    expect(written).toContain(`> > ${PARAGRAPH}\n`);
+    expect(written).not.toContain('![[');
   });
 
-  // The jar only reaches blocks that already carry an id. A paragraph without
-  // one is reached by pointing at it, and gets its id when the Ask is written.
-  test('a paragraph with no id is given one so the Ask can cite it', async () => {
-    const { v, interview } = open({
-      [TODAY]: EMPTY_SITTING,
-      'Anywhere/notebook.md': `---\n---\n\n${PARAGRAPH}\n`,
-    });
+  // A paragraph without an id is cited by its virtual id and PASTED under the
+  // Ask: an embed of an id the note does not carry would render broken. Until
+  // 2026-09-29 it was given a real id, written into the owner's prose.
+  test('a paragraph with no id is cited by its virtual id and pasted, never written', async () => {
+    const note = `---\n---\n\n${PARAGRAPH}\n`;
+    const { v, interview } = open({ [TODAY]: EMPTY_SITTING, 'Anywhere/notebook.md': note });
     const sitting = v.file(TODAY);
     const picked = interview.selection({
       file: v.file('Anywhere/notebook.md'),
-      selected: PARAGRAPH,
+      selected: 'the hips always break',
       line: 3,
     }) as Paragraph;
-    await interview.acceptFrom(sitting, picked, { question: 'which corner broke it first?' }, 'pointed');
+    await interview.acceptFrom(sitting, picked, { question: 'which corner broke it first?' });
 
-    const id = /\^([a-z0-9]{6})/.exec(v.text('Anywhere/notebook.md'))?.[1];
-    expect(id).toBeDefined();
-    expect(v.text(TODAY)).toContain(`> from [[Anywhere/notebook#^${id}]]`);
+    expect(v.text('Anywhere/notebook.md')).toBe(note);
+    const written = v.text(TODAY);
+    expect(written).toContain(`> from [[Anywhere/notebook#^${virtualId(PARAGRAPH)}]]`);
+    expect(written).toContain(`> > ${PARAGRAPH}`);
+    expect(written).not.toContain('![[');
+    expect(asksIn(v, TODAY).at(-1)?.sourceRef).toBe(`Anywhere/notebook#^${virtualId(PARAGRAPH)}`);
   });
 });
 
@@ -602,7 +627,7 @@ describe('either way', () => {
     const { v, interview } = open(paragraphOnly());
     const sitting = v.file(TODAY);
     const paragraph = await drawnParagraph(interview, sitting);
-    await interview.acceptFrom(sitting, paragraph, { question: 'can you rig one by Friday?', dueDays: 7 }, 'picked');
+    await interview.acceptFrom(sitting, paragraph, { question: 'can you rig one by Friday?', dueDays: 7 });
     expect(v.text(TODAY)).toMatch(/> due: \d{4}-\d{2}-\d{2}/);
   });
 });
@@ -849,7 +874,7 @@ describe('asking about a selection', () => {
     // The owner is reading the Piece, so the cursor cannot land in the Sitting.
     const sitting = await interview.sitting(piece);
     surface.landing = false;
-    await interview.acceptFrom(sitting, picked as Paragraph, { question: 'which corner broke it first?' }, 'pointed');
+    await interview.acceptFrom(sitting, picked as Paragraph, { question: 'which corner broke it first?' });
 
     expect(v.text(`Sittings/${today}.md`)).toContain('> [!ask] which corner broke it first?');
     expect(surface.notices).toContain(`Asked in ${today}.`);

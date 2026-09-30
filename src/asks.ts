@@ -22,7 +22,7 @@ import { formatRef, keyOfRef, parseRef, refOf, stripBlockDecoration } from './re
 import type { Ref } from './refs';
 
 const ASK_TITLE = /^>\s*\[!ask\][+-]?\s*(.*?)\s*$/i;
-// The from-line starts with the word `from`; an embed line (`> ![[...]]`)
+// The from-line starts with the word `from`; a pasted or embedded line
 // does not, so it is swallowed into the callout without being read as a source.
 // Only the link is read: Sittings are append-only, and an old from-line may
 // still carry the `about [[...]]` clause of the slotted design.
@@ -176,8 +176,13 @@ export async function asksOf(app: App, file: TFile): Promise<Ask[]> {
 export interface AskOptions {
   /** Absolute due date, written as a `due:` line. */
   due?: string;
-  /** Embed the source block under the from-line (`> ![[source]]`), so a Revisit reads in place. */
-  embed?: boolean;
+  /**
+   * Paste the source's words under the from-line, one `> > ` line each, so the
+   * Ask reads in place. Not an embed: a virtual id cannot be transcluded, since
+   * the note does not carry it. Quoted a level deeper so no pasted line reads
+   * as `from` or `due`. Embeds were written until 2026-09-29.
+   */
+  paste?: string;
 }
 
 /**
@@ -218,7 +223,7 @@ export function appendAsk(
   sourceRef: string,
   opts: AskOptions = {},
 ): { text: string; cursorLine: number } {
-  const { due, embed } = opts;
+  const { due, paste } = opts;
   const lines = markdown.split('\n');
   let { heading, end: sectionEnd } = askedSection(lines);
   if (heading < 0) {
@@ -232,7 +237,7 @@ export function appendAsk(
   while (insertAt > heading + 1 && (lines[insertAt - 1] ?? '').trim() === '') insertAt--;
 
   const block = ['', `> [!ask] ${question.trim()}`, `> from [[${sourceRef}]]`];
-  if (embed) block.push(`> ![[${sourceRef}]]`);
+  if (paste !== undefined) block.push(...paste.split('\n').map((l) => `> > ${l}`.trimEnd()));
   if (due) block.push(`> due: ${due}`);
   block.push('', '');
   lines.splice(insertAt, sectionEnd - insertAt, ...block);

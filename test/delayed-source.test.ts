@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { Interview } from '../src/interview';
 import { DEFAULT_SETTINGS } from '../src/settings';
 import { createModel } from '../src/model';
+import { virtualId } from '../src/refs';
 import { fakeVault } from './fake-vault';
 
 const original = 'The originally selected paragraph.';
@@ -11,17 +12,17 @@ function fixture(id = '') {
   const notices: string[] = [];
   const interview = new Interview({ app: v.app, settings: DEFAULT_SETTINGS, model: createModel({ ...DEFAULT_SETTINGS, enableModel: false }) }, { notice: s => notices.push(s), placeCursor: () => true });
   const source = interview.selection({ file, selected: original, line: 0, document: v.text(file.path) })!;
-  const accept = () => interview.acceptFrom(v.file('Sittings/today.md'), source, { question: 'What changed?' }, 'pointed');
+  const accept = () => interview.acceptFrom(v.file('Sittings/today.md'), source, { question: 'What changed?' });
   return { v, file, source, notices, accept };
 }
 
 describe('delayed selection acceptance', () => {
-  test('relocates a unique unchanged paragraph after preceding insertion', async () => {
+  test('relocates a unique unchanged paragraph after preceding insertion, and writes nothing to it', async () => {
     const { v, file, accept } = fixture();
     await v.app.vault.process(file, () => `Unrelated paragraph.\n\n${original}\n`);
     await accept();
-    expect(v.text(file.path)).toMatch(/^Unrelated paragraph\.\n\nThe originally selected paragraph\. \^[a-z0-9]{6}\n$/);
-    expect(v.text('Sittings/today.md')).toContain('> from [[Notes/source#^');
+    expect(v.text(file.path)).toBe(`Unrelated paragraph.\n\n${original}\n`);
+    expect(v.text('Sittings/today.md')).toContain(`> from [[Notes/source#^${virtualId(original)}]]`);
   });
 
   for (const change of ['edit', 'delete', 'duplicates', 'stale metadata', 'existing ID edited', 'existing ID deleted']) {
@@ -50,7 +51,12 @@ describe('delayed selection acceptance', () => {
     expect(v.text('Sittings/today.md')).toContain('[[Notes/source#^original]]');
   });
 
-  test('checks current text again inside the atomic write', async () => {
+  // Until 2026-09-29 accepting appended an id to the source, and this test
+  // held that write atomic against a concurrent edit. The source is no longer
+  // written, so a concurrent edit has nothing to race: the one write is the
+  // Ask, into the Sitting, and it cites the words as they were when checked —
+  // exactly as if the owner edited the paragraph a moment after accepting.
+  test('a source replaced while the Ask is written is left as the owner left it', async () => {
     const { v, file, notices, accept } = fixture();
     const process = v.app.vault.process.bind(v.app.vault);
     let raced = false;
@@ -60,7 +66,7 @@ describe('delayed selection acceptance', () => {
     };
     await accept();
     expect(v.text(file.path)).toBe('Concurrent replacement.\n');
-    expect(v.text('Sittings/today.md')).toBe('## Asked\n');
-    expect(notices).toHaveLength(1);
+    expect(v.text('Sittings/today.md')).toContain(`> from [[Notes/source#^${virtualId(original)}]]`);
+    expect(notices).toHaveLength(0);
   });
 });

@@ -7,7 +7,7 @@ import {
   sittingFraming,
   sittingName,
 } from '../src/paragraphs';
-import { blockTexts } from '../src/refs';
+import { blockTexts, virtualId } from '../src/refs';
 import { fakeVault } from './fake-vault';
 
 describe('framing', () => {
@@ -130,8 +130,12 @@ describe('paragraphJar', () => {
   test('a folder the owner did not name is never read', async () => {
     const keys = (await jarOf(['Sittings'])).map((p) => p.key);
     expect(keys.every((k) => k.startsWith('Sittings/'))).toBe(true);
-    // And naming it brings it in: `Domains/Cities.md` has one id`d paragraph.
-    expect((await jarOf(['Domains'])).map((p) => p.key)).toEqual(['Domains/Cities.md#^w1']);
+    // And naming it brings it in: `Domains/Cities.md` has one id`d paragraph
+    // and one without, which comes in under its virtual id.
+    expect((await jarOf(['Domains'])).map((p) => p.key)).toEqual([
+      'Domains/Cities.md#^w1',
+      `Domains/Cities.md#^${virtualId('Every city I lived in for a week has a poem I never finished writing down.')}`,
+    ]);
   });
 
   // The one opt-out a note inside a named folder has. `Pieces/index.md` is a

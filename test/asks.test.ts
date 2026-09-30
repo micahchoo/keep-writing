@@ -98,27 +98,26 @@ describe('from-lines written before the two jars', () => {
 describe('revisit asks', () => {
   const ref = 'Pieces/2021-feeling-through-the-cities-koramangala#^p-004';
 
-  test('appendAsk with embed puts the paragraph under the from-line, before due', () => {
+  test('appendAsk with paste quotes the paragraph under the from-line, before due', () => {
     const { text, cursorLine } = appendAsk('## Asked\n', 'what did the buffaloes see that you left out?', ref, {
-      embed: true,
+      paste: 'The buffaloes did not look up.\nThe procession went past.',
       due: '2026-09-20',
     });
     expect(text).toBe(
       '## Asked\n\n> [!ask] what did the buffaloes see that you left out?\n' +
-        `> from [[${ref}]]\n> ![[${ref}]]\n> due: 2026-09-20\n\n`,
+        `> from [[${ref}]]\n> > The buffaloes did not look up.\n> > The procession went past.\n> due: 2026-09-20\n\n`,
     );
     expect(text.split('\n')[cursorLine]).toBe('');
   });
 
-  test('parseAsks reads the embedded ask back: source from the from-line, the embed swallowed into the callout', () => {
-    const { text, cursorLine } = appendAsk('## Asked\n', 'what did the buffaloes see that you left out?', ref, { embed: true });
-    const lines = text.split('\n');
-    lines[cursorLine] = 'They saw the trucks first. I only heard them.';
-    const [ask] = parseAsks(lines.join('\n'), (src) => src === ref);
+  // Nothing writes an embed since 2026-09-29; Sittings written before still hold them.
+  test('parseAsks reads an old embedded ask: source from the from-line, the embed swallowed into the callout', () => {
+    const md = `## Asked\n\n> [!ask] what did the buffaloes see that you left out?\n> from [[${ref}]]\n> ![[${ref}]]\n\nThey saw the trucks first. I only heard them.\n`;
+    const [ask] = parseAsks(md, (src) => src === ref);
     expect(ask?.sourceRef).toBe(ref);
     expect(ask?.due).toBeUndefined();
     expect(ask?.callout).toEqual({ start: 2, end: 4 });
-    expect(ask?.firstParagraph).toEqual({ start: cursorLine, end: cursorLine });
+    expect(ask?.firstParagraph).toEqual({ start: 6, end: 6 });
     expect(ask?.answered).toBe(true);
   });
 

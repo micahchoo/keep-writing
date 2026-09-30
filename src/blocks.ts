@@ -1,5 +1,6 @@
-// The one permitted body edit: append ` ^id` to the last line of a paragraph.
-// Never changes an existing character.
+// The one permitted body edit: append ` ^id` to the last line of an ANSWER's
+// first paragraph. Never changes an existing character. A source is never
+// written: it is addressed by the id it carries, or by a virtual one.
 //
 // One writer. There were two until 2026-09-21: `ensureBlockId(app, file, line)`
 // carried the tests and had no caller; `ensureSourceBlockId` shipped and had
@@ -7,17 +8,27 @@
 
 import type { App, CachedMetadata } from 'obsidian';
 import { Refused } from './refusal';
-import { newBlockId, refOf, stripBlockDecoration } from './refs';
+import { isVirtual, newBlockId, paragraphTexts, refOf, stripBlockDecoration, virtualId } from './refs';
 import type { Ref } from './refs';
 import type { Paragraph as SourceParagraph } from './paragraphs';
 
-/** Revalidate delayed offers against current text, including already anchored sources. */
-export async function ensureSourceBlockId(
-  app: App,
-  source: Pick<SourceParagraph, 'file' | 'ref' | 'text' | 'selectionSnapshot'>,
-  validate?: (content: string, line: number) => boolean,
-): Promise<Ref> {
-  const changed = () => new NotAParagraph('The paragraph changed or is ambiguous. Select it again.');
+type Source = Pick<SourceParagraph, 'file' | 'ref' | 'text' | 'selectionSnapshot'>;
+
+/** Where a source is now, checked against what was offered. Throws when it changed. */
+interface Located {
+  content: string;
+  lines: string[];
+  cache: CachedMetadata | null;
+  para: BlockSpan;
+  raw: string;
+  /** The id the block already carries in the note. */
+  present?: string;
+}
+
+const changed = () => new NotAParagraph('The paragraph changed or is ambiguous. Select it again.');
+
+/** Find the block a source names — by its id, or by its unique words — and check it has not changed. */
+async function locate(app: App, source: Source): Promise<Located> {
   const content = await app.vault.cachedRead(source.file);
   const cache = app.metadataCache.getFileCache(source.file);
   const lines = content.split('\n');
@@ -43,6 +54,44 @@ export async function ensureSourceBlockId(
       ((para.start > 0 && lines[para.start - 1]?.trim()) || lines[para.end + 1]?.trim())) throw changed();
   const present = /\s\^([A-Za-z0-9-]+)\s*$/.exec(raw)?.[1];
   if (source.ref.blockId && present !== source.ref.blockId) throw changed();
+  return present ? { content, lines, cache, para, raw, present } : { content, lines, cache, para, raw };
+}
+
+/**
+ * The address a SOURCE is cited by, and the words to paste under the Ask when
+ * the note cannot transclude it. Writes nothing: the id the block carries, or
+ * else its virtual id (refs.ts#virtualId). A source must be where it was
+ * offered, with the words it was offered with, or this refuses.
+ *
+ * Until 2026-09-29 a source without an id was given one here, written into the
+ * owner's prose. Most owners have no ids and want none written.
+ */
+export async function addressSource(app: App, source: Source): Promise<{ ref: Ref; text: string }> {
+  const wanted = source.ref.blockId;
+  const cache = app.metadataCache.getFileCache(source.file);
+  if (wanted && isVirtual(cache, wanted)) {
+    const block = (await paragraphTexts(app, source.file)).find((b) => b.id === wanted);
+    if (!block) throw changed();
+    return { ref: refOf(source.file, wanted), text: block.text };
+  }
+  const { raw, present } = await locate(app, source);
+  const text = stripBlockDecoration(raw);
+  return { ref: refOf(source.file, present ?? virtualId(text)), text };
+}
+
+/**
+ * Give the block a real id, appended to its last line. Only an ANSWER is
+ * given one (asks.ts#markAnswered), in a Sitting the plugin keeps; a source is
+ * addressed by `addressSource` and never written.
+ */
+export async function ensureSourceBlockId(
+  app: App,
+  source: Source,
+  validate?: (content: string, line: number) => boolean,
+): Promise<Ref> {
+  const wanted = source.ref.blockId;
+  if (wanted && isVirtual(app.metadataCache.getFileCache(source.file), wanted)) return (await addressSource(app, source)).ref;
+  const { content, lines, cache, para, present } = await locate(app, source);
   const id = present ?? newBlockId(cache);
   // An id already there and nothing to check inside the write: no write at all.
   if (present && !validate) return refOf(source.file, id);

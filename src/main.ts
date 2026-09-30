@@ -12,7 +12,7 @@
 import { MarkdownView, Notice, Platform, Plugin, TFile } from 'obsidian';
 import type { App, Menu } from 'obsidian';
 import type { Drawn } from './bank';
-import { Interview, REVISIT_FALLBACK, jarsLine } from './interview';
+import { Interview, REVISIT_FALLBACK, emptyDrawLine, jarsLine } from './interview';
 import type { Answered, Reach } from './interview';
 import { createModel } from './model';
 import type { Model, RevisitCandidate } from './model';
@@ -261,7 +261,7 @@ export default class KeepWritingPlugin extends Plugin {
     const { drawn, jars, target } = await this.interview.draw(sitting);
     if (this.unloaded) return;
     if (drawn.length === 0) {
-      new Notice('Nothing left to draw. Every source here is answered or already asked.');
+      new Notice(emptyDrawLine(jars, target, this.settings.writingFolders, this.settings.bankFolder));
       return;
     }
     const where = target ? `only ${target}` : jarsLine(jars);
@@ -304,7 +304,7 @@ export default class KeepWritingPlugin extends Plugin {
       this.app,
       candidates.map((c) => revisitChoice(c)),
       paragraph.title,
-      (candidate) => this.run(() => this.interview.acceptFrom(sitting, paragraph, candidate, reach)),
+      (candidate) => this.run(() => this.interview.acceptFrom(sitting, paragraph, candidate)),
     );
   }
 
