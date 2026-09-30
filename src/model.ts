@@ -9,7 +9,7 @@
 
 import { requestUrl } from 'obsidian';
 import { composeFollowUps, composeInvitation, composeRevisit, suggestHeadings, summarizeThread } from './bonsai';
-import type { BonsaiConfig, CallLog, RevisitCandidate, SectionText } from './bonsai';
+import type { BonsaiConfig, CallLog, RevisitCandidate, SectionText, Voice } from './bonsai';
 import type { KeepWritingSettings } from './settings';
 
 export type { CallLog, RevisitCandidate, SectionText };
@@ -43,10 +43,10 @@ export interface Model {
    * led to this answer, root first; `asked` is every other question already
    * put in this Sitting.
    */
-  composeFollowUps(question: string, answer: string, earlier: SectionText[], asked: string[], target: string): Promise<Composed<string>>;
+  composeFollowUps(question: string, answer: string, earlier: SectionText[], asked: string[], target: string, voice: Voice): Promise<Composed<string>>;
   /** Up to three questions ABOUT a paragraph the owner pointed at. `asked` is what was already asked from that block. */
-  composeRevisit(paragraph: string, framing: string, asked: string[], lens: string): Promise<Composed<RevisitCandidate>>;
-  /** Up to three invitations SEEDED by a paragraph the draw found, aimed at the owner's present. No framing: see INVITATION_SYSTEM. */
+  composeRevisit(paragraph: string, framing: string, asked: string[], voice: Voice): Promise<Composed<RevisitCandidate>>;
+  /** Up to three invitations SEEDED by a paragraph the draw found, aimed at the owner's present. No framing and no Stance: see INVITATION_TASK. */
   composeInvitation(paragraph: string, asked: string[], lens: string): Promise<Composed<RevisitCandidate>>;
   /** Up to three lines on what a thread is about, to name a Piece by. Shown, never written. */
   summarize(sections: SectionText[]): Promise<Composed<string>>;
@@ -114,10 +114,10 @@ export function createModel(settings: KeepWritingSettings, onLog?: (entry: CallL
   return {
     available: true,
     reason: '',
-    composeFollowUps: (question, answer, earlier, asked, target) =>
-      composing((cfg) => composeFollowUps(cfg, question, answer, earlier, asked, target)),
-    composeRevisit: (paragraph, framing, asked, lens) =>
-      composing((cfg) => composeRevisit(cfg, paragraph, framing, asked, lens)),
+    composeFollowUps: (question, answer, earlier, asked, target, voice) =>
+      composing((cfg) => composeFollowUps(cfg, question, answer, earlier, asked, target, voice)),
+    composeRevisit: (paragraph, framing, asked, voice) =>
+      composing((cfg) => composeRevisit(cfg, paragraph, framing, asked, voice)),
     composeInvitation: (paragraph, asked, lens) => composing((cfg) => composeInvitation(cfg, paragraph, asked, lens)),
     summarize: (sections) => composing((cfg) => summarizeThread(cfg, sections)),
     suggestHeadings: (sections) => composing((cfg) => suggestHeadings(cfg, sections)),

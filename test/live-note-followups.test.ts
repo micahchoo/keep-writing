@@ -6,6 +6,7 @@ import { readFileSync } from 'fs';
 import { answerText, parseAsks } from '../src/asks';
 import { composeFollowUps } from '../src/bonsai';
 import type { CallLog } from '../src/bonsai';
+import { FOLLOW_UP_LENS, STANCE } from '../src/lens';
 
 const BASE = 'http://127.0.0.1:8088/v1';
 const VAULT = `${import.meta.dir}/../../../..`;
@@ -36,7 +37,7 @@ describe.skipIf(!live)(`follow-ups on ${NOTE}`, () => {
       }
       const onLog = (e: CallLog) =>
         console.log(`    [try ${e.attempt}] ${e.outcome} in ${e.ms}ms${e.reason ? `\n      reason: ${e.reason}` : ''}`);
-      const qs = await composeFollowUps({ baseUrl: BASE, model: 'qwen3.8-27b', fetcher, onLog }, ask.question, answer, [], [], 'me');
+      const qs = await composeFollowUps({ baseUrl: BASE, model: 'qwen3.8-27b', fetcher, onLog }, ask.question, answer, [], [], 'me', { stance: STANCE, lens: FOLLOW_UP_LENS });
       console.log(`  -> ${qs.length} kept`);
       for (const q of qs) console.log(`     + ${q}`);
     }

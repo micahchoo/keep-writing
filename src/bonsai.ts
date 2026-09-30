@@ -2,7 +2,7 @@
 // compose a Follow-up, compose a Revisit (the interviewer again, over an old
 // paragraph, with its own prompt), and compose an Invitation.
 //
-// The Invitation is the one that is not an interview. See INVITATION_SYSTEM.
+// The Invitation is the one that is not an interview. See INVITATION_TASK.
 //
 // There was a third until 2026-09-17 — proposeRelation, which read a fresh
 // answer against five lexically-near blocks and named a relation between
@@ -287,7 +287,8 @@ async function runJob<T>(
 const MAX_FOLLOW_UPS = 3;
 const MAX_FOLLOW_UP_WORDS = 30;
 
-export const FOLLOW_UP_SYSTEM = `You are an autoethnographic interviewer. A person is being interviewed so that their own words become the material for their writing. You are shown the question they were asked and the answer they wrote, and sometimes the questions and answers earlier in the same thread. Compose the next question about the latest answer.
+/** The Follow-up's task and contract. Who asks and where to look are the owner's: `followUpSystem`. */
+export const FOLLOW_UP_TASK = `A person is being interviewed so that their own words become the material for their writing. You are shown the question they were asked and the answer they wrote, and sometimes the questions and answers earlier in the same thread. Compose the next question about the latest answer.
 
 Reply with a JSON object and nothing else:
 {"questions": ["...", "...", "..."]}
@@ -299,15 +300,37 @@ Give up to three candidate questions, best first. Each one:
 - may use their own terms, but never hands their answer back to them as a question;
 - is never the question they were just asked, in any wording. They have answered it. An answer that names three things where the question asked for one is still an answer;
 - does not refer to the conversation ("you said", "earlier", "your answer").
-Do not explain. Do not praise the answer.
+Do not explain. Do not praise the answer.`;
 
-Where to look for the question, in order of preference:
-1. A term they coined or use oddly: ask what it means to them, with an example.
-2. A thing they named but did not open: ask about it.
-3. An abstraction with no scene under it: ask for the moment it comes from.
-4. A pole with no contrast: ask what the opposite would be.
-5. A cause claimed with no event: ask what happened.
-6. A trailing thought, a "might", a tag, an aside: ask what is behind it.`;
+/** Who asks and where to look: the owner's part of a composer's prompt (lens.ts). */
+export interface Voice {
+  /** One sentence naming the interviewer. */
+  stance: string;
+  /** Where to look, and anything else that steers. Appended last. */
+  lens: string;
+}
+
+/**
+ * Pure: a prompt from its two parts. The task and the contract are fixed,
+ * because the code checks every reply against them; the owner's steer can
+ * change where the model looks and never what a reply must be.
+ */
+function joined(head: string, task: string, lens: string): string {
+  return `${head}${task}\n\n${lens.trim()}`;
+}
+
+export function followUpSystem(voice: Voice): string {
+  return joined(`${voice.stance.trim()} `, FOLLOW_UP_TASK, voice.lens);
+}
+
+export function revisitSystem(voice: Voice): string {
+  return joined(`${voice.stance.trim()} `, REVISIT_TASK, voice.lens);
+}
+
+/** No Stance: an Invitation is not an interview, and its measured prompt names no interviewer. */
+export function invitationSystem(lens: string): string {
+  return joined('', INVITATION_TASK, lens);
+}
 
 /**
  * Pure: the model's `questions`, keeping the ones that pass the code checks,
@@ -440,19 +463,21 @@ export async function composeFollowUps(
   earlier: SectionText[],
   asked: string[],
   target: string,
+  voice: Voice,
 ): Promise<string[]> {
+  const system = followUpSystem(voice);
   const about = (target === 'me' ? '' : `About: ${target}\n\n`) + threadSoFar(earlier);
   // The question being answered is always part of the set, whatever else the
   // caller found: it is the one the model is most likely to re-issue.
   const check = (obj: unknown) => checkFollowUps(obj, answer, [question, ...asked]);
   const withQuestion = `${about}Question asked: ${question}\n\nAnswer:\n${answer}`;
-  const first = await runJob(cfg, 'follow-up', FOLLOW_UP_SYSTEM, withQuestion, check);
+  const first = await runJob(cfg, 'follow-up', system, withQuestion, check);
   if (first.kind === 'ok') return first.value;
   // An abstain is the model saying it has nothing to ask. That is a legal
   // answer and the second arm must not go around it.
   if (first.kind === 'abstain') return [];
   const answerOnly = `${about}Answer:\n${answer}`;
-  return valueOrNull(await runJob(cfg, 'follow-up', FOLLOW_UP_SYSTEM, answerOnly, check)) ?? [];
+  return valueOrNull(await runJob(cfg, 'follow-up', system, answerOnly, check)) ?? [];
 }
 
 /**
@@ -511,7 +536,7 @@ export function checkRevisit(obj: unknown, paragraph: string, asked: string[]): 
 
 /**
  * Compose up to three questions from a paragraph the person wrote before,
- * best first. Same checks as a Follow-up, its own prompt (REVISIT_SYSTEM):
+ * best first. Same checks as a Follow-up, its own prompt (revisitSystem):
  * the paragraph is the context, the framing says when and where it was written (`in 2021, in
  * "Koramangala", for Branch Magazine`), and the Well's Lens, when it has one,
  * is appended to the system prompt verbatim. Empty on abstain, transport
@@ -529,19 +554,19 @@ export async function composeRevisit(
   paragraph: string,
   framing: string,
   asked: string[],
-  lens = '',
+  voice: Voice,
 ): Promise<RevisitCandidate[]> {
-  const system = lens.trim() ? `${REVISIT_SYSTEM}\n\n${lens.trim()}` : REVISIT_SYSTEM;
+  const system = revisitSystem(voice);
   const user = `Something they wrote ${framing}:\n\n${paragraph}`;
   return valueOrNull(await runJob(cfg, 'revisit', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
 }
 
 /**
- * The Revisit's own prompt. It borrowed FOLLOW_UP_SYSTEM until 2026-09-28,
+ * The Revisit's own prompt. It borrowed the Follow-up's until 2026-09-28,
  * which told the model it was shown a question and its answer; it is shown a
- * paragraph and when it was written. The owner's craft Lens is appended.
+ * paragraph and when it was written. The Stance and the craft Lens are the owner's.
  */
-export const REVISIT_SYSTEM = `You are an autoethnographic interviewer. A person keeps a notebook so their own words become material for their writing. You are shown ONE paragraph they wrote, and when and where they wrote it. Compose the question an interviewer would ask them about it next.
+export const REVISIT_TASK = `A person keeps a notebook so their own words become material for their writing. You are shown ONE paragraph they wrote, and when and where they wrote it. Compose the question an interviewer would ask them about it next.
 
 Reply with a JSON object and nothing else:
 {"questions": ["...", "...", "..."]}
@@ -552,15 +577,7 @@ Give up to three candidate questions, best first. Each one:
 - reaches for something concrete: a specific time this happened, a real example, a choice they made, a contrast between two things they named, or a consequence they have not stated;
 - may use their own terms, but never hands the paragraph back to them as a question;
 - does not refer to the paragraph as writing ("you wrote", "in this paragraph", "back then").
-Do not explain. Do not praise the paragraph.
-
-Where to look for the question, in order of preference:
-1. A term they coined or use oddly: ask what it means to them, with an example.
-2. A thing they named but did not open: ask about it.
-3. An abstraction with no scene under it: ask for the moment it comes from.
-4. A pole with no contrast: ask what the opposite would be.
-5. A cause claimed with no event: ask what happened.
-6. A trailing thought, a "might", a tag, an aside: ask what is behind it.`;
+Do not explain. Do not praise the paragraph.`;
 
 // ---------------------------------------------------------------------------
 // Invitation
@@ -599,7 +616,7 @@ Where to look for the question, in order of preference:
  * once the people who started it are gone. The Invitation degrades far more
  * gracefully on furniture, because it was never reading the words for facts.
  */
-export const INVITATION_SYSTEM = `A person keeps a notebook so their own words become material for their writing. You are shown ONE paragraph they wrote some time ago. Do not ask them about that paragraph. Find the concern under it and turn it into an invitation they can answer from their life NOW.
+export const INVITATION_TASK = `A person keeps a notebook so their own words become material for their writing. You are shown ONE paragraph they wrote some time ago. Do not ask them about that paragraph. Find the concern under it and turn it into an invitation they can answer from their life NOW.
 
 Reply with a JSON object and nothing else:
 {"questions": ["...", "...", "..."]}
@@ -613,14 +630,7 @@ Give up to three invitations, best first. Each one:
 - is about their present, not about the paragraph, not about the past, not about writing;
 - never quotes or paraphrases the paragraph, and never names what it was about if that would only send them back to it.
 
-Do not explain. Do not praise. Do not refer to the paragraph, to what they wrote, or to when they wrote it.
-
-Where to find the concern, in order of preference:
-1. A tension they held without resolving: name it as a question about now.
-2. A cost they paid or refused to pay: ask where that cost falls today.
-3. A thing they treated as permanent: ask what it would mean for it to end.
-4. A distinction they leaned on: ask where it stops holding.
-5. A want with no object: ask what it is reaching for.`;
+Do not explain. Do not praise. Do not refer to the paragraph, to what they wrote, or to when they wrote it.`;
 
 /**
  * Compose up to three Invitations from a paragraph the owner wrote before.
@@ -634,9 +644,9 @@ export async function composeInvitation(
   cfg: BonsaiConfig,
   paragraph: string,
   asked: string[],
-  lens = '',
+  lens: string,
 ): Promise<RevisitCandidate[]> {
-  const system = lens.trim() ? `${INVITATION_SYSTEM}\n\n${lens.trim()}` : INVITATION_SYSTEM;
+  const system = invitationSystem(lens);
   const user = `Something they wrote some time ago:\n\n${paragraph}`;
   return valueOrNull(await runJob(cfg, 'invitation', system, user, (obj) => checkRevisit(obj, paragraph, asked))) ?? [];
 }

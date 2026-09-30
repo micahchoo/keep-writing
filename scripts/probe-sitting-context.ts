@@ -17,6 +17,7 @@
 
 import { checkRevisit, composeFollowUps, composeRevisit, type BonsaiConfig, type Fetcher } from '../src/bonsai';
 import { sittingFraming } from '../src/paragraphs';
+import { FOLLOW_UP_LENS, REVISIT_WHERE, STANCE } from '../src/lens';
 
 const fetcher: Fetcher = async (url, init) => {
   const res = await fetch(url, { method: init.method, headers: init.headers, body: init.body });
@@ -53,7 +54,7 @@ for (const c of CASES) {
   console.log(`  framing now : "${now}"`);
 
   console.log(`\n  REVISIT, shipped (new framing, asked set threaded)`);
-  for (const q of await composeRevisit(cfg, c.answer, now, [c.asked])) console.log(`      * ${q.question}`);
+  for (const q of await composeRevisit(cfg, c.answer, now, [c.asked], { stance: STANCE, lens: REVISIT_WHERE })) console.log(`      * ${q.question}`);
 
   // The guard, exercised directly: the question already asked from this block
   // must not come back as a Revisit candidate.
@@ -64,5 +65,5 @@ for (const c of CASES) {
   if (kept.includes(c.asked)) console.log('      !! the re-ask survived');
 
   console.log(`\n  FOLLOW-UP (same words, same day) — note how close it is`);
-  for (const q of await composeFollowUps(cfg, c.asked, c.answer, [], [], 'me')) console.log(`      * ${q}`);
+  for (const q of await composeFollowUps(cfg, c.asked, c.answer, [], [], 'me', { stance: STANCE, lens: FOLLOW_UP_LENS })) console.log(`      * ${q}`);
 }

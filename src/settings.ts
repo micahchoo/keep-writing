@@ -5,7 +5,7 @@ import { bankKey, bankWeight } from './bank-mix';
 import type { BankWeights } from './bank-mix';
 import { BankInstallModal, NewBankModal, offerBankUpdate, openBankNote } from './bank-modals';
 import { STARTER_BANK } from './starter-bank';
-import { CRAFT_LENS, INVITATION_LENS, MAX_LENS_WORDS, lensProblem, lensText } from './lens';
+import { CRAFT_LENS, FOLLOW_UP_LENS, INVITATION_LENS, LENS_VERSION, MAX_LENS_WORDS, MAX_STANCE_WORDS, STANCE, lensProblem, lensText } from './lens';
 import { DropdownComponent, ExtraButtonComponent, Notice, PluginSettingTab, TFolder } from 'obsidian';
 import type { App, EventRef, Plugin, Setting, SettingDefinitionItem, SettingGroupItem, TAbstractFile } from 'obsidian';
 
@@ -38,6 +38,12 @@ export interface KeepWritingSettings {
    */
   craftLens: string;
   invitationLens: string;
+  /** The Follow-up's Lens, the same way. */
+  followUpLens: string;
+  /** Who asks, at most MAX_STANCE_WORDS. '' means the shipped one. */
+  stance: string;
+  /** The shape the Lenses are stored in (lens.ts#LENS_VERSION). */
+  lensVersion: number;
   /** Folder that holds Sittings (daily notes). */
   sittingsFolder: string;
   /** Folder that holds Bank notes. */
@@ -79,6 +85,9 @@ export const DEFAULT_SETTINGS: KeepWritingSettings = {
   enableModel: true,
   craftLens: '',
   invitationLens: '',
+  followUpLens: '',
+  stance: '',
+  lensVersion: LENS_VERSION,
   sittingsFolder: 'Sittings',
   bankFolder: 'Bank',
   writingFolders: ['Sittings'],
@@ -263,32 +272,13 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'What the AI looks for',
+        heading: 'The AI’s instructions',
         items: [
           {
-            name: 'When you ask about a paragraph',
-            desc: `Added to the AI's instructions when you choose a paragraph to be asked about. It says what to look for in your writing. Up to ${MAX_LENS_WORDS} words. Clear the box to restore the default.`,
-            aliases: ['lens', 'craft', 'prompt', 'instructions', 'revisit', 'selection'],
-            control: {
-              type: 'textarea',
-              key: 'craftLens',
-              rows: 6,
-              validate: (v) => lensProblem(v),
-              disabled: () => !this.host.settings.enableModel,
-            },
+            name: 'What you can change',
+            desc: 'These boxes are the parts of the AI’s instructions that decide how it asks: who is asking, and where to look. The reply format and the rules every question must keep are fixed, so an edit cannot stop questions from arriving. Each box has a way back to the default.',
           },
-          {
-            name: 'When a paragraph is drawn',
-            desc: `Added to the AI's instructions when a question is drawn from your older writing. The AI does not ask about that paragraph; this says how to turn it into a question about your life now. Up to ${MAX_LENS_WORDS} words. Clear the box to restore the default.`,
-            aliases: ['lens', 'invitation', 'prompt', 'instructions', 'draw'],
-            control: {
-              type: 'textarea',
-              key: 'invitationLens',
-              rows: 6,
-              validate: (v) => lensProblem(v),
-              disabled: () => !this.host.settings.enableModel,
-            },
-          },
+          ...this.steerDefinitions(),
         ],
       },
     ];
@@ -360,9 +350,51 @@ export class KeepWritingSettingTab extends PluginSettingTab {
    * drawn by hand, and a folder the owner somehow empties must fall back to
    * the default rather than storing '' and reaching nothing.
    */
-  override getControlValue(key: string): unknown {
+  /** One box and its way back, for each part of the instructions the owner can edit. */
+  private steerDefinitions(): SettingGroupItem<ControlKey>[] {
+    return (Object.keys(STEERS) as SteerKey[]).flatMap((key) => {
+      const { name, desc, aliases, max, rows } = STEERS[key];
+      return [
+        {
+          name,
+          desc: `${desc} Up to ${max} words.`,
+          aliases: [...aliases, 'prompt', 'instructions'],
+          control: {
+            type: 'textarea' as const,
+            key,
+            rows,
+            validate: (v: string) => lensProblem(v, max),
+            disabled: () => !this.host.settings.enableModel,
+          },
+        },
+        {
+          // Obsidian keys a row by its name, so each one needs its own.
+          name: `Restore “${name}”`,
+          desc: 'Put the default text back in the box above.',
+          aliases: ['reset', 'default', ...aliases],
+          visible: () => this.isEdited(key),
+          action: () => { void this.restoreDefault(key).catch(showSettingsError); },
+        },
+      ];
+    });
+  }
+
+  /** Does this box hold the owner's own text rather than the shipped one? */
+  isEdited(key: SteerKey): boolean {
+    return this.host.settings[key] !== '';
+  }
+
+  /** Back to the shipped text. Redrawn, because the box's own text changes. */
+  async restoreDefault(key: SteerKey): Promise<void> {
+    this.host.settings[key] = '';
+    await this.host.saveSettings();
+    this.update();
+  }
+
+  override getControlValue(name: string): unknown {
     const s = this.host.settings;
-    switch (key as ControlKey) {
+    const key = name as ControlKey;
+    switch (key) {
       case 'writingFolders':
         return s.writingFolders;
       case 'sittingsFolder':
@@ -382,16 +414,18 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       case 'apiKey':
         return s.apiKey;
       case 'craftLens':
-        return lensText(s.craftLens, CRAFT_LENS);
       case 'invitationLens':
-        return lensText(s.invitationLens, INVITATION_LENS);
+      case 'followUpLens':
+      case 'stance':
+        return lensText(s[key], STEERS[key].shipped);
     }
   }
 
-  override setControlValue(key: string, value: unknown): Promise<void> {
+  override setControlValue(name: string, value: unknown): Promise<void> {
     const s = this.host.settings;
     const text = typeof value === 'string' ? value : '';
-    switch (key as ControlKey) {
+    const key = name as ControlKey;
+    switch (key) {
       case 'writingFolders':
         s.writingFolders = readFolders(value);
         break;
@@ -421,16 +455,19 @@ export class KeepWritingSettingTab extends PluginSettingTab {
       case 'apiKey':
         s.apiKey = text.trim();
         break;
-      // Refused over the limit, and the last Lens stays. The shipped text is
-      // stored as '' so it keeps following the shipped one.
+      // Refused over the limit, and the last text stays. The shipped text is
+      // stored as '' so it keeps following the shipped one. The restore row
+      // hangs off this, re-evaluated in place so the box keeps its cursor.
       case 'craftLens':
-        if (lensProblem(text)) return Promise.resolve();
-        s.craftLens = ownLens(text, CRAFT_LENS);
-        break;
       case 'invitationLens':
-        if (lensProblem(text)) return Promise.resolve();
-        s.invitationLens = ownLens(text, INVITATION_LENS);
+      case 'followUpLens':
+      case 'stance': {
+        const { shipped, max } = STEERS[key];
+        if (lensProblem(text, max)) return Promise.resolve();
+        s[key] = ownLens(text, shipped);
+        this.refreshDomState();
         break;
+      }
     }
     return this.host.saveSettings();
   }
@@ -450,8 +487,49 @@ type ControlKey = 'bankShare'
   | 'model'
   | 'maxTokens'
   | 'apiKey'
-  | 'craftLens'
-  | 'invitationLens';
+  | SteerKey;
+
+/**
+ * The parts of the AI's instructions the owner edits (lens.ts). Four boxes,
+ * one rule: show the owner's text or the shipped one, store '' for the shipped
+ * one, refuse over the limit, and offer a way back.
+ */
+const STEERS = {
+  stance: {
+    name: 'Who is asking',
+    desc: 'One sentence naming the interviewer, used when you mark an answer and when you ask about a paragraph.',
+    aliases: ['stance', 'interviewer', 'persona'],
+    shipped: STANCE,
+    max: MAX_STANCE_WORDS,
+    rows: 2,
+  },
+  followUpLens: {
+    name: 'When you mark an answer',
+    desc: 'Where the AI looks in your answer for the next question.',
+    aliases: ['lens', 'follow-up', 'answer'],
+    shipped: FOLLOW_UP_LENS,
+    max: MAX_LENS_WORDS,
+    rows: 8,
+  },
+  craftLens: {
+    name: 'When you ask about a paragraph',
+    desc: 'Where the AI looks in a paragraph you chose to be asked about.',
+    aliases: ['lens', 'craft', 'revisit', 'selection'],
+    shipped: CRAFT_LENS,
+    max: MAX_LENS_WORDS,
+    rows: 10,
+  },
+  invitationLens: {
+    name: 'When a paragraph is drawn',
+    desc: 'How the AI turns a paragraph drawn from your older writing into a question about your life now. It does not ask about the paragraph itself.',
+    aliases: ['lens', 'invitation', 'draw'],
+    shipped: INVITATION_LENS,
+    max: MAX_LENS_WORDS,
+    rows: 10,
+  },
+} as const;
+
+type SteerKey = keyof typeof STEERS;
 
 /** Pure: what to store for a Lens box — the owner's own text, or '' for the shipped one. */
 function ownLens(text: string, shipped: string): string {

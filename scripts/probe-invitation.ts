@@ -3,7 +3,7 @@
 //
 // The owner's verdict on drawn Revisits, 2026-09-17: "a lot of them are older
 // or produce questions less contextual to who i am rn, some of them are good."
-// The cause is structural, not a prompting accident — `FOLLOW_UP_SYSTEM`'s
+// The cause is structural, not a prompting accident — the Follow-up prompt's
 // whole list of where-to-look aims backward, INTO the text — and 989 of the
 // 999 blocks a draw can reach come from finished Pieces, 609 of them from 2020
 // or earlier.
@@ -21,7 +21,7 @@
 
 import { readFileSync } from 'fs';
 import { composeInvitation, composeRevisit, type BonsaiConfig, type Fetcher } from '../src/bonsai';
-import { CRAFT_LENS, INVITATION_LENS } from '../src/lens';
+import { CRAFT_LENS, INVITATION_LENS, STANCE } from '../src/lens';
 import { framingOf } from '../src/paragraphs';
 
 const fetcher: Fetcher = async (url, init) => {
@@ -95,7 +95,7 @@ for (const c of CASES) {
 
   console.log(`\n${'='.repeat(72)}\n${c.piece}#^${c.id}\n${text.slice(0, 300)}${text.length > 300 ? '…' : ''}\n`);
 
-  const revisit = await composeRevisit(cfg, text, framing, [], craft);
+  const revisit = await composeRevisit(cfg, text, framing, [], { stance: STANCE, lens: craft });
   console.log(`  REVISIT     (framing: ${framing})`);
   for (const q of revisit) console.log(`    · ${q.question}`);
   if (revisit.length === 0) console.log('    · (abstained or rejected)');

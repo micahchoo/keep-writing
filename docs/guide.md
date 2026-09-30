@@ -9,7 +9,7 @@ Two jars. Seven draws in ten come from the first.
 | Jar | What's in it | How it's asked |
 |---|---|---|
 | **The bank** | Questions other people wrote — every list item with a block id in a note in your bank folder whose frontmatter says `kind: bank` | As written |
-| **Your writing** | Every block with an id, in the folders you name in settings | The model builds a question about it |
+| **Your writing** | Every paragraph in the folders you name in settings, with a block id or without | The model builds a question about it |
 
 The bundled banks hold 3,576 questions across 22 answer registers. Choose which of these five notes to install:
 
@@ -114,7 +114,20 @@ Given the same list about georeferencing a map in QGIS, the Revisit asked *"what
 
 The model abstaining is a legal answer and is never worked around. Calls are logged to the developer console under `[keep-writing]` — the job, how long it took and how it ended, never the request or your key.
 
-Settings → **What the AI looks for** holds two boxes, one per composer: **When you ask about a paragraph** steers the Revisit, and **When a paragraph is drawn** steers the Invitation. Each box's text, up to 100 words, is added to the end of the AI's instructions. Edit it to change how the model asks: it is the interviewer's technique as text you control, not a string in the source. Clear a box to go back to the default.
+## Change how it asks
+
+Settings → **The AI's instructions** holds the parts of each prompt that decide how the model asks. They are text you control, not strings in the source:
+
+| Box | What it steers |
+|---|---|
+| **Who is asking** | The interviewer, in one sentence. Used by the Follow-up and the Revisit. |
+| **When you mark an answer** | Where the Follow-up looks in your answer. |
+| **When you ask about a paragraph** | Where the Revisit looks in a paragraph you chose. |
+| **When a paragraph is drawn** | How the Invitation turns an old paragraph into a question about now. |
+
+Each box opens with the text the plugin ships, so you edit the real thing, not a blank. The reply format and the rules every question keeps — one question, under 25 words, never "you said" — are not in the boxes, and the code checks every reply against them. An edit can change what you are asked; it cannot stop questions from arriving.
+
+When a box differs from the default, a **Restore** row appears under it. Clearing the box does the same. A box you have not edited follows the default, so a release that improves it reaches you.
 
 ## Reading your vault in graph view
 
@@ -147,8 +160,10 @@ A graduated piece has no `status`, so it is drawn as the piece you are writing, 
 The plugin never writes a sentence into your notes. Its entire write surface is three things:
 
 1. **Frontmatter properties** — via Obsidian's own `processFrontMatter`.
-2. **A block id** appended to a paragraph you already wrote (` ^a1b2c3`). No existing character changes.
-3. **A `> [!ask]` callout**, at the end of the `## Asked` section.
+2. **A block id** appended to your answer (` ^a1b2c3`), in your daily note. No existing character changes.
+3. **A `> [!ask]` callout**, at the end of the `## Asked` section, with the paragraph it asks about quoted under it.
+
+The paragraph a question came from is never written, not even an id. A paragraph without one is linked by an address computed from its words (`[[note#^kw-3f9a1c]]`). The link works and shows in backlinks; it opens the note at the top rather than at the paragraph. Edit the paragraph and it counts as a new one.
 
 There is no code path that inserts, edits or rewords prose. The body of a note is yours. Nothing is written without you picking it first, and Escape always means no.
 
@@ -163,7 +178,7 @@ To take back a mark, delete the entry from the note's `answers` property. The so
 
 **Use saved questions (%)** ranges from 0 (questions about your writing) to 100 (saved questions), with a default of 70.
 When one jar is empty, draws use the other. A target still restricts draws to that note's paragraphs.
-A draw reads Obsidian's own index of links and block ids, then reads only the notes it chose. Editing ordinary writing does not trigger a vault scan. Changes to bank notes refresh the bank list in settings.
+A draw reads Obsidian's own index of links and paragraphs, then reads only the notes it chose. Editing ordinary writing does not trigger a vault scan. Changes to bank notes refresh the bank list in settings.
 
 ## API key storage
 

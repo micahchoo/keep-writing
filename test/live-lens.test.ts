@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'fs';
 import { composeRevisit } from '../src/bonsai';
-import { CRAFT_LENS } from '../src/lens';
+import { CRAFT_LENS, REVISIT_WHERE, STANCE } from '../src/lens';
 
 const BASE = 'http://127.0.0.1:8088/v1';
 const up = await fetch(`${BASE}/models`, { signal: AbortSignal.timeout(3000) }).then((r) => r.ok).catch(() => false);
@@ -25,8 +25,8 @@ const cfg = { baseUrl: BASE, model: 'qwen3.8-27b', fetcher };
 describe.skipIf(!live)('Revisit through a Lens', () => {
   test('craft lens on Jingle Tales (Teaching and Learning)', async () => {
     const p = paragraph('Pieces/2021-08-01-jingle-tales.md', 'p-002');
-    const plain = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', []);
-    const lensed = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', [], CRAFT_LENS);
+    const plain = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', [], { stance: STANCE, lens: REVISIT_WHERE });
+    const lensed = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', [], { stance: STANCE, lens: CRAFT_LENS });
     console.log('\n[no lens]\n' + plain.map((c) => '  Q: ' + c.question).join('\n'));
     console.log('[craft lens]\n' + lensed.map((c) => '  Q: ' + c.question).join('\n'));
     expect(lensed.length).toBeGreaterThan(0);

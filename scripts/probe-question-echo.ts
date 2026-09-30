@@ -10,7 +10,8 @@
 //
 // Usage: bun run scripts/probe-question-echo.ts
 
-import { FOLLOW_UP_SYSTEM, extractJson } from '../src/bonsai';
+import { extractJson, followUpSystem } from '../src/bonsai';
+import { FOLLOW_UP_LENS, STANCE } from '../src/lens';
 
 const BASE = 'http://127.0.0.1:8088/v1';
 const MODEL = 'qwen3.8-27b';
@@ -31,7 +32,7 @@ async function arm(label: string, user: string): Promise<void> {
       temperature: 0,
       max_tokens: 256,
       messages: [
-        { role: 'system', content: FOLLOW_UP_SYSTEM },
+        { role: 'system', content: followUpSystem({ stance: STANCE, lens: FOLLOW_UP_LENS }) },
         { role: 'user', content: user },
       ],
     }),

@@ -28,7 +28,7 @@ import type { Drawn, JarCounts } from './bank';
 import { answeredInVault } from './links';
 import { addressSource } from './blocks';
 import { readBookmark, runClosing } from './closing';
-import { CRAFT_LENS, INVITATION_LENS, lensText } from './lens';
+import { CRAFT_LENS, FOLLOW_UP_LENS, INVITATION_LENS, STANCE, lensText } from './lens';
 import { graduate } from './graduation';
 import type { PieceChoice } from './graduation';
 import type { Composed, Model, RevisitCandidate, SectionText } from './model';
@@ -95,6 +95,11 @@ export type Reach = 'pointed' | 'picked';
  * these separately until 2026-09-21, and a third reach would have fallen into
  * the `picked` arm of each without a word.
  */
+/** Who asks: the owner's Stance, or the shipped one. */
+function stanceOf(settings: KeepWritingSettings): string {
+  return lensText(settings.stance, STANCE);
+}
+
 const REACHES: Record<Reach, {
   lens: (settings: KeepWritingSettings) => string;
   composer: 'revisit' | 'invitation';
@@ -296,7 +301,7 @@ export class Interview {
     const asked = await this.askedAbout(paragraph);
     const composed =
       composer === 'revisit'
-        ? await model.composeRevisit(paragraph.text, paragraph.framing, asked, lens)
+        ? await model.composeRevisit(paragraph.text, paragraph.framing, asked, { stance: stanceOf(this.host.settings), lens })
         : await model.composeInvitation(paragraph.text, asked, lens);
     return { candidates: composed.questions, error: composed.error };
   }
@@ -440,7 +445,9 @@ export class Interview {
     const alsoAsked = asks.map((a) => a.question).filter((q) => q !== ask.question);
     const isHere = (path: string) => this.app.metadataCache.getFirstLinkpathDest(path, file.path)?.path === file.path;
     const earlier = earlierInThread(content, isHere, fresh);
-    return model.composeFollowUps(ask.question, answer, earlier, [...alsoAsked, ...offered], target);
+    const { settings } = this.host;
+    const voice = { stance: stanceOf(settings), lens: lensText(settings.followUpLens, FOLLOW_UP_LENS) };
+    return model.composeFollowUps(ask.question, answer, earlier, [...alsoAsked, ...offered], target, voice);
   }
 
   /** Write one of the offered Follow-ups as an Ask, cited to the answer it came from. */

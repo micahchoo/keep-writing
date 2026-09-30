@@ -19,7 +19,7 @@ import type { Model, RevisitCandidate } from './model';
 import { questionCount } from './install';
 import { BankInstallModal, offerBankUpdate } from './bank-modals';
 import { normalizeBankWeights } from './bank-mix';
-import { readLens } from './lens';
+import { INVITATION_WHERE, LENS_VERSION, MAX_STANCE_WORDS, REVISIT_WHERE, readLens, upgradeLens } from './lens';
 import { GraduateModal } from './graduate-modal';
 import { OfferModal, choose } from './modals';
 import type { Choice } from './modals';
@@ -454,9 +454,18 @@ export default class KeepWritingPlugin extends Plugin {
     if (legacy && !secret && this.settings.apiKey !== legacy) throw new Error('API key migration failed. The existing settings were preserved.');
     this.settings.bankShare = normalizeBankShare(data.bankShare);
     this.settings.bankWeights = normalizeBankWeights(data.bankWeights);
-    this.settings.craftLens = readLens(data.craftLens);
-    this.settings.invitationLens = readLens(data.invitationLens);
-    if ('apiKey' in data) await this.persistSettings();
+    // A Lens edited before the list moved into it keeps the list in front.
+    // Written back only when that changed one; otherwise the version is saved
+    // with the next write, and reading an old Lens again gives the same answer.
+    const craft = upgradeLens(data.craftLens, REVISIT_WHERE, data.lensVersion);
+    const invitation = upgradeLens(data.invitationLens, INVITATION_WHERE, data.lensVersion);
+    const upgraded = craft !== data.craftLens || invitation !== data.invitationLens;
+    this.settings.craftLens = readLens(craft);
+    this.settings.invitationLens = readLens(invitation);
+    this.settings.followUpLens = readLens(data.followUpLens);
+    this.settings.stance = readLens(data.stance, MAX_STANCE_WORDS);
+    this.settings.lensVersion = LENS_VERSION;
+    if ('apiKey' in data || upgraded) await this.persistSettings();
   }
   private async persistSettings(): Promise<void> {
     const { apiKey: _apiKey, ...settings } = this.settings;

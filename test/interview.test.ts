@@ -13,7 +13,7 @@ import { Interview, dayStamp } from '../src/interview';
 import type { InterviewHost } from '../src/interview';
 import type { Paragraph } from '../src/paragraphs';
 import type { SectionText as Section } from '../src/model';
-import { CRAFT_LENS, INVITATION_LENS } from '../src/lens';
+import { CRAFT_LENS, FOLLOW_UP_LENS, INVITATION_LENS, STANCE } from '../src/lens';
 import { DEFAULT_SETTINGS } from '../src/settings';
 import { virtualId } from '../src/refs';
 import { fakeVault, sequence } from './fake-vault';
@@ -39,9 +39,9 @@ interface Plan {
 
 function recordingModel(plan: Plan = {}) {
   const seen = {
-    revisit: [] as { paragraph: string; framing: string; asked: string[]; lens: string }[],
+    revisit: [] as { paragraph: string; framing: string; asked: string[]; lens: string; stance: string }[],
     invitation: [] as { paragraph: string; asked: string[]; lens: string }[],
-    followUp: [] as { question: string; answer: string; earlier: Section[]; asked: string[]; target: string }[],
+    followUp: [] as { question: string; answer: string; earlier: Section[]; asked: string[]; target: string; lens: string; stance: string }[],
     summary: [] as SectionText[][],
     headings: [] as SectionText[][],
   };
@@ -54,16 +54,16 @@ function recordingModel(plan: Plan = {}) {
   const model: Model = {
     available: true,
     reason: '',
-    composeRevisit: async (paragraph, framing, asked, lens) => {
-      seen.revisit.push({ paragraph, framing, asked, lens });
+    composeRevisit: async (paragraph, framing, asked, { lens, stance }) => {
+      seen.revisit.push({ paragraph, framing, asked, lens, stance });
       return composed(plan.revisit ?? []);
     },
     composeInvitation: async (paragraph, asked, lens) => {
       seen.invitation.push({ paragraph, asked, lens });
       return composed(plan.invitation ?? []);
     },
-    composeFollowUps: async (question, answer, earlier, asked, target) => {
-      seen.followUp.push({ question, answer, earlier, asked, target });
+    composeFollowUps: async (question, answer, earlier, asked, target, { lens, stance }) => {
+      seen.followUp.push({ question, answer, earlier, asked, target, lens, stance });
       return composed(plan.followUps ?? []);
     },
     summarize: async (sections) => {
@@ -569,6 +569,15 @@ describe('the Revisit — the owner pointed at it', () => {
     expect(seen.revisit[0]?.lens).toBe('Ask what the tool did that they did not expect.');
   });
 
+  test('the owner’s Stance reaches the Revisit; the shipped one when theirs is empty', async () => {
+    const { model, seen } = recordingModel();
+    const { v, interview, host } = open(paragraphOnly(), model);
+    await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'pointed');
+    host.settings.stance = 'You are a patient oral historian.';
+    await interview.offerFrom(await drawnParagraph(interview, v.file(TODAY)), 'pointed');
+    expect(seen.revisit.map((r) => r.stance)).toEqual([STANCE, 'You are a patient oral historian.']);
+  });
+
   test('a paragraph from a Piece has no Asked set, and says so by being empty', async () => {
     const { model, seen } = recordingModel();
     const { v, interview } = open(paragraphOnly(), model);
@@ -652,6 +661,20 @@ describe('answering', () => {
     'Bank/craft.md':
       '---\nkind: bank\n---\n\n- what broke in the rig? #register/episode ^b1\n- what else did you try? #register/episode ^b2\n',
     'Pieces/cities.md': `---\ntitle: Cities\nstatus: published\n---\n\nThe pelvis bone was weighted wrong in every rig I made that year. ^p-004\n`,
+  });
+
+  test('the Follow-up is composed with the owner’s Lens and Stance, or the shipped ones', async () => {
+    const { model, seen } = recordingModel({ followUps: ['which bone did you weight it to?'] });
+    const shipped = open(answered(), model);
+    await shipped.interview.markAt({ file: shipped.v.file(TODAY), line: 8 });
+    const own = open(answered(), model);
+    own.host.settings.followUpLens = 'Ask for the next thing they did.';
+    own.host.settings.stance = 'You are a patient oral historian.';
+    await own.interview.markAt({ file: own.v.file(TODAY), line: 8 });
+    expect(seen.followUp.map((f) => [f.lens, f.stance])).toEqual([
+      [FOLLOW_UP_LENS, STANCE],
+      ['Ask for the next thing they did.', 'You are a patient oral historian.'],
+    ]);
   });
 
   test('marking links the answer at birth, then asks bonsai what follows', async () => {

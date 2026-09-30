@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 import KeepWritingPlugin from '../src/main';
+import { LENS_VERSION, MAX_LENS_WORDS, REVISIT_WHERE } from '../src/lens';
 function host(data: unknown, initial?: string, fail = false) {
   let secret = initial;
   const writes: unknown[] = [];
@@ -109,11 +110,21 @@ test('a stored folder list is read clean: a folder named twice is one folder', a
 // `validate` guards the box; data.json can hold anything. A Lens the box
 // would have refused is not used.
 test('a stored Lens is read clean: over the limit or not text, the shipped one is used', async () => {
-  const long = Array.from({ length: 101 }, () => 'w').join(' ');
-  const h = host({ craftLens: long, invitationLens: '  Ask about now.  ' });
+  const long = Array.from({ length: MAX_LENS_WORDS + 1 }, () => 'w').join(' ');
+  const h = host({ craftLens: long, invitationLens: '  Ask about now.  ', lensVersion: LENS_VERSION });
   await h.plugin.loadSettings();
   expect(h.plugin.settings.craftLens).toBe('');
   expect(h.plugin.settings.invitationLens).toBe('Ask about now.');
+});
+
+// Before 2026-09-29 a Lens followed the where-to-look list; it holds the list
+// now. An owner's old Lens keeps the list it was written after, and that is
+// saved once, so the next load reads it as it is.
+test('a Lens saved before the list moved into it is loaded with the list in front, and saved', async () => {
+  const h = host({ craftLens: 'Ask about the tools.' });
+  await h.plugin.loadSettings();
+  expect(h.plugin.settings.craftLens).toBe(`${REVISIT_WHERE}\n\nAsk about the tools.`);
+  expect(h.writes.at(-1)).toMatchObject({ craftLens: `${REVISIT_WHERE}\n\nAsk about the tools.`, lensVersion: LENS_VERSION });
 });
 
 test('bank weights survive saving and loading, including a paused custom bank', async () => {

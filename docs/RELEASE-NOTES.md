@@ -1,3 +1,13 @@
+# 0.6.0
+
+- Paragraphs without a block id are drawn. Until now only a paragraph that already carried an id could be, so a vault without them got no questions from its own writing. Nothing is written into the paragraph: it is linked by an address computed from its words (`^kw-…`), and answering it retires it like any other.
+- **Ask about the selection** no longer adds a block id to the paragraph you selected.
+- Every question from your writing now has the paragraph it came from quoted under it, as text. A drawn paragraph was not shown before, and a chosen one was embedded.
+- When a draw finds nothing, it says why: nothing in the folders you chose and the bank, or everything answered.
+- Settings → **The AI's instructions**: who is asking, and where the AI looks when you mark an answer, point at a paragraph, or draw one. Each box holds the whole list it steers by, up to 250 words, with a **Restore** row to put the default back. The reply format stays fixed. An instruction you edited in 0.5.0 keeps working: the list it was added to is put in front of it.
+
+Requires Obsidian 1.13.0 or later.
+
 # 0.5.0
 
 - 1,202 new questions: 767 in autobiographical, 60 in learning, and 375 prompts in invention. The bundled banks now hold 3,576.

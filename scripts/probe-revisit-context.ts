@@ -12,6 +12,7 @@
 import { composeRevisit, type BonsaiConfig, type Fetcher } from '../src/bonsai';
 import { readsAsParagraph } from '../src/furniture';
 import { framingOf } from '../src/paragraphs';
+import { REVISIT_WHERE, STANCE } from '../src/lens';
 
 const fetcher: Fetcher = async (url, init) => {
   const res = await fetch(url, { method: init.method, headers: init.headers, body: init.body });
@@ -83,7 +84,7 @@ const wasFraming = (c: Case): string => {
 for (const c of CASES) {
   console.log(`\n${'='.repeat(78)}\nCASE  ${c.name}\n${c.piece}\n${'='.repeat(78)}`);
 
-  const before = await composeRevisit(cfg, c.text, wasFraming(c), []);
+  const before = await composeRevisit(cfg, c.text, wasFraming(c), [], { stance: STANCE, lens: REVISIT_WHERE });
   console.log(`\n  BEFORE  framing: "${wasFraming(c)}"`);
   if (before.length === 0) console.log('      - nothing offered');
   for (const q of before) console.log(`      * ${q.question}`);
@@ -98,7 +99,7 @@ for (const c of CASES) {
     console.log(`\n  AFTER   REFUSED by readsAsParagraph - never reaches the model`);
     continue;
   }
-  const after = await composeRevisit(cfg, c.text, framing, []);
+  const after = await composeRevisit(cfg, c.text, framing, [], { stance: STANCE, lens: REVISIT_WHERE });
   console.log(`\n  AFTER   framing: "${framing}"`);
   if (after.length === 0) console.log('      - nothing offered');
   for (const q of after) console.log(`      * ${q.question}`);

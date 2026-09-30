@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'fs';
 import { composeRevisit } from '../src/bonsai';
-import { CRAFT_LENS } from '../src/lens';
+import { CRAFT_LENS, REVISIT_WHERE, STANCE } from '../src/lens';
 
 const BASE = 'http://127.0.0.1:8088/v1';
 const up = await fetch(`${BASE}/models`, { signal: AbortSignal.timeout(3000) }).then((r) => r.ok).catch(() => false);
@@ -28,13 +28,13 @@ const show = (label: string, p: string, qs: { question: string; dueDays?: number
 describe.skipIf(!live)('Revisit on real corpus paragraphs', () => {
   test('a poem stanza, 2021', async () => {
     const p = paragraph('Pieces/2021-01-01-koramangala.md', 'p-002');
-    const qs = await composeRevisit(cfg, p, 'in 2021, as a poem about their street in Koramangala', []);
+    const qs = await composeRevisit(cfg, p, 'in 2021, as a poem about their street in Koramangala', [], { stance: STANCE, lens: REVISIT_WHERE });
     show('poem', p, qs);
     expect(qs.length).toBeGreaterThan(0);
   }, 60_000);
   test('an essay paragraph, published', async () => {
     const p = paragraph('Pieces/2021-08-01-jingle-tales.md', 'p-002');
-    const qs = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', [], CRAFT_LENS);
+    const qs = await composeRevisit(cfg, p, 'in 2021, for Critical Code Recipes', [], { stance: STANCE, lens: CRAFT_LENS });
     show('essay, craft lens', p, qs);
     expect(qs.length).toBeGreaterThan(0);
   }, 60_000);
@@ -42,7 +42,7 @@ describe.skipIf(!live)('Revisit on real corpus paragraphs', () => {
     const lines = readFileSync(`${VAULT}/Pieces/2020-02-01-care-in-collectives.md`, 'utf8');
     const id = (lines.match(/\^(p-00[3-6])\s*$/m) ?? [])[1] ?? 'p-002';
     const p = paragraph('Pieces/2020-02-01-care-in-collectives.md', id);
-    const qs = await composeRevisit(cfg, p, 'in 2020, in a draft they set down', []);
+    const qs = await composeRevisit(cfg, p, 'in 2020, in a draft they set down', [], { stance: STANCE, lens: REVISIT_WHERE });
     show('draft', p, qs);
     expect(qs.length).toBeGreaterThan(0);
   }, 60_000);

@@ -12,12 +12,13 @@ A blank page stops you; a question doesn't. keep-writing puts one into your dail
 
 - **Starts the day for you.** Adds an opening question to a new daily note when a bank has unanswered questions. Works without AI.
 - **Draws a question** into today's note. Three to choose from — pick one, or press Escape and nothing is written.
-- **Turns your old writing into new questions.** Highlight a paragraph and you are asked about *that paragraph*. Let the draw find one and you get a question about your life *now* — most of what it can reach is years old, and a question about 2020 is a question for whoever you were then.
+- **Turns your old writing into new questions.** Highlight a paragraph and you are asked about *that paragraph*. Let the draw find one and you get a question about your life *now* — most of what it can reach is years old, and a question about 2020 is a question for whoever you were then. Any paragraph in the folders you choose counts, as it is; nothing is added to it.
+- **Lets you rewrite how it asks.** The AI's instructions are in settings: who is asking, and where it looks for each kind of question. The reply format stays fixed, so no edit can stop the questions, and every box has a way back to its default.
 - **Follows up.** Mark an answer done and the model reads it, then offers the next question. Run it again next week and it writes fresh ones.
 - **Opens where you stopped.** Leave a note about where to pick up, and tomorrow's first question comes from what you wrote, with your own words under it.
 - **Links every answer** to the question that caused it, which is what stops a question coming back once you have answered it.
 - **Grows pieces out of days.** A question and its follow-ups can leave the daily note and become a piece of its own, with every link following the words.
-- **Never writes your prose.** It adds frontmatter, a block id, and the question itself — nothing else. No sentence of yours is ever inserted, edited or reworded.
+- **Never writes your prose.** It adds frontmatter, a block id on your answer, and the question itself, with the words it asks about quoted under it — nothing else. No sentence of yours is ever inserted, edited or reworded.
 
 ## Getting started
 
@@ -74,6 +75,7 @@ Findable from Obsidian's own settings search: type "bank folder" or "server addr
 | **Use saved questions (%)** | Default 70%. Choose how often to draw a bank question instead of your writing. If one source has nothing available, the other is used. |
 | **Question banks** | Install selected banks, get authoring instructions for your agent, and open **Installed banks** to choose how often each appears. Zero pauses it. |
 | **Generate questions with AI** | Off makes it bank-only, with no network call at all. |
+| **The AI's instructions** | Who is asking, and where the AI looks when you mark an answer, point at a paragraph, or draw one. **Restore** puts the default back. |
 | **Server address** | An OpenAI-compatible server. The default expects one already running on your device. For Ollama: `http://localhost:11434/v1` |
 | **Model name** | Must name a model your server has. |
 | **Response length limit** | Maximum AI response size in tokens. Raise it if responses are cut short. Default `2048`. |
@@ -87,7 +89,7 @@ To import a finished bank or get instructions for your agent, see [Choose, impor
 
 ## More
 
-The [guide](docs/guide.md) covers where questions come from and how the bank is built, spending a day on one note, picking up where you stopped, how the three model jobs differ, and how to read your vault in graph view.
+The [guide](docs/guide.md) covers where questions come from and how the bank is built, spending a day on one note, picking up where you stopped, how the three model jobs differ, how to change how it asks, and how to read your vault in graph view.
 
 ## Licence
 

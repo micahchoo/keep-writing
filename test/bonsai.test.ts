@@ -1,7 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import { FOLLOW_UP_SYSTEM, REVISIT_SYSTEM, checkFollowUps, checkRevisit, composeFollowUps, composeRevisit, extractJson, isParrot, splitDue } from '../src/bonsai';
+import { FOLLOW_UP_TASK, REVISIT_TASK, checkFollowUps, checkRevisit, composeFollowUps, composeRevisit, extractJson, revisitSystem, isParrot, splitDue } from '../src/bonsai';
+import { CRAFT_LENS, FOLLOW_UP_LENS, STANCE } from '../src/lens';
 import type { CallLog } from '../src/bonsai';
 import type { BonsaiConfig } from '../src/bonsai';
+
+/** The shipped Voices: these tests are about the transport and the checks, not the steer. */
+const FOLLOW_UP_VOICE = { stance: STANCE, lens: FOLLOW_UP_LENS };
+const REVISIT_VOICE = { stance: STANCE, lens: CRAFT_LENS };
 
 const ANSWER = 'Transition Design - if it is in the service of understanding the historical setting we should introduce new ideas where the transitions exist.';
 
@@ -60,11 +65,11 @@ describe('composeFollowUps with a fake server', () => {
     };
   };
   test('returns the kept questions', async () => {
-    const out = await composeFollowUps(cfg(['{"questions":["What happened the first time?","Tell me more."]}']), 'q?', ANSWER, [], [], 'me');
+    const out = await composeFollowUps(cfg(['{"questions":["What happened the first time?","Tell me more."]}']), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(out).toEqual(['What happened the first time?']);
   });
   test('retries once, then gives up empty', async () => {
-    const out = await composeFollowUps(cfg(['{"questions":["Tell me more."]}', '{"questions":["Still no."]}']), 'q?', ANSWER, [], [], 'me');
+    const out = await composeFollowUps(cfg(['{"questions":["Tell me more."]}', '{"questions":["Still no."]}']), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(out).toEqual([]);
   });
   test('abstain is empty without retry', async () => {
@@ -72,7 +77,7 @@ describe('composeFollowUps with a fake server', () => {
     const c = cfg(['{"abstain":true}']);
     const f = c.fetcher;
     c.fetcher = (u, i) => { calls++; return f(u, i); };
-    expect(await composeFollowUps(c, 'q?', ANSWER, [], [], 'me')).toEqual([]);
+    expect(await composeFollowUps(c, 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE)).toEqual([]);
     expect(calls).toBe(1);
   });
 
@@ -92,7 +97,7 @@ describe('composeFollowUps with a fake server', () => {
       { question: 'what are you saving up for?', answer: 'A house by the river.' },
       { question: 'why the river?', answer: 'Because it keeps moving.' },
     ];
-    await composeFollowUps(c, 'what moves you, then?', 'People who stay.', earlier, [], 'me');
+    await composeFollowUps(c, 'what moves you, then?', 'People who stay.', earlier, [], 'me', FOLLOW_UP_VOICE);
     const thread =
       'Earlier in this thread:\n\nQuestion: what are you saving up for?\nAnswer:\nA house by the river.\n\n' +
       'Question: why the river?\nAnswer:\nBecause it keeps moving.\n\n';
@@ -107,9 +112,9 @@ describe('composeFollowUps with a fake server', () => {
 // answer to a question it was never shown.
 describe('the Revisit has its own prompt', () => {
   test('it describes a paragraph, and no question the paragraph answered', () => {
-    expect(REVISIT_SYSTEM).not.toBe(FOLLOW_UP_SYSTEM);
-    expect(REVISIT_SYSTEM).toContain('paragraph');
-    expect(REVISIT_SYSTEM).not.toContain('the question they were asked');
+    expect(REVISIT_TASK).not.toBe(FOLLOW_UP_TASK);
+    expect(REVISIT_TASK).toContain('paragraph');
+    expect(REVISIT_TASK).not.toContain('the question they were asked');
   });
 });
 
@@ -135,22 +140,22 @@ describe('the API key', () => {
   };
 
   test('no key configured: no Authorization header at all', async () => {
-    await composeFollowUps(cfg(), 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(cfg(), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(Object.keys(seen.headers)).toEqual(['Content-Type']);
   });
 
   test('an empty or blank key is no key', async () => {
-    await composeFollowUps(cfg('   '), 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(cfg('   '), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(seen.headers['Authorization']).toBeUndefined();
   });
 
   test('a key is sent as a bearer token, trimmed', async () => {
-    await composeFollowUps(cfg(' sk-secret '), 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(cfg(' sk-secret '), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(seen.headers['Authorization']).toBe('Bearer sk-secret');
   });
 
   test('the key is never in the log', async () => {
-    await composeFollowUps(cfg('sk-secret'), 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(cfg('sk-secret'), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(seen.logs.length).toBeGreaterThan(0);
     expect(JSON.stringify(seen.logs)).not.toContain('sk-secret');
   });
@@ -197,7 +202,7 @@ describe('composeRevisit with a fake server', () => {
     const { cfg, bodies, log } = capture([
       '{"questions":["What did the buffaloes see that you left out?","You wrote that down; why?","Tell me more."]}',
     ]);
-    const out = await composeRevisit(cfg, PARAGRAPH, 'in 2021, for Branch Magazine', []);
+    const out = await composeRevisit(cfg, PARAGRAPH, 'in 2021, for Branch Magazine', [], REVISIT_VOICE);
     expect(out).toEqual([{ question: 'What did the buffaloes see that you left out?' }]);
     const sent = JSON.parse(bodies[0] as string) as { messages: { role: string; content: string }[] };
     expect(sent.messages[1]?.content).toBe(`Something they wrote in 2021, for Branch Magazine:\n\n${PARAGRAPH}`);
@@ -205,24 +210,23 @@ describe('composeRevisit with a fake server', () => {
     expect(log[0]?.outcome).toBe('ok');
   });
 
-  test('without a Lens the system prompt is the interviewer alone; with one, the Lens is appended verbatim', async () => {
+  // Every Revisit has a Lens since 2026-09-29: the where-to-look list moved
+  // into it, so there is no prompt without one. It is sent verbatim, last.
+  test('the Lens is sent verbatim, at the end of the system prompt', async () => {
     const reply = '{"questions":["What did the buffaloes see that you left out?"]}';
-    const plain = capture([reply]);
-    await composeRevisit(plain.cfg, PARAGRAPH, 'in 2021', []);
     const lensed = capture([reply]);
     const LENS = 'Look for what happened, in order, before you look for what it means.\n\n1. A moment named.';
-    await composeRevisit(lensed.cfg, PARAGRAPH, 'in 2021', [], LENS);
-    const system = (bodies: string[]) => (JSON.parse(bodies[0] as string) as { messages: { content: string }[] }).messages[0]?.content ?? '';
-    expect(system(plain.bodies)).not.toContain('Look for what happened');
-    expect(system(lensed.bodies)).toBe(`${system(plain.bodies)}\n\n${LENS}`);
-    expect(system(lensed.bodies).endsWith(LENS)).toBe(true);
+    await composeRevisit(lensed.cfg, PARAGRAPH, 'in 2021', [], { stance: STANCE, lens: LENS });
+    const system = (JSON.parse(lensed.bodies[0] as string) as { messages: { content: string }[] }).messages[0]?.content ?? '';
+    expect(system).toBe(revisitSystem({ stance: STANCE, lens: LENS }));
+    expect(system.endsWith(LENS)).toBe(true);
   });
 
   test('a trailing (due +7d) marker is stripped from the question and returned as dueDays', async () => {
     const { cfg } = capture([
       '{"questions":["Go read one page of Reve tonight; what surprised you? (due +7d)","Which word did you look up first? (due +3d)?","What does the first sentence mean?"]}',
     ]);
-    const out = await composeRevisit(cfg, PARAGRAPH, 'in what they wrote about wanting to learn Dutch', [], 'reach for a rung');
+    const out = await composeRevisit(cfg, PARAGRAPH, 'in what they wrote about wanting to learn Dutch', [], { stance: STANCE, lens: 'reach for a rung' });
     expect(out).toEqual([
       { question: 'Go read one page of Reve tonight; what surprised you?', dueDays: 7 },
       { question: 'Which word did you look up first?', dueDays: 3 },
@@ -232,7 +236,7 @@ describe('composeRevisit with a fake server', () => {
 
   test('empty after the retry also fails, so the pane falls back', async () => {
     const { cfg, log } = capture(['{"questions":["Tell me more."]}', 'no json here']);
-    expect(await composeRevisit(cfg, PARAGRAPH, 'in 2020, in a draft they set down', [])).toEqual([]);
+    expect(await composeRevisit(cfg, PARAGRAPH, 'in 2020, in a draft they set down', [], REVISIT_VOICE)).toEqual([]);
     expect(log.length).toBe(2);
   });
 });
@@ -377,13 +381,13 @@ describe('the reply budget', () => {
 
   test('what the setting says is what the endpoint is asked for', async () => {
     sent.length = 0;
-    await composeFollowUps(spy(777), 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(spy(777), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(sent[0]?.['max_tokens']).toBe(777);
   });
 
   test('unset falls back to a budget with room to think in', async () => {
     sent.length = 0;
-    await composeFollowUps(spy(), 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(spy(), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(sent[0]?.['max_tokens']).toBe(2048);
   });
 });
@@ -405,13 +409,13 @@ describe('temperature', () => {
 
   test('a Follow-up is sampled, so asking again can find other questions', async () => {
     sent.length = 0;
-    await composeFollowUps(spy, 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(spy, 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(sent[0]?.['temperature']).toBeGreaterThan(0);
   });
 
   test('a Revisit stays at 0', async () => {
     sent.length = 0;
-    await composeRevisit(spy, 'The map aligned against the survey sheet.', 'in 2021', []);
+    await composeRevisit(spy, 'The map aligned against the survey sheet.', 'in 2021', [], REVISIT_VOICE);
     expect(sent[0]?.['temperature']).toBe(0);
   });
 });
@@ -434,7 +438,7 @@ describe('an empty reply', () => {
 
   test('cut off mid-budget is an error that names the setting', async () => {
     logs.length = 0;
-    const out = await composeFollowUps(replying({ finish_reason: 'length', message: { content: '' } }), 'q?', ANSWER, [], [], 'me');
+    const out = await composeFollowUps(replying({ finish_reason: 'length', message: { content: '' } }), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(out).toEqual([]);
     // Twice: a failed first arm falls through to the answer-only arm, which
     // truncates the same way. Wasteful on this path, harmless, and the second
@@ -446,7 +450,7 @@ describe('an empty reply', () => {
 
   test('empty for any other reason is still an error, and says which', async () => {
     logs.length = 0;
-    await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '   ' } }), 'q?', ANSWER, [], [], 'me');
+    await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '   ' } }), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(logs.map((l) => l.outcome)).toEqual(['error', 'error']);
     expect(logs[0]?.reason).toContain('finish_reason: stop');
   });
@@ -455,7 +459,7 @@ describe('an empty reply', () => {
   // an abstain. One attempt, no retry, no error.
   test('an abstain is not an error', async () => {
     logs.length = 0;
-    const out = await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '{"abstain": true}' } }), 'q?', ANSWER, [], [], 'me');
+    const out = await composeFollowUps(replying({ finish_reason: 'stop', message: { content: '{"abstain": true}' } }), 'q?', ANSWER, [], [], 'me', FOLLOW_UP_VOICE);
     expect(out).toEqual([]);
     expect(logs.map((l) => l.outcome)).toEqual(['abstain']);
   });

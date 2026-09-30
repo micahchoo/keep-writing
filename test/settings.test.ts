@@ -125,16 +125,50 @@ describe('the Lens boxes', () => {
   const tabWith = async (settings: Record<string, unknown> = {}) => {
     const { KeepWritingSettingTab, DEFAULT_SETTINGS } = await import('../src/settings');
     const tab = Object.create(KeepWritingSettingTab.prototype) as InstanceType<typeof KeepWritingSettingTab>;
-    const host = { settings: { ...DEFAULT_SETTINGS, ...settings }, saveSettings: async () => {} };
-    Object.assign(tab, { host });
-    return { tab, host };
+    const host = { settings: { ...DEFAULT_SETTINGS, ...settings }, saveSettings: async () => { saves++; } };
+    let saves = 0;
+    const redraws = { update: 0, refresh: 0 };
+    Object.assign(tab, { host, update: () => { redraws.update++; }, refreshDomState: () => { redraws.refresh++; } });
+    return { tab, host, redraws, saves: () => saves };
   };
 
-  test('an empty setting shows the shipped Lens', async () => {
-    const { CRAFT_LENS, INVITATION_LENS } = await import('../src/lens');
+  test('an empty setting shows the shipped text, for every box', async () => {
+    const { CRAFT_LENS, FOLLOW_UP_LENS, INVITATION_LENS, STANCE } = await import('../src/lens');
     const { tab } = await tabWith();
     expect(tab.getControlValue('craftLens')).toBe(CRAFT_LENS);
     expect(tab.getControlValue('invitationLens')).toBe(INVITATION_LENS);
+    expect(tab.getControlValue('followUpLens')).toBe(FOLLOW_UP_LENS);
+    expect(tab.getControlValue('stance')).toBe(STANCE);
+  });
+
+  // The prompts are the owner's to edit, so every box has a way back that
+  // needs no knowledge of what the shipped text was. Clearing the box also
+  // restores it, but nothing on screen says so.
+  test('Restore the default puts the shipped text back, and redraws the box', async () => {
+    const { tab, host, redraws, saves } = await tabWith({ stance: 'You are a patient oral historian.', followUpLens: 'Ask for the next thing.' });
+    expect(tab.isEdited('stance')).toBe(true);
+    await tab.restoreDefault('stance');
+    expect(host.settings.stance).toBe('');
+    expect(host.settings.followUpLens).toBe('Ask for the next thing.');
+    expect(tab.isEdited('stance')).toBe(false);
+    expect(saves()).toBe(1);
+    expect(redraws.update).toBe(1);
+  });
+
+  // The restore row shows only while the box differs from the shipped text.
+  // Typing re-evaluates that in place; a full redraw would lose the cursor.
+  test('typing shows or hides the restore row without redrawing the box', async () => {
+    const { tab, redraws } = await tabWith();
+    await tab.setControlValue('followUpLens', 'Ask for the next thing.');
+    expect(tab.isEdited('followUpLens')).toBe(true);
+    expect(redraws).toEqual({ update: 0, refresh: 1 });
+  });
+
+  test('the Stance keeps to its own, shorter limit', async () => {
+    const { MAX_STANCE_WORDS } = await import('../src/lens');
+    const { tab, host } = await tabWith({ stance: 'You are a patient oral historian.' });
+    await tab.setControlValue('stance', Array.from({ length: MAX_STANCE_WORDS + 1 }, () => 'w').join(' '));
+    expect(host.settings.stance).toBe('You are a patient oral historian.');
   });
 
   test('the owner’s text is stored; the shipped text or an empty box stores nothing', async () => {
