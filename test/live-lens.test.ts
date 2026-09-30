@@ -16,7 +16,7 @@ function paragraph(path: string, id: string): string {
   while (start > 0 && lines[start - 1]!.trim() !== '') start--;
   return lines.slice(start, end + 1).join('\n').replace(/\s+\^[A-Za-z0-9-]+\s*$/, '');
 }
-const fetcher = async (url: string, init: { method: string; headers: Record<string, string>; body: string }) => {
+const fetcher = async (url: string, init: { method: string; headers: Record<string, string>; body?: string }) => {
   const r = await fetch(url, init);
   return { status: r.status, text: await r.text() };
 };

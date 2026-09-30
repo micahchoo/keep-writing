@@ -22,7 +22,7 @@ A blank page stops you; a question doesn't. keep-writing puts one into your dail
 
 ## Getting started
 
-On first run it offers to fill your question bank: 3,576 questions written for this, across five plain Markdown notes you can choose, edit, or delete. The ordinary-life bank starts from familiar places, small encounters, and things you notice.
+On first run, **Set up keep-writing** finds your daily notes, lists the folders that hold your writing and how much each holds, offers the question banks — 3,576 questions across five plain Markdown notes you can edit or delete — and checks for an AI server. Nothing changes until you start, and it ends by drawing your first question.
 
 1. Open today's daily note.
 2. Run **Draw a question** — ribbon icon, command palette, or right-click.
@@ -49,6 +49,7 @@ On the editor's right-click menu under **keep-writing**, and in the command pale
 
 | Command | What happens |
 |---|---|
+| **Set up keep-writing** | Daily notes, writing folders, banks and AI server in one place. Runs on first load; run it again any time. |
 | **Draw a question** | Three to choose from. A bank question is written straight in; a paragraph of yours goes to the model first. |
 | **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers what follows from it. Run it again for fresh follow-ups. |
 | **Ask about the selection** | Highlight text in **any** note and be asked about it. The question lands in today's note. |
@@ -71,12 +72,13 @@ Findable from Obsidian's own settings search: type "bank folder" or "server addr
 |---|---|
 | **Daily notes folder** | Where your daily notes are, chosen from your folders. Default `Sittings`. |
 | **Question bank folder** | Where the questions are kept, chosen from your folders. Default `Bank`. |
-| **Ask about writing in** | Choose the folders you want questions about. Your daily notes are included by default. |
+| **Ask about writing in** | Choose the folders you want questions about, each shown with how many paragraphs it holds. Your daily notes are included by default. |
 | **Use saved questions (%)** | Default 70%. Choose how often to draw a bank question instead of your writing. If one source has nothing available, the other is used. |
 | **Question banks** | Install selected banks, get authoring instructions for your agent, and open **Installed banks** to choose how often each appears. Zero pauses it. |
 | **Generate questions with AI** | Off makes it bank-only, with no network call at all. |
 | **The AI's instructions** | Who is asking, and where the AI looks when you mark an answer, point at a paragraph, or draw one. **Restore** puts the default back. |
 | **Server address** | An OpenAI-compatible server. The default expects one already running on your device. For Ollama: `http://localhost:11434/v1` |
+| **Check the server** | Lists your server's models so **Model name** becomes a choice, and finds Ollama or LM Studio on this device. |
 | **Model name** | Must name a model your server has. |
 | **Response length limit** | Maximum AI response size in tokens. Raise it if responses are cut short. Default `2048`. |
 | **API key** | Only if your server needs one. Saved in Obsidian secret storage on this device; existing plaintext settings migrate automatically. |

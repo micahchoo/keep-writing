@@ -317,18 +317,44 @@ export interface UnreadBlock {
 export function paragraphJar(app: App, writingFolders: string[], target: TFile | null = null): UnreadBlock[] {
   const jar: UnreadBlock[] = [];
   for (const file of target ? [target] : app.vault.getMarkdownFiles()) {
-    if (!inFolders(file, writingFolders) || !isDrawn(app, file)) continue;
-    const cache = app.metadataCache.getFileCache(file);
-    for (const [id, block] of Object.entries(cache?.blocks ?? {})) {
-      jar.push({ kind: 'block', file, id, line: block.position.start.line, key: `${file.path}#^${id}` });
-    }
-    for (const s of cache?.sections ?? []) {
-      if (s.type !== 'paragraph' || s.id) continue;
-      const line = s.position.start.line;
-      jar.push({ kind: 'block', file, line, key: `${file.path}#L${line}` });
-    }
+    if (inFolders(file, writingFolders)) jar.push(...unreadBlocksOf(app, file));
   }
   return jar;
+}
+
+/** One note's share of the jar: every block id, and every paragraph without one. None for `status: page`. */
+function unreadBlocksOf(app: App, file: TFile): UnreadBlock[] {
+  if (!isDrawn(app, file)) return [];
+  const cache = app.metadataCache.getFileCache(file);
+  const out: UnreadBlock[] = [];
+  for (const [id, block] of Object.entries(cache?.blocks ?? {})) {
+    out.push({ kind: 'block', file, id, line: block.position.start.line, key: `${file.path}#^${id}` });
+  }
+  for (const s of cache?.sections ?? []) {
+    if (s.type !== 'paragraph' || s.id) continue;
+    const line = s.position.start.line;
+    out.push({ kind: 'block', file, line, key: `${file.path}#L${line}` });
+  }
+  return out;
+}
+
+/**
+ * How many paragraphs the jar would hold for each folder, if the owner named
+ * it: one pass over the index, a note counting in every folder above it. Read
+ * each time the folder picker is drawn, so the counts are the vault's now.
+ */
+export function paragraphsByFolder(app: App): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const file of app.vault.getMarkdownFiles()) {
+    const n = unreadBlocksOf(app, file).length;
+    if (n === 0) continue;
+    const parts = file.path.split('/').slice(0, -1);
+    for (let i = 1; i <= parts.length; i++) {
+      const folder = parts.slice(0, i).join('/');
+      counts.set(folder, (counts.get(folder) ?? 0) + n);
+    }
+  }
+  return counts;
 }
 
 /**

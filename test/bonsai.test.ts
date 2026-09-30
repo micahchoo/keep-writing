@@ -89,7 +89,7 @@ describe('composeFollowUps with a fake server', () => {
       baseUrl: 'http://fake',
       model: 'fake',
       fetcher: async (_url, init) => {
-        sent.push((JSON.parse(init.body) as { messages: { content: string }[] }).messages[1]?.content ?? '');
+        sent.push((JSON.parse(init.body ?? "") as { messages: { content: string }[] }).messages[1]?.content ?? '');
         return { status: 200, text: JSON.stringify({ choices: [{ message: { content: '{"questions":["Tell me more."]}' } }] }) };
       },
     };
@@ -188,7 +188,7 @@ describe('composeRevisit with a fake server', () => {
       model: 'fake',
       onLog: (e) => log.push(e),
       fetcher: async (_url, init) => {
-        bodies.push(init.body);
+        bodies.push(init.body ?? "");
         return {
           status: 200,
           text: JSON.stringify({ choices: [{ message: { content: replies[Math.min(i++, replies.length - 1)] } }] }),
@@ -371,7 +371,7 @@ describe('the reply budget', () => {
     model: 'fake',
     ...(maxTokens === undefined ? {} : { maxTokens }),
     fetcher: async (_url, init) => {
-      sent.push(JSON.parse(init.body) as Record<string, unknown>);
+      sent.push(JSON.parse(init.body ?? "") as Record<string, unknown>);
       return {
         status: 200,
         text: JSON.stringify({ choices: [{ message: { content: '{"abstain": true}' } }] }),
@@ -402,7 +402,7 @@ describe('temperature', () => {
     baseUrl: 'http://fake',
     model: 'fake',
     fetcher: async (_url, init) => {
-      sent.push(JSON.parse(init.body) as Record<string, unknown>);
+      sent.push(JSON.parse(init.body ?? "") as Record<string, unknown>);
       return { status: 200, text: JSON.stringify({ choices: [{ message: { content: '{"abstain": true}' } }] }) };
     },
   };

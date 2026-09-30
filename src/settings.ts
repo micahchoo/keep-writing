@@ -6,6 +6,10 @@ import type { BankWeights } from './bank-mix';
 import { BankInstallModal, NewBankModal, offerBankUpdate, openBankNote } from './bank-modals';
 import { STARTER_BANK } from './starter-bank';
 import { CRAFT_LENS, FOLLOW_UP_LENS, INVITATION_LENS, LENS_VERSION, MAX_LENS_WORDS, MAX_STANCE_WORDS, STANCE, lensProblem, lensText } from './lens';
+import { paragraphJar, paragraphsByFolder } from './paragraphs';
+import { serverAdvice } from './endpoint';
+import { dailyAdvice, dailyNotesOf } from './daily';
+import type { Advice, Probe } from './endpoint';
 import { DropdownComponent, ExtraButtonComponent, Notice, PluginSettingTab, TFolder } from 'obsidian';
 import type { App, EventRef, Plugin, Setting, SettingDefinitionItem, SettingGroupItem, TAbstractFile } from 'obsidian';
 
@@ -98,6 +102,8 @@ export const DEFAULT_SETTINGS: KeepWritingSettings = {
 export interface SettingsHost extends Plugin {
   settings: KeepWritingSettings;
   saveSettings(): Promise<void>;
+  /** Ask the address in settings, and the usual local servers, what models they have. */
+  findServers(): Promise<Probe[]>;
 }
 
 /**
@@ -121,8 +127,80 @@ export interface SettingsHost extends Plugin {
  */
 export class KeepWritingSettingTab extends PluginSettingTab {
   private bankRows = new Map<string, Setting>();
+  /** What the last check found; null until the owner checks. */
+  advice: Advice | null = null;
+  private probes: Probe[] = [];
+
   constructor(app: App, private host: SettingsHost) {
     super(app, host);
+  }
+
+  /**
+   * Take the folder Obsidian's Daily notes plugin writes to. The old Sittings
+   * folder is swapped for it among the writing folders when it was one, so
+   * the owner's answers keep coming back to them; if it was not, it is not
+   * added.
+   */
+  async adoptDailyFolder(folder: string): Promise<void> {
+    const s = this.host.settings;
+    s.writingFolders = s.writingFolders.map((f) => (f === s.sittingsFolder ? folder : f));
+    s.sittingsFolder = folder;
+    await this.host.saveSettings();
+    this.update();
+  }
+
+  /**
+   * What the Daily notes plugin means for the folder above: another folder to
+   * offer, or a top level that cannot be shared. Asked again at every render,
+   * because the owner can change that plugin while this tab is closed.
+   */
+  private dailyDefinitions(): SettingGroupItem<ControlKey>[] {
+    const advice = () => dailyAdvice(dailyNotesOf(this.app), this.host.settings.sittingsFolder);
+    const offered = advice();
+    return [
+      {
+        name: 'Use your daily notes folder',
+        desc: offered.kind === 'offer'
+          ? `Obsidian’s daily notes go to ${offered.folder}. Use it, so questions go into the notes you already keep, made with your own template.`
+          : '',
+        visible: () => advice().kind === 'offer',
+        searchable: false,
+        action: () => {
+          const now = advice();
+          if (now.kind === 'offer') void this.adoptDailyFolder(now.folder).catch(showSettingsError);
+        },
+      },
+      {
+        name: 'Your daily notes are at the top of the vault',
+        desc: 'Questions go into notes in one folder. To have them in your daily notes, set a folder in Obsidian’s Daily notes settings, then choose it above.',
+        visible: () => advice().kind === 'top-level',
+        searchable: false,
+      },
+    ];
+  }
+
+  /** Ask the servers, keep the answer, and redraw: the rows below read it. */
+  async checkServer(): Promise<void> {
+    const s = this.host.settings;
+    this.probes = await this.host.findServers();
+    this.advice = serverAdvice(this.probes, s.baseUrl, s.model);
+    this.update();
+  }
+
+  /**
+   * Move to the server the check found answering. The model moves too when
+   * the one in settings is not among its models, to its first: the dropdown
+   * shows which, and the owner can change it.
+   */
+  async useOtherServer(): Promise<void> {
+    const other = this.advice?.other;
+    if (!other) return;
+    const s = this.host.settings;
+    s.baseUrl = other.baseUrl;
+    if (!other.models.includes(s.model)) s.model = other.models[0] ?? s.model;
+    await this.host.saveSettings();
+    this.advice = serverAdvice(this.probes, s.baseUrl, s.model);
+    this.update();
   }
 
   override getSettingDefinitions(): SettingDefinitionItem<ControlKey>[] {
@@ -142,6 +220,7 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             aliases: ['sittings', 'journal', 'diary'],
             control: { type: 'dropdown', key: 'sittingsFolder', defaultValue: DEFAULT_SETTINGS.sittingsFolder, options: folderOptions(folders, [s.sittingsFolder, DEFAULT_SETTINGS.sittingsFolder]) },
           },
+          ...this.dailyDefinitions(),
           {
             name: 'Question bank folder',
             desc: 'Where your collections of saved questions live. Each bank is a note you can open and edit.',
@@ -227,16 +306,22 @@ export class KeepWritingSettingTab extends PluginSettingTab {
             },
           },
           {
-            name: 'Model name',
-            desc:
-              'Enter the exact name of a model available on your server. Check your server’s model list if you are unsure.',
-            control: {
-              type: 'text',
-              key: 'model',
-              defaultValue: DEFAULT_SETTINGS.model,
-              disabled: () => !this.host.settings.enableModel,
-            },
+            name: 'Check the server',
+            desc: this.advice?.line ?? 'Ask the server which models it has. Also looks for Ollama and LM Studio on this device.',
+            aliases: ['test', 'connection', 'ollama', 'lm studio', 'models'],
+            disabled: () => !this.host.settings.enableModel,
+            action: () => { void this.checkServer().catch(showSettingsError); },
           },
+          {
+            name: 'Use the server found on this device',
+            desc: this.advice?.other
+              ? `${this.advice.other.baseUrl} answered, with ${this.advice.other.models.length} model${this.advice.other.models.length === 1 ? '' : 's'}. Switch to it.`
+              : '',
+            visible: () => !!this.advice?.other,
+            searchable: false,
+            action: () => { void this.useOtherServer().catch(showSettingsError); },
+          },
+          this.modelDefinition(),
           {
             name: 'Response length limit',
             desc: 'Maximum AI response size, measured in tokens (parts of words). Raise this if responses are cut short.',
@@ -319,27 +404,34 @@ export class KeepWritingSettingTab extends PluginSettingTab {
     return `${key} · ${weight === 0 ? 'Paused' : `${Math.round(weight / total * 100)}% of saved questions`}.`;
   }
 
-  /** The chosen writing folders, each removable, and one dropdown to add another. */
+  /**
+   * The chosen writing folders, each removable and each with its reach, the
+   * total the draw can reach, and one dropdown to add another. Counted here,
+   * at draw time, not in the definition, which Obsidian reads once at load.
+   */
   private writingFolders(setting: Setting, folders: string[]): void {
     const draw = () => {
       const chosen = this.host.settings.writingFolders;
+      const counts = paragraphsByFolder(this.app);
       setting.controlEl.empty();
       const list = setting.controlEl.createDiv({ cls: 'kw-folders' });
+      const reach = paragraphJar(this.app, chosen).length;
+      list.createDiv({ cls: 'kw-reach', text: `Questions can come from ${reachLabel(reach)}.` });
       for (const folder of chosen) {
         const row = list.createDiv({ cls: 'kw-folder' });
-        row.createSpan({ text: folder });
+        row.createSpan({ text: `${folder} · ${reachLabel(counts.get(folder) ?? 0)}` });
         new ExtraButtonComponent(row).setIcon('x').setTooltip(`Stop reading ${folder}`).onClick(() => {
           void this.setControlValue('writingFolders', withoutFolder(this.host.settings.writingFolders, folder)).then(draw);
         });
       }
-      const addable = Object.keys(folderOptions(folders, [])).filter((f) => !chosen.includes(f));
+      const addable = folderChoices(folders, chosen, counts);
       if (addable.length === 0) return;
-      new DropdownComponent(list)
-        .addOption('', 'Add a folder…')
-        .addOptions(Object.fromEntries(addable.map((f) => [f, f])))
-        .onChange((folder) => {
-          if (folder) void this.setControlValue('writingFolders', withFolder(this.host.settings.writingFolders, folder)).then(draw);
-        });
+      const add = new DropdownComponent(list).addOption('', 'Add a folder…');
+      // One by one: an object would put a folder named like a number first.
+      for (const [folder, label] of addable) add.addOption(folder, label);
+      add.onChange((folder) => {
+        if (folder) void this.setControlValue('writingFolders', withFolder(this.host.settings.writingFolders, folder)).then(draw);
+      });
     };
     draw();
   }
@@ -350,6 +442,31 @@ export class KeepWritingSettingTab extends PluginSettingTab {
    * drawn by hand, and a folder the owner somehow empties must fall back to
    * the default rather than storing '' and reaching nothing.
    */
+  /**
+   * Model name: the server's own list once a check has found one, so a name
+   * the server does not have cannot be typed; a text box until then. The
+   * name in settings stays offered even when the server lacks it, marked.
+   */
+  private modelDefinition(): SettingGroupItem<ControlKey> {
+    const disabled = () => !this.host.settings.enableModel;
+    const models = this.advice?.models;
+    if (!models) {
+      return {
+        name: 'Model name',
+        desc: 'The exact name of a model on your server. Check the server above to choose from its list.',
+        control: { type: 'text', key: 'model', defaultValue: DEFAULT_SETTINGS.model, disabled },
+      };
+    }
+    const current = this.host.settings.model;
+    const options: Record<string, string> = Object.fromEntries(models.map((m) => [m, m]));
+    if (!models.includes(current)) options[current] = `${current} (not on this server)`;
+    return {
+      name: 'Model name',
+      desc: 'A model your server has.',
+      control: { type: 'dropdown', key: 'model', options, disabled },
+    };
+  }
+
   /** One box and its way back, for each part of the instructions the owner can edit. */
   private steerDefinitions(): SettingGroupItem<ControlKey>[] {
     return (Object.keys(STEERS) as SteerKey[]).flatMap((key) => {
@@ -442,6 +559,9 @@ export class KeepWritingSettingTab extends PluginSettingTab {
         break;
       case 'baseUrl':
         s.baseUrl = text.trim() || DEFAULT_SETTINGS.baseUrl;
+        // The last check was of another address. Dropped without a redraw,
+        // which would take the cursor out of the box being typed in.
+        this.advice = null;
         break;
       case 'model':
         s.model = text.trim() || DEFAULT_SETTINGS.model;
@@ -558,6 +678,24 @@ export function readFolders(v: unknown): string[] {
  * folder is not there until the starter bank is written, and a dropdown that
  * cannot show the current value shows a wrong one.
  */
+/** Pure: how a folder's reach is said. */
+export function reachLabel(n: number): string {
+  return n === 0 ? 'no paragraphs yet' : `${n.toLocaleString('en-US')} paragraph${n === 1 ? '' : 's'}`;
+}
+
+/**
+ * Pure: the folders the owner may add, as [folder, label], the most writing
+ * first. A fresh install names only its empty daily-notes folder, so the
+ * folder holding years of writing has to be the one that stands out.
+ */
+export function folderChoices(folders: string[], chosen: string[], counts: Map<string, number>): [string, string][] {
+  const n = (f: string) => counts.get(f) ?? 0;
+  return Object.keys(folderOptions(folders, []))
+    .filter((f) => !chosen.includes(f))
+    .sort((a, b) => n(b) - n(a) || a.localeCompare(b))
+    .map((f) => [f, `${f} · ${reachLabel(n(f))}`]);
+}
+
 export function folderOptions(folders: string[], keep: string[]): Record<string, string> {
   const all = [...new Set([...folders, ...keep].map(stripSlashes).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   return Object.fromEntries(all.map((f) => [f, f]));

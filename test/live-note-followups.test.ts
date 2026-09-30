@@ -14,7 +14,7 @@ const NOTE = process.env['KW_NOTE'] ?? 'Sittings/2026-09-13.md';
 const up = await fetch(`${BASE}/models`, { signal: AbortSignal.timeout(3000) }).then((r) => r.ok).catch(() => false);
 const live = process.env['KW_LIVE'] === '1' && up;
 
-const fetcher = async (url: string, init: { method: string; headers: Record<string, string>; body: string }) => {
+const fetcher = async (url: string, init: { method: string; headers: Record<string, string>; body?: string }) => {
   const r = await fetch(url, init);
   return { status: r.status, text: await r.text() };
 };

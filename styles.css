@@ -84,6 +84,12 @@
   gap: var(--size-4-1);
 }
 
+/* How much of the owner's writing the draw can reach, above the list. */
+.kw-reach {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
 /* Copyable bank instructions remain readable in desktop and mobile modals. */
 .kw-bank-spec {
   width: 100%;

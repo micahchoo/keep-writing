@@ -62,8 +62,8 @@ function nothing<T>(): Composed<T> {
   return { questions: [], error: null };
 }
 
-/** Obsidian's requestUrl, in the fetch-like shape bonsai.ts expects. */
-const fetcher: BonsaiConfig['fetcher'] = async (url, init) => {
+/** Obsidian's requestUrl, in the fetch-like shape bonsai.ts and endpoint.ts expect. */
+export const fetcher: BonsaiConfig['fetcher'] = async (url, init) => {
   const res = await requestUrl({ url, method: init.method, headers: init.headers, body: init.body, throw: false });
   return { status: res.status, text: res.text };
 };

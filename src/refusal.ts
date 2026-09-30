@@ -46,5 +46,12 @@ const REASON_MAX = 160;
 export function modelFailureLine(reason: string): string {
   const said = reason.trim();
   if (!said) return 'The model did not answer.';
-  return `The model did not answer. ${said.length > REASON_MAX ? said.slice(0, REASON_MAX) + '…' : said}`;
+  const line = `The model did not answer. ${said.length > REASON_MAX ? said.slice(0, REASON_MAX) + '…' : said}`;
+  // Nothing listening is the commonest first-run failure, and the one whose
+  // fix the endpoint's words do not name. A server that answered, even with
+  // an error, has said what is wrong in its own words.
+  return UNREACHED.test(said) ? `${line} Check the server in keep-writing’s settings, or turn AI questions off.` : line;
 }
+
+/** What Electron, node and our own timeout say when nothing answered at all. */
+const UNREACHED = /ERR_CONNECTION|ECONNREFUSED|ENOTFOUND|EHOSTUNREACH|ERR_NAME_NOT_RESOLVED|ERR_ADDRESS_UNREACHABLE|fetch failed|timeout after/i;

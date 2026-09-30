@@ -20,7 +20,7 @@
 
 export type Fetcher = (
   url: string,
-  init: { method: string; headers: Record<string, string>; body: string },
+  init: { method: string; headers: Record<string, string>; body?: string },
 ) => Promise<{ status: number; text: string }>;
 
 export interface CallLog {

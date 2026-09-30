@@ -14,29 +14,33 @@ import type { App, Menu } from 'obsidian';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, emptyDrawLine, jarsLine } from './interview';
 import type { Answered, Reach } from './interview';
-import { createModel } from './model';
+import { createModel, fetcher } from './model';
 import type { Model, RevisitCandidate } from './model';
-import { questionCount } from './install';
 import { BankInstallModal, offerBankUpdate } from './bank-modals';
 import { normalizeBankWeights } from './bank-mix';
 import { INVITATION_WHERE, LENS_VERSION, MAX_STANCE_WORDS, REVISIT_WHERE, readLens, upgradeLens } from './lens';
 import { GraduateModal } from './graduate-modal';
-import { OfferModal, choose } from './modals';
+import { choose } from './modals';
 import type { Choice } from './modals';
 import { sittingName } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { formatRef } from './refs';
-import { modelFailureLine, refusalLine } from './refusal';
+import { Refused, modelFailureLine, refusalLine } from './refusal';
 import { DEFAULT_SETTINGS, KeepWritingSettingTab, keepBanksFresh, keepFoldersFresh, normalizeBankShare, readFolders } from './settings';
 import { STARTER_BANK } from './starter-bank';
 import type { KeepWritingSettings } from './settings';
 import { isSitting } from './target';
+import { findServers as probeServers } from './endpoint';
+import { DAY_FORMAT, dailyNotesOf, sharesDailyFolder } from './daily';
+import { SetupModal } from './setup-modal';
+import type { Probe } from './endpoint';
 
 // What the plugin does, as the command palette names it.
 const DRAW = 'Draw a question';
 const ASK_SELECTION = 'Ask about the selection';
 const MARK = 'Mark this answer done, and follow up';
 const INSTALL = 'Choose question banks to install';
+const SET_UP = 'Set up keep-writing';
 const UPDATE = 'Add new questions to installed banks';
 const GRADUATE = 'Graduate threads to pieces';
 
@@ -134,7 +138,7 @@ export default class KeepWritingPlugin extends Plugin {
     });
 
     this.app.workspace.onLayoutReady(() => {
-      this.offerStarterBank();
+      this.offerSetup();
       this.run(() => this.offerNewQuestions());
     });
 
@@ -148,6 +152,7 @@ export default class KeepWritingPlugin extends Plugin {
         if (view instanceof MarkdownView) this.run(() => this.markUnderCursor(view, editor.getCursor().line));
       },
     });
+    this.addCommand({ id: 'set-up', name: SET_UP, callback: () => this.openSetup() });
     this.addCommand({ id: 'install-starter-bank', name: INSTALL, callback: () => this.installStarterBank() });
     this.addCommand({
       id: 'update-starter-bank',
@@ -190,42 +195,28 @@ export default class KeepWritingPlugin extends Plugin {
   // The starter Bank
 
   /**
-   * With nothing in the Bank folder, the plugin can draw nothing, so it says
-   * so once and offers to fill it. It ASKS: this writes notes into somebody
-   * else's vault, and how many, and where, is the copy's whole job.
+   * First run: setup, once. It replaced a single offer to fill the bank on
+   * 2026-09-30 — the bank was the one thing first run asked about, and the
+   * daily notes folder, the owner's old writing and the AI server were left
+   * to fail quietly. Either answer records that it was offered; the command
+   * stays in the palette.
    *
-   * The gate is the folder's contents and not `bankNotes`, which reads
-   * `kind: bank` out of the metadata cache — at first run the cache may still
-   * be indexing, and a half-built cache would make a full Bank look empty.
-   * Either answer records that the offer was made, so it is made once; the
-   * command stays in the palette for anyone who changes their mind.
+   * It waits for the metadata cache to finish indexing: setup counts each
+   * folder's paragraphs from it, and a half-built cache would make years of
+   * writing look like none.
    */
-  private offerStarterBank(): void {
+  private offerSetup(): void {
     if (this.settings.starterOffered) return;
-    const folder = this.app.vault.getFolderByPath(this.settings.bankFolder);
-    if (folder && folder.children.length > 0) return;
-    const answered = () => {
-      this.settings.starterOffered = true;
-      this.run(() => this.saveSettings());
-    };
-    new OfferModal(
-      this.app,
-      {
-        title: 'Fill the question bank?',
-        body: [
-          `keep-writing draws from questions kept as ordinary notes. Your ${this.settings.bankFolder} folder is empty, so there is nothing to draw.`,
-          `Choose from ${STARTER_BANK.length} banks holding ${questionCount(STARTER_BANK).toLocaleString()} questions. Each selected bank becomes a plain Markdown note in ${this.settings.bankFolder}. You can edit the questions and adjust the draw mix in settings. Existing notes keep your edits.`,
-          'You can do this later from the command palette instead.',
-        ],
-        confirm: 'Choose banks',
-        dismiss: 'Not now',
-      },
-      () => {
-        answered();
-        this.installStarterBank();
-      },
-      answered,
-    ).open();
+    const { metadataCache } = this.app;
+    const ref = metadataCache.on('resolved', () => {
+      metadataCache.offref(ref);
+      if (!this.unloaded && !this.settings.starterOffered) this.openSetup();
+    });
+    this.registerEvent(ref);
+  }
+
+  private openSetup(): void {
+    new SetupModal(this.app, this, () => this.run(() => this.drawQuestion())).open();
   }
 
   /**
@@ -422,9 +413,37 @@ export default class KeepWritingPlugin extends Plugin {
    */
   private async openSitting(): Promise<TFile> {
     const active = this.app.workspace.getActiveViewOfType(MarkdownView)?.file ?? null;
+    const folder = this.settings.sittingsFolder;
+    const daily = dailyNotesOf(this.app);
+    // Sharing the Daily notes folder, Obsidian makes today's note: its date
+    // format and its template, not ours. Made by us in another format, the
+    // day would have two notes.
+    if (!isSitting(active, folder) && sharesDailyFolder(daily, folder)) {
+      const today = await this.openDailyNote();
+      if (isSitting(today, folder)) return today;
+      if (daily?.format !== DAY_FORMAT) throw new Refused('Obsidian did not open today’s daily note. Open it, then try again.');
+    }
     const sitting = await this.interview.sitting(active);
     if (sitting.path !== active?.path) await this.app.workspace.getLeaf(false).openFile(sitting);
     return sitting;
+  }
+
+  /**
+   * Run Obsidian's own "Open today's daily note" and hand back what it opened.
+   * The command is not published API, so it is looked up; missing, or
+   * opening nothing within a few seconds, is null and the caller decides.
+   */
+  private async openDailyNote(): Promise<TFile | null> {
+    const commands = (this.app as { commands?: { executeCommandById?: (id: string) => boolean } }).commands;
+    if (!commands?.executeCommandById) return null;
+    const { workspace } = this.app;
+    const opened = new Promise<TFile | null>((resolve) => {
+      const ref = workspace.on('file-open', (file) => { workspace.offref(ref); window.clearTimeout(timer); resolve(file); });
+      // Already open elsewhere, the command may only reveal it: no event.
+      const timer = window.setTimeout(() => { workspace.offref(ref); resolve(workspace.getActiveFile()); }, 3000);
+    });
+    if (!commands.executeCommandById('daily-notes')) return null;
+    return opened;
   }
 
   private run(job: () => Promise<unknown>): void {
@@ -433,6 +452,10 @@ export default class KeepWritingPlugin extends Plugin {
       if (this.unloaded) return;
       new Notice(error instanceof Error ? error.message : String(error));
     });
+  }
+
+  findServers(): Promise<Probe[]> {
+    return probeServers(fetcher, this.settings.baseUrl, this.settings.apiKey);
   }
 
   private buildModel(): Model {

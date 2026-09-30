@@ -10,7 +10,7 @@ test('the summary, when there is one', () => {
 });
 
 test('why there is none, when the call failed', () => {
-  expect(summaryLines({ questions: [], error: 'timeout after 30000 ms' })).toEqual(['The model did not answer. timeout after 30000 ms']);
+  expect(summaryLines({ questions: [], error: 'timeout after 30000 ms' })).toEqual(['The model did not answer. timeout after 30000 ms Check the server in keep-writing’s settings, or turn AI questions off.']);
 });
 
 test('and a line of its own when the model gave nothing usable', () => {

@@ -1,3 +1,13 @@
+# 0.7.0
+
+- **Set up keep-writing** replaces the first-run offer to fill the question bank. It finds your daily notes folder, lists the folders that hold your writing with how many paragraphs each has, offers the banks, and checks for an AI server. Nothing changes until you start, and it ends by drawing your first question. Run it again from the command palette.
+- If Obsidian's Daily notes plugin writes into your questions folder, today's note is made by that plugin, in your date format and with your template. Settings offers to use its folder.
+- Settings → **Check the server** lists your server's models and turns **Model name** into a choice. It also finds Ollama and LM Studio on this device, and offers to switch to one when your server is not answering.
+- When the AI server cannot be reached, the message says where to fix it.
+- **Ask about writing in** shows how many paragraphs each folder holds, and how many questions can come from in all.
+
+Requires Obsidian 1.13.0 or later.
+
 # 0.6.0
 
 - Paragraphs without a block id are drawn. Until now only a paragraph that already carried an id could be, so a vault without them got no questions from its own writing. Nothing is written into the paragraph: it is linked by an address computed from its words (`^kw-…`), and answering it retires it like any other.

@@ -2,6 +2,17 @@
 
 Everything past the [README](../README.md).
 
+## Setting up
+
+**Set up keep-writing** runs once, when the plugin first loads, and stays in the command palette. It shows four things, each with a suggestion, and changes nothing until you start:
+
+- **Your daily notes.** If Obsidian's Daily notes plugin writes to a folder, questions go there, and today's note is made by that plugin with your date format and template. Daily notes at the top of the vault cannot be shared: questions need a folder.
+- **Your writing.** Your top-level folders, with how many paragraphs each holds. None is ticked for you: tick the ones that hold your own words, not clippings.
+- **Question banks.** The ones you do not have yet are ticked.
+- **AI questions.** It asks your server, and Ollama and LM Studio on this device, which models they have. When nothing answers, AI questions start off, so nothing fails the first time you mark an answer.
+
+It ends by drawing your first question.
+
 ## Where questions come from
 
 Two jars. Seven draws in ten come from the first.
