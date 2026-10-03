@@ -1,7 +1,7 @@
 /** Relative Markdown note paths below the configured Bank folder. Zero disables a bank. */
 export type BankWeights = Record<string, number>;
 
-/** Starting proportions for the supplied banks; custom banks start at 10. */
+/** Starting proportions for the supplied banks; a bank the owner made starts at 10. */
 export const DEFAULT_BANK_WEIGHTS: Readonly<BankWeights> = Object.freeze({
   'ordinary-life.md': 30,
   'autobiographical.md': 25,
@@ -10,7 +10,7 @@ export const DEFAULT_BANK_WEIGHTS: Readonly<BankWeights> = Object.freeze({
   'invention.md': 10,
 });
 
-const CUSTOM_BANK_WEIGHT = 10;
+const OWNER_BANK_WEIGHT = 10;
 
 function validBankKey(key: string): boolean {
   return key.trim() === key && /\.md$/i.test(key)
@@ -33,7 +33,7 @@ export function bankWeight(key: string, weights: BankWeights): number {
   if (!validBankKey(key)) return 0;
   const value: unknown = Object.getOwnPropertyDescriptor(weights, key)?.value;
   if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.min(100, value));
-  return DEFAULT_BANK_WEIGHTS[key] ?? CUSTOM_BANK_WEIGHT;
+  return DEFAULT_BANK_WEIGHTS[key] ?? OWNER_BANK_WEIGHT;
 }
 
 /** Keep valid persisted overrides, without filling or modifying the shared defaults. */

@@ -46,9 +46,19 @@ export function answeredKeys(app: App, file: TFile): string[] {
  * of every note until 2026-09-24; Obsidian's cache already is that index.
  */
 export function answeredInVault(app: App): Set<string> {
-  const keys = new Set<string>();
-  for (const file of app.vault.getMarkdownFiles()) for (const key of answeredKeys(app, file)) keys.add(key);
-  return keys;
+  return new Set(answeredBy(app).keys());
+}
+
+/**
+ * Every source some note says it `answers`, with the name of a note that
+ * answers it — the last by path, so of several dated Sittings the latest.
+ * What Ask my own shows beside a question already answered.
+ */
+export function answeredBy(app: App): Map<string, string> {
+  const by = new Map<string, string>();
+  const files = [...app.vault.getMarkdownFiles()].sort((a, b) => a.path.localeCompare(b.path));
+  for (const file of files) for (const key of answeredKeys(app, file)) by.set(key, file.basename);
+  return by;
 }
 
 function asList(v: unknown): string[] {

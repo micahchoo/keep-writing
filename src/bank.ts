@@ -9,7 +9,7 @@ import type { App, TFile } from 'obsidian';
 import { bankKey, bankWeight } from './bank-mix';
 import type { BankWeights } from './bank-mix';
 import { answeredInVault } from './links';
-import { refOf, resolveRef, stripBlockDecoration } from './refs';
+import { refOf, resolveRef, stripBlockDecoration, virtualId } from './refs';
 import type { BlockText, Ref } from './refs';
 import { paragraphJar, readBlock } from './paragraphs';
 import type { Paragraph, UnreadBlock } from './paragraphs';
@@ -68,18 +68,33 @@ export function parseBankLine(line: string): { text: string; register: string; d
   return due ? { text, register, due, role } : { text, register, role };
 }
 
-/** All questions of one bank note: list items that carry a block id. */
-export async function loadBank(app: App, file: TFile): Promise<BankQuestion[]> {
+/** The one Bank note where the owner's own questions live. See CONTEXT.md — Custom bank. */
+export const CUSTOM_BANK = 'Custom';
+
+/** Pure: is this the Custom bank? By its fixed path, never by its basename alone. */
+export function isCustomBank(path: string, bankFolder: string): boolean {
+  return path === `${bankFolder.replace(/\/+$/, '')}/${CUSTOM_BANK}.md`;
+}
+
+/**
+ * All questions of one bank note: list items that carry a block id. In the
+ * Custom bank a list item needs none; it is addressed by the Virtual id of its
+ * words with tags and `due:` removed, so a tag added later keeps the address
+ * and a changed word makes a new question. Everywhere else an id is an address
+ * something else holds, and a line without one is not a question.
+ */
+export async function loadBank(app: App, file: TFile, bankFolder: string): Promise<BankQuestion[]> {
   const cache = app.metadataCache.getFileCache(file);
-  const items = (cache?.listItems ?? []).filter((i) => i.id);
+  const custom = isCustomBank(file.path, bankFolder);
+  const items = (cache?.listItems ?? []).filter((i) => custom || i.id);
   if (items.length === 0) return [];
   const lines = (await app.vault.cachedRead(file)).split('\n');
   const out: BankQuestion[] = [];
   for (const item of items) {
-    const id = item.id as string;
     const raw = lines.slice(item.position.start.line, item.position.end.line + 1).join(' ');
     const parts = parseBankLine(raw);
     if (!parts.text) continue;
+    const id = item.id ?? virtualId(parts.text);
     const q: BankQuestion = {
       kind: 'question',
       ref: refOf(file, id),
@@ -99,7 +114,7 @@ export async function loadBank(app: App, file: TFile): Promise<BankQuestion[]> {
 export async function questionAt(app: App, ref: Ref, sourcePath: string, bankFolder: string): Promise<BankQuestion | null> {
   const r = resolveRef(app, ref, sourcePath);
   if (!r || !r.blockId || !r.file.path.startsWith(bankFolder + '/')) return null;
-  const qs = await loadBank(app, r.file);
+  const qs = await loadBank(app, r.file, bankFolder);
   return qs.find((q) => q.ref.blockId === r.blockId) ?? null;
 }
 
@@ -273,7 +288,7 @@ export async function bankJar(ctx: DrawContext, target: TFile | null, answered =
   const out: BankQuestion[] = [];
   for (const f of bankNotes(ctx.app, ctx.bankFolder)) {
     if (bankWeight(bankKey(f.path, ctx.bankFolder), ctx.bankWeights ?? {}) <= 0) continue;
-    for (const q of await loadBank(ctx.app, f)) {
+    for (const q of await loadBank(ctx.app, f, ctx.bankFolder)) {
       if (q.role === null && !answered.has(q.key) && !ctx.skipped.has(q.key)) out.push(q);
     }
   }

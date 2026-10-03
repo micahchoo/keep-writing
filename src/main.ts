@@ -11,6 +11,7 @@
 
 import { MarkdownView, Notice, Platform, Plugin, TFile } from 'obsidian';
 import type { App, Menu } from 'obsidian';
+import { CUSTOM_BANK } from './bank';
 import type { Drawn } from './bank';
 import { Interview, REVISIT_FALLBACK, emptyDrawLine, jarsLine } from './interview';
 import type { Answered, Reach } from './interview';
@@ -20,7 +21,9 @@ import { BankInstallModal, offerBankUpdate } from './bank-modals';
 import { normalizeBankWeights } from './bank-mix';
 import { INVITATION_WHERE, LENS_VERSION, MAX_STANCE_WORDS, REVISIT_WHERE, readLens, upgradeLens } from './lens';
 import { GraduateModal } from './graduate-modal';
-import { choose } from './modals';
+import { AskOwnModal, choose } from './modals';
+import { doctorLine, runDoctor, skippedLines } from './doctor';
+import type { Finding } from './doctor';
 import type { Choice } from './modals';
 import { sittingName } from './paragraphs';
 import type { Paragraph } from './paragraphs';
@@ -43,6 +46,7 @@ const INSTALL = 'Choose question banks to install';
 const SET_UP = 'Set up keep-writing';
 const UPDATE = 'Add new questions to installed banks';
 const GRADUATE = 'Graduate threads to pieces';
+const DOCTOR = 'Check and repair the question banks';
 
 /**
  * `MenuItem.setSubmenu` is absent from the published typings and present in
@@ -160,6 +164,7 @@ export default class KeepWritingPlugin extends Plugin {
       callback: () => this.run(() => offerBankUpdate(this.app, this.settings.bankFolder, STARTER_BANK, { quiet: false })),
     });
     this.addCommand({ id: 'graduate-threads', name: GRADUATE, callback: () => this.run(() => this.graduateThreads()) });
+    this.addCommand({ id: 'bank-doctor', name: DOCTOR, callback: () => this.run(() => this.doctor()) });
     this.addCommand({
       id: 'ask-about-selection',
       name: ASK_SELECTION,
@@ -251,12 +256,15 @@ export default class KeepWritingPlugin extends Plugin {
     const sitting = await this.openSitting();
     const { drawn, jars, target } = await this.interview.draw(sitting);
     if (this.unloaded) return;
-    if (drawn.length === 0) {
-      new Notice(emptyDrawLine(jars, target, this.settings.writingFolders, this.settings.bankFolder));
-      return;
-    }
+    // An empty draw still offers Ask my own: that is when the owner needs it most.
+    if (drawn.length === 0) new Notice(emptyDrawLine(jars, target, this.settings.writingFolders, this.settings.bankFolder));
     const where = target ? `only ${target}` : jarsLine(jars);
-    choose(this.app, drawn.map(drawnChoice), where, (pick) => {
+    const rows: Choice<Drawn | typeof OWN>[] = [...drawn.map(drawnChoice), OWN_ROW];
+    choose(this.app, rows, where, (pick) => {
+      if (pick === OWN) {
+        this.run(() => this.askOwn(sitting));
+        return;
+      }
       const source = pick.source;
       if (source.kind === 'question') this.run(() => this.interview.accept(sitting, pick));
       // The draw chose it, not the owner: an Invitation, aimed at their
@@ -264,6 +272,38 @@ export default class KeepWritingPlugin extends Plugin {
       // earlier Sitting — that one is interviewed, and reads in place.
       else this.run(() => this.offer(sitting, source, pick.pickUp ? 'pointed' : 'picked'));
     });
+  }
+
+  /** Ask my own: the shelf, searched; a pick or a new question goes back to the Interview. */
+  private async askOwn(sitting: TFile): Promise<void> {
+    const shelf = await this.interview.shelf(sitting);
+    if (this.unloaded) return;
+    const skipped = skippedLines(this.app, this.settings.bankFolder);
+    if (skipped) new Notice(`${skipped} bank line${skipped === 1 ? ' has' : 's have'} no id and cannot be found. Run "${DOCTOR}".`);
+    new AskOwnModal(this.app, shelf, `${this.settings.bankFolder}/${CUSTOM_BANK}`, (pick) => {
+      if (pick.kind === 'shelf') this.run(() => this.interview.askShelved(sitting, pick.question));
+      else this.run(() => this.interview.askOwn(sitting, pick.words));
+    }).open();
+  }
+
+  /**
+   * The Doctor: repair what has one right answer, say what was written, and
+   * list what is left. Picking a row opens the note where it is.
+   */
+  private async doctor(): Promise<void> {
+    const report = await runDoctor(this.app, this.settings.bankFolder, this.settings.bankWeights);
+    if (this.unloaded) return;
+    new Notice(doctorLine(report));
+    if (report.needs.length === 0) return;
+    const rows: Choice<Finding>[] = report.needs.map((n) => ({ value: n, title: n.why, note: [n.path, n.text].filter(Boolean).join(' · ') }));
+    choose(this.app, rows, 'What the question banks need from you', (finding) => this.run(() => this.openAt(finding.path, finding.line)));
+  }
+
+  private async openAt(path: string, line: number): Promise<void> {
+    const file = this.app.vault.getFileByPath(path);
+    if (!file) return;
+    await this.app.workspace.getLeaf(false).openFile(file);
+    placeCursor(this.app, file, line);
   }
 
   /**
@@ -504,6 +544,10 @@ export default class KeepWritingPlugin extends Plugin {
 }
 
 /** Pure: one drawn source as a row — what it says, and where it comes from. */
+/** The Draw's fourth row (CONTEXT.md — Ask my own). Not a draw: the Bank jar picked by hand. */
+const OWN = Symbol('ask my own');
+const OWN_ROW: Choice<typeof OWN> = { value: OWN, title: 'Ask my own…', note: 'search every bank, or write a new question', sticky: true };
+
 function drawnChoice(drawn: Drawn): Choice<Drawn> {
   if (drawn.source.kind === 'question') {
     const parts = [drawn.source.register, formatRef(drawn.source.ref)];

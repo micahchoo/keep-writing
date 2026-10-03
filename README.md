@@ -12,13 +12,14 @@ A blank page stops you; a question doesn't. keep-writing puts one into your dail
 
 - **Starts the day for you.** Adds an opening question to a new daily note when a bank has unanswered questions. Works without AI.
 - **Draws a question** into today's note. Three to choose from — pick one, or press Escape and nothing is written.
+- **Asks your own.** Under the three is **Ask my own…**: search every bank, answered questions included, or type a new question. A new one is kept in `Bank/Custom.md`, where any line you type, on any device, is a question.
 - **Turns your old writing into new questions.** Highlight a paragraph and you are asked about *that paragraph*. Let the draw find one and you get a question about your life *now* — most of what it can reach is years old, and a question about 2020 is a question for whoever you were then. Any paragraph in the folders you choose counts, as it is; nothing is added to it.
 - **Lets you rewrite how it asks.** The AI's instructions are in settings: who is asking, and where it looks for each kind of question. The reply format stays fixed, so no edit can stop the questions, and every box has a way back to its default.
 - **Follows up.** Mark an answer done and the model reads it, then offers the next question. Run it again next week and it writes fresh ones.
 - **Opens where you stopped.** Leave a note about where to pick up, and tomorrow's first question comes from what you wrote, with your own words under it.
 - **Links every answer** to the question that caused it, which is what stops a question coming back once you have answered it.
 - **Grows pieces out of days.** A question and its follow-ups can leave the daily note and become a piece of its own, with every link following the words.
-- **Never writes your prose.** It adds frontmatter, a block id on your answer, and the question itself, with the words it asks about quoted under it — nothing else. No sentence of yours is ever inserted, edited or reworded.
+- **Never writes your prose.** It adds frontmatter, a block id on your answer, and the question itself, with the words it asks about quoted under it. The only other writes are ones you start: a question you typed, added to `Bank/Custom.md`, and ids the bank check adds to bank lines. No sentence of yours is ever edited or reworded.
 
 ## Getting started
 
@@ -50,10 +51,11 @@ On the editor's right-click menu under **keep-writing**, and in the command pale
 | Command | What happens |
 |---|---|
 | **Set up keep-writing** | Daily notes, writing folders, banks and AI server in one place. Runs on first load; run it again any time. |
-| **Draw a question** | Three to choose from. A bank question is written straight in; a paragraph of yours goes to the model first. |
+| **Draw a question** | Three to choose from, and **Ask my own…** to search the banks or write a new question. A bank question is written straight in; a paragraph of yours goes to the model first. |
 | **Mark this answer done, and follow up** | Links the answer the cursor is in, then offers what follows from it. Run it again for fresh follow-ups. |
 | **Ask about the selection** | Highlight text in **any** note and be asked about it. The question lands in today's note. |
 | **Choose question banks to install** | Choose which banks to add. Existing notes keep your edits. |
+| **Check and repair the question banks** | Gives an id to bank lines that have none, so they can be asked, and lists what it cannot fix by itself. |
 | **Graduate threads to pieces** | In a daily note, turns a question and its follow-ups into a piece of writing of its own: your words moved as written, the questions as headings. |
 
 ![Graduating a daily note's thread: "Graduate threads to pieces" from the right-click menu; a form with three lines on what the thread is about, a title typed in, and suggested headings filled in; then the new piece, with its title, date, headings and the answers as they were written.](https://raw.githubusercontent.com/micahchoo/keep-writing/main/docs/img/graduate.gif)

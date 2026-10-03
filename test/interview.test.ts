@@ -9,7 +9,8 @@ import { parseAsks } from '../src/asks';
 import { Refused } from '../src/refusal';
 import type { Ask } from '../src/asks';
 import type { Composed, Model, RevisitCandidate, SectionText } from '../src/model';
-import { Interview, dayStamp } from '../src/interview';
+import { Interview, dayStamp, matchShelf } from '../src/interview';
+import { loadBank } from '../src/bank';
 import type { InterviewHost } from '../src/interview';
 import type { Paragraph } from '../src/paragraphs';
 import type { SectionText as Section } from '../src/model';
@@ -1030,5 +1031,128 @@ describe('graduation', () => {
     ];
     expect(seen.summary).toEqual([expected]);
     expect(seen.headings).toEqual([expected]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Ask my own: the Bank jar picked by hand. See CONTEXT.md — Ask my own.
+
+describe('Ask my own — the shelf', () => {
+  const shelfVault = () => ({
+    [TODAY]: '---\n---\n\n## Asked\n\n> [!ask] asked today?\n> from [[Bank/craft#^b3]]\n\n',
+    'Sittings/2026-09-14.md': '---\nanswers:\n  - "[[Bank/craft#^b1]]"\n---\n\nIt was a chair. ^y1\n',
+    'Bank/craft.md': [
+      '---', 'kind: bank', '---', '',
+      '- what did you make? #register/episode ^b1',
+      '- what did you break? #register/episode ^b2',
+      '- asked today? ^b3',
+      '- where should we pick up? #role/bookmark ^b4',
+    ].join('\n') + '\n',
+    'Bank/paused.md': '---\nkind: bank\n---\n\n- a paused question? ^p1\n',
+  });
+
+  test('every question, answered ones too, marked with where they were answered, unanswered first', async () => {
+    const { v, interview } = open(shelfVault());
+    const shelf = await interview.shelf(v.file(TODAY));
+    expect(shelf.map((s) => [s.question.text, s.answeredIn])).toEqual([
+      ['what did you break?', null],
+      ['a paused question?', null],
+      ['what did you make?', '2026-09-14'],
+    ]);
+  });
+
+  test('a bank at weight 0 and a Target do not hide anything: the owner is choosing, not the draw', async () => {
+    const notes = shelfVault();
+    notes[TODAY] = '---\nabout: "[[Pieces/x]]"\n---\n\n## Asked\n\n';
+    const { v, interview, host } = open(notes);
+    host.settings = { ...host.settings, bankWeights: { 'paused.md': 0 } };
+    expect((await interview.shelf(v.file(TODAY))).map((s) => s.question.text)).toContain('a paused question?');
+  });
+
+  test('a picked question is placed as an ordinary Ask', async () => {
+    const { v, interview } = open(shelfVault());
+    const sitting = v.file(TODAY);
+    const made = (await interview.shelf(sitting)).find((s) => s.answeredIn);
+    await interview.askShelved(sitting, made!.question);
+    expect(asksIn(v, TODAY).at(-1)?.sourceRef).toBe('Bank/craft#^b1');
+  });
+  test('a due on the entry carries into the Ask, as it does for a draw', async () => {
+    const { v, interview } = open({ [TODAY]: EMPTY_SITTING, 'Bank/craft.md': '---\nkind: bank\n---\n\n- by when? due: 2026-12-01 ^d1\n' });
+    const sitting = v.file(TODAY);
+    const [row] = await interview.shelf(sitting);
+    await interview.askShelved(sitting, row!.question);
+    expect(asksIn(v, TODAY).at(-1)).toMatchObject({ question: 'by when?', due: '2026-12-01', sourceRef: 'Bank/craft#^d1' });
+  });
+});
+
+describe('Ask my own — matching', () => {
+  const shelf = ['what did my father never say?', 'what do my hands remember?', 'Where did Father go?'].map(
+    (text) => ({ question: { text } as never, answeredIn: null }),
+  );
+  test('every word of the query, in any order, any case', () => {
+    expect(matchShelf(shelf, 'FATHER what').map((s) => (s.question as { text: string }).text)).toEqual([
+      'what did my father never say?',
+    ]);
+    expect(matchShelf(shelf, 'father')).toHaveLength(2);
+  });
+  test('an empty query is the whole shelf', () => {
+    expect(matchShelf(shelf, '  ')).toHaveLength(3);
+  });
+});
+
+describe('Ask my own — a new question', () => {
+  const CUSTOM = 'Bank/Custom.md';
+  const asked = 'what did my father never say out loud?';
+
+  test('makes the Custom bank, appends the words as a plain line, and asks them', async () => {
+    const { v, interview, surface } = open({ [TODAY]: EMPTY_SITTING });
+    await interview.askOwn(v.file(TODAY), asked);
+    expect(v.text(CUSTOM)).toMatch(/^---\nkind: bank\n/);
+    expect(v.text(CUSTOM).trimEnd().split('\n').at(-1)).toBe(`- ${asked}`);
+    const ask = asksIn(v, TODAY).at(-1);
+    expect(ask?.question).toBe(asked);
+    expect(ask?.sourceRef).toBe(`Bank/Custom#^${virtualId(asked)}`);
+    expect(surface.cursors.at(-1)?.path).toBe(TODAY);
+    expect((await loadBank(v.app, v.file(CUSTOM), 'Bank')).map((q) => q.key)).toEqual([`${CUSTOM}#^${virtualId(asked)}`]);
+  });
+
+  test('appends after the last line, verbatim, on one line, with no id', async () => {
+    const { v, interview } = open({ [TODAY]: EMPTY_SITTING, [CUSTOM]: '---\nkind: bank\n---\n\n- an older one?' });
+    await interview.askOwn(v.file(TODAY), '  what did\n my father   never say out loud?  ');
+    expect(v.text(CUSTOM)).toBe(`---\nkind: bank\n---\n\n- an older one?\n- ${asked}\n`);
+  });
+
+  test('words already in the Custom bank are asked, not written twice', async () => {
+    const before = `---\nkind: bank\n---\n\n- ${asked} #register/relation\n`;
+    const { v, interview } = open({ [TODAY]: EMPTY_SITTING, [CUSTOM]: before });
+    await interview.askOwn(v.file(TODAY), asked);
+    expect(v.text(CUSTOM)).toBe(before);
+    expect(asksIn(v, TODAY).at(-1)?.sourceRef).toBe(`Bank/Custom#^${virtualId(asked)}`);
+  });
+
+  test('a tag and a due date typed with it are the owner’s; the Ask carries the words and the due', async () => {
+    const { v, interview } = open({ [TODAY]: EMPTY_SITTING });
+    await interview.askOwn(v.file(TODAY), `${asked} #register/relation due: 2026-12-01`);
+    const ask = asksIn(v, TODAY).at(-1);
+    expect(ask?.question).toBe(asked);
+    expect(ask?.due).toBe('2026-12-01');
+    expect(ask?.sourceRef).toBe(`Bank/Custom#^${virtualId(asked)}`);
+  });
+
+  test('nothing typed writes nothing', async () => {
+    const { v, interview, surface } = open({ [TODAY]: EMPTY_SITTING });
+    await interview.askOwn(v.file(TODAY), '   ');
+    expect(v.app.vault.getAbstractFileByPath(CUSTOM)).toBeNull();
+    expect(asksIn(v, TODAY)).toEqual([]);
+    expect(surface.notices).toHaveLength(1);
+  });
+
+  test('a note named Custom that is not a bank is the owner’s, and is refused rather than written', async () => {
+    const mine = '# Custom\n\nMy own notes.\n';
+    const { v, interview, surface } = open({ [TODAY]: EMPTY_SITTING, [CUSTOM]: mine });
+    await interview.askOwn(v.file(TODAY), asked);
+    expect(v.text(CUSTOM)).toBe(mine);
+    expect(asksIn(v, TODAY)).toEqual([]);
+    expect(surface.notices.at(-1)).toContain('kind: bank');
   });
 });

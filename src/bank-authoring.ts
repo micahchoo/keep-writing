@@ -41,6 +41,21 @@ Headings may group questions. Every entry must make sense on its own. Do not put
 The plugin discovers notes with kind: bank inside ${normalizePath(folder)}. After saving, use Settings → keep-writing → Question banks → Installed banks to choose how often this bank appears. A value of 0 pauses it without deleting it.`;
 }
 
+/**
+ * The Custom bank, made the first time the owner asks a question of their own
+ * (CONTEXT.md — Custom bank). No authoring instructions: nothing here is
+ * written by an agent, and a plain line is a question.
+ */
+export async function ensureCustomBank(app: App, folder: string, name: string): Promise<{ file: TFile; made: boolean }> {
+  const directory = normalizePath(folder);
+  const path = normalizePath(`${directory}/${name}.md`);
+  const existing = app.vault.getFileByPath(path);
+  if (existing) return { file: existing, made: false };
+  if (!app.vault.getFolderByPath(directory)) await app.vault.createFolder(directory);
+  const file = await app.vault.create(path, `---\nkind: bank\ntitle: ${JSON.stringify(name)}\n---\n\n# ${name}\n\nYour own questions, one list line each. A line here needs no id.\n\n`);
+  return { file, made: true };
+}
+
 /** Create an empty bank with readable authoring instructions, without a drawable example question. */
 export async function createBank(app: App, folder: string, input: string): Promise<TFile> {
   const name = bankName(input);

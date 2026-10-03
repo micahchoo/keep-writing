@@ -13,6 +13,10 @@
 
 import { Modal, Setting, SuggestModal } from 'obsidian';
 import type { App } from 'obsidian';
+import { NO_REGISTER } from './bank';
+import type { BankQuestion } from './bank';
+import { matchShelf } from './interview';
+import type { Shelved } from './interview';
 
 /** One row: what it says, what it is worth, and what picking it means. */
 export interface Choice<T> {
@@ -21,6 +25,8 @@ export interface Choice<T> {
   title: string;
   /** The quieter line under it: a register, a date, where it was written. */
   note?: string;
+  /** Shown whatever the owner types: a way out of the list, not a member of it. */
+  sticky?: boolean;
 }
 
 /**
@@ -43,7 +49,7 @@ export class ChoiceModal<T> extends SuggestModal<Choice<T>> {
   getSuggestions(query: string): Choice<T>[] {
     const q = query.toLowerCase().trim();
     if (!q) return this.choices;
-    return this.choices.filter((c) => c.title.toLowerCase().includes(q));
+    return this.choices.filter((c) => c.sticky || c.title.toLowerCase().includes(q));
   }
 
   /**
@@ -53,14 +59,65 @@ export class ChoiceModal<T> extends SuggestModal<Choice<T>> {
    * rows: every other suggester in Obsidian stays one line, as it should.
    */
   renderSuggestion(choice: Choice<T>, el: HTMLElement): void {
-    el.addClass('kw-choice');
-    el.createDiv({ text: choice.title, cls: 'kw-choice-title' });
-    if (choice.note) el.createDiv({ text: choice.note, cls: 'kw-note' });
+    renderChoice(choice, el);
   }
 
   onChooseSuggestion(choice: Choice<T>): void {
     this.picked(choice.value);
   }
+}
+
+function renderChoice<T>(choice: Choice<T>, el: HTMLElement): void {
+  el.addClass('kw-choice');
+  el.createDiv({ text: choice.title, cls: 'kw-choice-title' });
+  if (choice.note) el.createDiv({ text: choice.note, cls: 'kw-note' });
+}
+
+/** What Ask my own hands back: a question off the shelf, or the words for a new one. */
+export type OwnPick = { kind: 'shelf'; question: BankQuestion } | { kind: 'new'; words: string };
+
+/** Rows shown at once; the last is kept for New question. */
+const SHELF_ROWS = 50;
+
+/**
+ * Ask my own (CONTEXT.md): search every Bank question, or, when nothing fits,
+ * make the words typed a new one. New question is the last row whenever
+ * anything is typed, so it is there even when a match is close but not right.
+ */
+export class AskOwnModal extends SuggestModal<Choice<OwnPick>> {
+  constructor(
+    app: App,
+    private shelf: Shelved[],
+    private customPath: string,
+    private picked: (pick: OwnPick) => void,
+  ) {
+    super(app);
+    this.limit = SHELF_ROWS;
+    this.setPlaceholder('Search the question banks, or type a new question');
+  }
+
+  getSuggestions(query: string): Choice<OwnPick>[] {
+    const words = query.replace(/\s+/g, ' ').trim();
+    const rows: Choice<OwnPick>[] = matchShelf(this.shelf, words)
+      .slice(0, words ? SHELF_ROWS - 1 : SHELF_ROWS)
+      .map(shelvedChoice);
+    if (words) rows.push({ value: { kind: 'new', words }, title: `New question: ${words}`, note: `kept in ${this.customPath}` });
+    return rows;
+  }
+
+  renderSuggestion(choice: Choice<OwnPick>, el: HTMLElement): void {
+    renderChoice(choice, el);
+  }
+
+  onChooseSuggestion(choice: Choice<OwnPick>): void {
+    this.picked(choice.value);
+  }
+}
+
+function shelvedChoice({ question, answeredIn }: Shelved): Choice<OwnPick> {
+  const note = [question.register, question.bankPath.replace(/\.md$/, '')].filter((part) => part !== NO_REGISTER);
+  if (answeredIn) note.push(`answered in ${answeredIn}`);
+  return { value: { kind: 'shelf', question }, title: question.text, note: note.join(' · ') };
 }
 
 /**

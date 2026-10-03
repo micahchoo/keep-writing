@@ -23,9 +23,10 @@ import type { App, TFile } from 'obsidian';
 import { normalizePath } from 'obsidian';
 import { answerText, asksOf, insertAsk, insertFirstAsk, markAnswered, parseAsks, questionsAbout } from './asks';
 import type { Ask, AskOptions } from './asks';
-import { bankJar, drawMany, parseDue, pickBankQuestion, questionAt } from './bank';
-import type { Drawn, JarCounts } from './bank';
-import { answeredInVault } from './links';
+import { CUSTOM_BANK, bankJar, bankNotes, drawMany, isBankNote, loadBank, parseBankLine, parseDue, pickBankQuestion, questionAt } from './bank';
+import type { BankQuestion, Drawn, JarCounts } from './bank';
+import { ensureCustomBank } from './bank-authoring';
+import { answeredBy, answeredInVault } from './links';
 import { addressSource } from './blocks';
 import { readBookmark, runClosing } from './closing';
 import { CRAFT_LENS, FOLLOW_UP_LENS, INVITATION_LENS, STANCE, lensText } from './lens';
@@ -35,7 +36,7 @@ import type { Composed, Model, RevisitCandidate, SectionText } from './model';
 import { paragraphAt } from './paragraphs';
 import type { Paragraph } from './paragraphs';
 import { Refused, refusalLine } from './refusal';
-import { keyOfRef, parseRef } from './refs';
+import { keyOfRef, parseRef, refOf, virtualId } from './refs';
 import type { Ref } from './refs';
 import { selectionParagraph } from './selection';
 import type { KeepWritingSettings } from './settings';
@@ -154,6 +155,21 @@ export const REVISIT_FALLBACK = 'what would you write under this now?';
  */
 export const DRAW_COUNT = 3;
 
+/** A Bank question as Ask my own shows it, with the note that answered it or null. */
+export interface Shelved {
+  question: BankQuestion;
+  answeredIn: string | null;
+}
+
+/** Pure: the rows whose question holds every word of the query, in any order and any case. */
+export function matchShelf(shelf: Shelved[], query: string): Shelved[] {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  return shelf.filter((s) => {
+    const text = s.question.text.toLowerCase();
+    return words.every((w) => text.includes(w));
+  });
+}
+
 export class Interview {
   constructor(
     private host: InterviewHost,
@@ -254,6 +270,72 @@ export class Interview {
       if (key) placed.add(key);
     }
     return { app: this.app, bankFolder, sittingsFolder, writingFolders, bankWeights, bankShare: this.host.settings.bankShare, skipped: placed, sitting };
+  }
+
+  // -------------------------------------------------------------------------
+  // Ask my own: the Bank jar picked by hand (CONTEXT.md — Ask my own)
+
+  /**
+   * Every Bank question the owner may pick by hand: every bank, whatever its
+   * weight and whatever the Target, because the owner is choosing and not the
+   * draw. Answered ones stay, marked with where — picking by hand can mean
+   * "ask me this again". What this Sitting already asks, and a Closing move,
+   * are left out for the reason the draw leaves them out: they are here.
+   */
+  async shelf(sitting: TFile): Promise<Shelved[]> {
+    const { bankFolder } = this.host.settings;
+    const placed = (await this.context(sitting)).skipped;
+    const by = answeredBy(this.app);
+    const open: Shelved[] = [];
+    const done: Shelved[] = [];
+    const notes = bankNotes(this.app, bankFolder).sort((a, b) => a.path.localeCompare(b.path));
+    for (const file of notes) {
+      for (const question of await loadBank(this.app, file, bankFolder)) {
+        if (question.role !== null || placed.has(question.key)) continue;
+        const answeredIn = by.get(question.key) ?? null;
+        (answeredIn ? done : open).push({ question, answeredIn });
+      }
+    }
+    return [...open, ...done];
+  }
+
+  /** Place a question picked off the shelf, with its due when it carries one. */
+  async askShelved(sitting: TFile, question: BankQuestion): Promise<void> {
+    const due = question.due ? parseDue(question.due, new Date()) : null;
+    await this.accept(sitting, due ? { source: question, due } : { source: question });
+  }
+
+  /**
+   * The owner's own question: appended to the Custom bank as one plain line,
+   * then asked. The words are the owner's, typed and confirmed; the one change
+   * is to one line, since a Bank question is one list item. Words the Custom
+   * bank already holds are asked and not written twice.
+   *
+   * This is the one place the plugin writes words into a Bank note, and only
+   * because the owner pressed New question (keep-writing-sole-authorship.md).
+   * A note at the Custom path that is not a bank is the owner's, and refused.
+   */
+  async askOwn(sitting: TFile, typed: string): Promise<void> {
+    const line = typed.replace(/\s+/g, ' ').trim().replace(/^(?:[-*+]|\d+[.)])\s+/, '');
+    const parts = parseBankLine(line);
+    if (!parts.text) {
+      this.surface.notice('Type a question first.');
+      return;
+    }
+    const { bankFolder } = this.host.settings;
+    const { file, made } = await ensureCustomBank(this.app, bankFolder, CUSTOM_BANK);
+    // A note made a moment ago is a bank whatever the cache has caught up with.
+    if (!made && !isBankNote(this.app, file)) {
+      this.surface.notice(`${file.path} is not a question bank. Give it the property kind: bank, or rename it.`);
+      return;
+    }
+    // loadBank's address for this line: the id typed at its end, or else the
+    // Virtual id of its words.
+    const ref = refOf(file, /\s\^([A-Za-z0-9-]+)\s*$/.exec(line)?.[1] ?? virtualId(parts.text));
+    const held = (await loadBank(this.app, file, bankFolder)).some((q) => q.ref.blockId === ref.blockId);
+    if (!held) await this.app.vault.process(file, (data) => `${data}${data === '' || data.endsWith('\n') ? '' : '\n'}- ${line}\n`);
+    const due = parts.due ? parseDue(parts.due, new Date()) : null;
+    this.landed(sitting, await insertAsk(this.app, sitting, parts.text, ref, due ? { due } : {}));
   }
 
   /** Write a drawn Bank question as an Ask, and put the cursor under it. */

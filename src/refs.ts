@@ -199,9 +199,12 @@ export function stripBlockDecoration(text: string): string {
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 const ID_LENGTH = 6;
 
-/** Six lowercase alphanumerics, unique against the ids already in the file. */
-export function newBlockId(cache: CachedMetadata | null, random: () => number = Math.random): string {
-  const taken = new Set(Object.keys(cache?.blocks ?? {}));
+/**
+ * Six lowercase alphanumerics, unique against the ids already in the file and
+ * any in `also` — ids a caller is about to write in the same pass.
+ */
+export function newBlockId(cache: CachedMetadata | null, random: () => number = Math.random, also: ReadonlySet<string> = new Set()): string {
+  const taken = new Set([...Object.keys(cache?.blocks ?? {}), ...also]);
   for (;;) {
     let id = '';
     for (let i = 0; i < ID_LENGTH; i++) {

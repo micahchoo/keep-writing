@@ -1,3 +1,11 @@
+# 0.8.0
+
+- **Ask my own…** is the last row of every draw, even an empty one. Search every question in every bank, answered ones included and marked with the note that answered them, and pick one. Or type a new question: it is added, as you typed it, to `Bank/Custom.md` and asked at once.
+- `Bank/Custom.md` needs no ids. Any list line you type there, from any device, is a question: searchable, drawable, and retired when answered. Change its words and it is a new question.
+- **Check and repair the question banks** gives an id to bank lines that have none, which until now were silently skipped, and a new id to a repeated one. An answer to a Custom question you have since reworded is linked to what it became. What it cannot decide alone, it lists.
+
+Requires Obsidian 1.13.0 or later.
+
 # 0.7.0
 
 - **Set up keep-writing** replaces the first-run offer to fill the question bank. It finds your daily notes folder, lists the folders that hold your writing with how many paragraphs each has, offers the banks, and checks for an AI server. Nothing changes until you start, and it ends by drawing your first question. Run it again from the command palette.

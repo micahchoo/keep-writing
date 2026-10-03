@@ -74,6 +74,31 @@ title: Garden
 
 Use a different filename and ID prefix for each bank. Keep IDs stable after you start answering: saved answers link to those IDs. An ordinary Markdown note without `kind: bank` is not a question bank.
 
+## Ask your own question
+
+**Draw a question** always ends with **Ask my own…**, even when the draw finds nothing. It searches every question in every bank, including paused banks and questions you have answered. Answered ones come last, with the note that answered them, because asking again is a fair thing to want. Pick one and it lands like any drawn question.
+
+When nothing fits, the last row is **New question**. Your words go, as you typed them, on one line at the end of `Bank/Custom.md`, and are asked at once. The note is made the first time.
+
+`Bank/Custom.md` is the one bank where a line needs no id:
+
+```markdown
+- what did my father never say out loud?
+- what do my hands remember? #register/embodiment
+```
+
+Type a line there from anywhere, on your phone or in the middle of an answer, and it is a question: searchable now, and drawn like any other. Its address is its words. A tag added later keeps it; a changed word makes it a new question. Keep the name and the place: renamed or moved, its lines stop counting.
+
+## Check and repair the banks
+
+A line with no id in any other bank is not a question, and nothing says so. Ask my own tells you how many there are. **Check and repair the question banks** fixes what has one right answer:
+
+- A line with no id outside `Bank/Custom.md` gets one.
+- An id repeated on later lines of one note: the later lines get new ones.
+- An answer to a `Bank/Custom.md` question whose words you changed is linked to the line it became, when one line is clearly closest.
+
+Everything else is listed, and picking an item opens the note there: an id repeated on lines that already have an answer, a repeat in an installed bank, an edited question with two close candidates, a renamed `Custom`, and banks paused at 0. There is no undo, which is why it fixes only what has one answer.
+
 ## Choose how often each bank appears
 
 Open **Question banks → Installed banks** to see the individual controls. The main settings page shows only the bank count until you open this page.
@@ -168,11 +193,13 @@ A graduated piece has no `status`, so it is drawn as the piece you are writing, 
 
 ## What it will not do
 
-The plugin never writes a sentence into your notes. Its entire write surface is three things:
+The plugin never writes a sentence into your notes that you did not type. Its entire write surface is five things:
 
 1. **Frontmatter properties** — via Obsidian's own `processFrontMatter`.
 2. **A block id** appended to your answer (` ^a1b2c3`), in your daily note. No existing character changes.
 3. **A `> [!ask]` callout**, at the end of the `## Asked` section, with the paragraph it asks about quoted under it.
+4. **Your own question**, as you typed it, at the end of `Bank/Custom.md` — only when you choose **New question**.
+5. **A block id on a bank line** — only when you run **Check and repair the question banks**, and never in `Bank/Custom.md`.
 
 The paragraph a question came from is never written, not even an id. A paragraph without one is linked by an address computed from its words (`[[note#^kw-3f9a1c]]`). The link works and shows in backlinks; it opens the note at the top rather than at the paragraph. Edit the paragraph and it counts as a new one.
 
